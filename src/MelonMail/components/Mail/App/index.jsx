@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 
 import Header from '../Header';
 import Sidebar from '../Sidebar';
 import MailList from '../MailList';
 import MailPreview from '../MailPreview';
+
+import * as routerActions from '../../../actions/router';
 
 class App extends Component {
   constructor(props) {
@@ -14,10 +17,14 @@ class App extends Component {
     this.state = {};
   }
 
-  render() {
-    // if(!this.props.user.isAuthenticated)
-    //     return (<Redirect to="/auth"/>);
+  componentWillMount() {
+    if (!this.props.user.isAuthenticated) {
+      console.log(this.props);
+      this.props.push('auth');
+    }
+  }
 
+  render() {
     return (
       <div className="app">
         <Header />
@@ -31,8 +38,15 @@ class App extends Component {
   }
 }
 
+App.propTypes = {
+  user: PropTypes.shape({
+    isAuthenticated: PropTypes.bool.isRequired,
+  }).isRequired,
+  push: PropTypes.func.isRequired,
+};
+
 const mapStateToProps = state => state;
-const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
+const mapDispatchToProps = dispatch => bindActionCreators({ ...routerActions }, dispatch);
 
 export default connect(
   mapStateToProps,

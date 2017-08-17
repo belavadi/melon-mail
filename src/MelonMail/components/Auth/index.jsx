@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import * as authActions from '../../actions/auth';
+import * as routerActions from '../../actions/router';
 import helper from '../../services/helperService';
 
 class Auth extends Component {
@@ -17,6 +18,12 @@ class Auth extends Component {
 
   componentDidMount() {
     if (!this.props.user.isAuthenticated) { helper.executeWhenReady(this.props.checkRegistration); }
+  }
+
+  componentDidUpdate() {
+    if (this.props.user.isAuthenticated) {
+      this.props.push('/');
+    }
   }
 
   render() {
@@ -75,11 +82,6 @@ class Auth extends Component {
               </Segment>
             </div>
           }
-
-          {
-            this.props.user.isAuthenticated &&
-            <Redirect to="/" />
-          }
         </Grid>
 
 
@@ -97,6 +99,7 @@ Auth.propTypes = {
     loginError: PropTypes.string,
   }).isRequired,
   checkRegistration: PropTypes.func.isRequired,
+  push: PropTypes.func.isRequired,
 };
 
 Auth.defaultProps = {
@@ -107,6 +110,7 @@ Auth.defaultProps = {
 const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators({
   ...authActions,
+  ...routerActions,
 }, dispatch);
 
 export default connect(

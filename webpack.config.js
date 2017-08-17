@@ -1,7 +1,7 @@
-let webpack = require('webpack');
-let path = require('path');
+const webpack = require('webpack');
+const path = require('path');
 
-let config = {
+const config = {
   entry: [
     'react-hot-loader/patch',
     'webpack/hot/only-dev-server',

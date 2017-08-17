@@ -23,7 +23,7 @@ class MailPreview extends Component {
           !this.props.mail.isFetching &&
           this.props.mail.thread &&
           <div className="thread-wrapper">
-            {this.props.mail.thread.map(mail => (
+            {this.props.mail.thread.map((mail, i) => (
               <div className="mail-wrapper">
                 <h3>{mail.title}</h3>
                 <p>From: {mail.from}</p>
@@ -49,7 +49,7 @@ class MailPreview extends Component {
 MailPreview.propTypes = {
   mail: PropTypes.shape({
     isFetching: PropTypes.bool,
-    thread: PropTypes.object,
+    thread: PropTypes.array,
   }),
 };
 
