@@ -60,4 +60,5 @@ typings/
 # custom
 .idea
 .DS_STORE
+public
 
