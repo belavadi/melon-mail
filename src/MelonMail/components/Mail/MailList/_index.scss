@@ -1,0 +1,24 @@
+.mail-list {
+  width: 300px;
+  background-color: #ddd;
+
+  .list {
+    padding: 10px;
+
+    .item {
+      border: 1px solid;
+      margin: 10px 0;
+      padding: 10px;
+      cursor: pointer;
+      .title {
+        font-size: 1.4rem;
+        font-weight: bold;
+      }
+      .meta {
+        .date {
+          float: right;
+        }
+      }
+    }
+  }
+}

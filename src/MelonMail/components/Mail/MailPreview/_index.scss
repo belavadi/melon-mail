@@ -1,0 +1,14 @@
+.mail-preview {
+  background-color: white;
+  flex-grow: 1;
+  min-width: 400px;
+
+  .thread-wrapper {
+    padding: 10px;
+
+    .mail-wrapper {
+      border: 1px solid;
+      padding: 10px;
+    }
+  }
+}

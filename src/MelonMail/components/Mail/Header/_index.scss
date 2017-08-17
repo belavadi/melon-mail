@@ -1,0 +1,13 @@
+header {
+  height: 60px;
+  background-color: #222;
+  color: white;
+
+  .logout {
+    float: right;
+    height: 100%;
+    line-height: 60px;
+    padding: 0 20px;
+    cursor: pointer;
+  }
+}
