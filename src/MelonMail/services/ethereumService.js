@@ -168,6 +168,7 @@ export default {
   incomingMailEvent,
   registerUserContract,
   getPublicKeyContract,
+  sendEmailContract,
   checkRegistration,
   signIn,
 };
