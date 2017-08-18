@@ -18,8 +18,7 @@ class App extends Component {
   }
 
   componentWillMount() {
-    if (!this.props.user.isAuthenticated) {
-      console.log(this.props);
+    if (!this.props.user.isAuthenticated && false) {
       this.props.push('auth');
     }
   }

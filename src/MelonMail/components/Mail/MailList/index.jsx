@@ -14,6 +14,10 @@ class MailList extends Component {
   render() {
     return (
       <div className="mail-list">
+        <button onClick={() => mailActions.sendMail({
+          to: '0x11b6c106d52f0bB8ADb75A577076D33f33FA9C40',
+        })}
+        >send test</button>
         <div className="list">
           <div className="item" onClick={() => this.props.fetchMail(1)} role="button" tabIndex="-1">
             <span className="title">Mail title</span>
