@@ -1,5 +1,3 @@
-import bitcore from 'bitcore-lib';
-
 import contract from './contract.json';
 
 const NETWORK_ID = '42';
@@ -33,16 +31,35 @@ const getAccount = () => {
 
 const checkRegistration = () =>
   new Promise((resolve, reject) => {
-    const account = getAccount();
-    if (!account) {
-      return reject({
-        message: 'NO_ACCOUNT',
-      });
-    }
+    mailContract.BroadcastPublicKey(
+      {
+        addr: getAccount(),
+      },
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      },
+    )
+      .get((error, events) => {
+        console.log(events, error);
+        if (!events.length) {
+          return reject({
+            error: false,
+            message: 'User not registered.',
+          });
+        }
+        if (error) {
+          return reject({
+            error: true,
+            message: error,
+          });
+        }
 
-    // TODO
-    // look for events on chain
-    return resolve(true);
+        return resolve({
+          email: web3.toAscii(events[0].args.username),
+          startingBlock: events[0].blockNumber,
+        });
+      });
   });
 
 const signString = (account, stringToSign) =>
@@ -106,7 +123,11 @@ const getPublicKeyContract = email =>
         toBlock: 'latest',
       })
       .get((error, events) => {
-        if (!events.length || error) {
+        if (!events.length) {
+          return reject(events);
+        }
+
+        if (error) {
           return reject(error);
         }
 
@@ -150,8 +171,7 @@ const sendEmailContract = (toAddress, ipfsHash, threadId) =>
   });
 
 const signIn = () => new Promise((resolve, reject) => {
-  const acc = getAccount();
-  signString
+  signString(getAccount(), contract.stringToSign)
     .then((result) => {
       resolve({
         status: true,
@@ -165,6 +185,7 @@ const signIn = () => new Promise((resolve, reject) => {
 export default {
   getWeb3Status,
   getAccount,
+  signString,
   incomingMailEvent,
   registerUserContract,
   getPublicKeyContract,

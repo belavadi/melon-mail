@@ -26,7 +26,7 @@ contract Email is mortal {
 
     function registerUser(bytes32 username, string publicKey) returns (bool) {
         if(usernameToAddress[username] != 0) {
-            throw;
+            revert();
         }
 
         usernameToAddress[username] = msg.sender;

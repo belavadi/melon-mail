@@ -13,6 +13,8 @@ class Auth extends Component {
     super(props);
 
     this.state = {};
+
+    this.register = this.register.bind(this);
   }
 
   componentDidMount() {
@@ -23,6 +25,10 @@ class Auth extends Component {
     if (this.props.user.isAuthenticated) {
       this.props.push('/');
     }
+  }
+
+  register() {
+    this.props.registerUser(this.username.value);
   }
 
   render() {
@@ -75,9 +81,9 @@ class Auth extends Component {
               <Header as="h2">User is not registered.</Header>
               <Header as="h3">User should register</Header>
               <Segment>
-                <input type="text" />@mail.com
+                <input ref={(input) => { this.username = input; }} type="text" />@mail.com
                 <Divider />
-                <Button>Register</Button>
+                <Button onClick={this.register}>Register</Button>
               </Segment>
             </div>
           }
@@ -97,6 +103,7 @@ Auth.propTypes = {
     authError: PropTypes.string,
     loginError: PropTypes.string,
   }).isRequired,
+  registerUser: PropTypes.func.isRequired,
   checkRegistration: PropTypes.func.isRequired,
   push: PropTypes.func.isRequired,
 };

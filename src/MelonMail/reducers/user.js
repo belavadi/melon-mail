@@ -44,6 +44,7 @@ export default (state = {
         ...state,
         registrationDetermined: true,
         isRegistered: true,
+        loginError: '',
       };
     case 'AUTH_ERROR':
       return {
