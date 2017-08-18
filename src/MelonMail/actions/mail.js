@@ -1,6 +1,8 @@
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 
+const concat = require('concat-stream');
+
 export const mailRequest = () => ({
   type: 'MAIL_REQUEST',
 });
@@ -18,16 +20,34 @@ export const mailError = error => ({
 export const fetchMail = id => (dispatch) => {
   dispatch(mailRequest());
 
-  // fetch mail
-  const thread = [{
-    id,
-    title: 'Test title',
-    from: 'user@mail.com',
-    date: '12-03-2017',
-  }];
-  setTimeout(() => {
-    dispatch(mailSuccess(thread));
-  }, 300);
+  ipfs.getThread(id)
+    .then((thread) => {
+      const mailLinks = thread.toJSON().links;
+
+      const promises = [];
+      mailLinks.forEach((mailLink) => {
+        promises.push(ipfs.getFileStream(mailLink.multihash));
+      });
+
+      return Promise.all(promises);
+    })
+    .then((mails) => {
+      const promises = [];
+      mails.forEach((mail) => {
+        promises.push(new Promise((resolve) => {
+          mail.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
+        }));
+      });
+
+      return Promise.all(promises);
+    })
+    .then((mails) => {
+      console.log(mails);
+      dispatch(mailSuccess(mails));
+    })
+    .catch((error) => {
+      dispatch(mailError(error));
+    });
 };
 
 export const sendMail = (mail) => {

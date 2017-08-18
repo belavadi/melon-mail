@@ -37,11 +37,14 @@ const newThread = (mail) => {
 
 const getThread = hash => ipfs().object.get(hash);
 
-const getFile = hash => ipfs().file.get(hash);
+const getFile = hash => ipfs().files.get(hash);
 
-const getFileStream = hash => ipfs().file.cat(hash);
+const getFileStream = hash => ipfs().files.cat(hash);
 
 export default {
   uploadMail,
   newThread,
+  getThread,
+  getFile,
+  getFileStream,
 };

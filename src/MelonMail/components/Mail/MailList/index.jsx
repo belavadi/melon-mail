@@ -19,7 +19,7 @@ class MailList extends Component {
         })}
         >send test</button>
         <div className="list">
-          <div className="item" onClick={() => this.props.fetchMail(1)} role="button" tabIndex="-1">
+          <div className="item" onClick={() => this.props.fetchMail('QmbEzBHW2gdyywiEtaVS9NPm5K8aj4ohcjKs1EPtawgAbR')} role="button" tabIndex="-1">
             <span className="title">Mail title</span>
             <div className="meta">
               <span className="from">from@email.com</span>
@@ -27,7 +27,7 @@ class MailList extends Component {
             </div>
           </div>
 
-          <div className="item" onClick={() => this.props.fetchMail(2)} role="button" tabIndex="-1">
+          <div className="item" onClick={() => this.props.fetchMail('QmbEzBHW2gdyywiEtaVS9NPm5K8aj4ohcjKs1EPtawgAbR')} role="button" tabIndex="-1">
             <span className="title">Mail title</span>
             <div className="meta">
               <span className="from">from@email.com</span>
@@ -35,7 +35,7 @@ class MailList extends Component {
             </div>
           </div>
 
-          <div className="item" onClick={() => this.props.fetchMail(3)} role="button" tabIndex="-1">
+          <div className="item" onClick={() => this.props.fetchMail('QmbEzBHW2gdyywiEtaVS9NPm5K8aj4ohcjKs1EPtawgAbR')} role="button" tabIndex="-1">
             <span className="title">Mail title</span>
             <div className="meta">
               <span className="from">from@email.com</span>

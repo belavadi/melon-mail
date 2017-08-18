@@ -3,6 +3,10 @@ module.exports = {
   plugins: [
     'react', 'import',
   ],
+  env: {
+    "es6": true,
+    "browser": true
+  },
   rules: {
     'jsx-a11y/href-no-hash': 'off',
     'no-unused-vars': 1,

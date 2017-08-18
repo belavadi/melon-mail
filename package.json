@@ -11,21 +11,22 @@
   "author": "Decenter",
   "license": "ISC",
   "dependencies": {
-    "ipfs-api": "^14.1.2",
     "bitcore-lib": "^0.14.0",
+    "concat-stream": "^1.6.0",
     "extract-text-webpack-plugin": "^2.1.2",
+    "ipfs-api": "^14.1.2",
     "prop-types": "^15.5.10",
     "react": "^15.6.1",
+    "react-addons-transition-group": "^15.6.0",
     "react-dom": "^15.6.1",
+    "react-hot-loader": "^3.0.0-beta.7",
     "react-modal": "^1.9.7",
     "react-redux": "^5.0.6",
-    "react-addons-transition-group": "^15.6.0",
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0",
     "resolve-url-loader": "^2.1.0",
     "semantic-ui-react": "^0.71.4",
-    "webpack": "^2.7.0",
-    "react-hot-loader": "^3.0.0-beta.7"
+    "webpack": "^2.7.0"
   },
   "devDependencies": {
     "babel-core": "^6.11.4",

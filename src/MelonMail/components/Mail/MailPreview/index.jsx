@@ -24,7 +24,7 @@ class MailPreview extends Component {
           this.props.mail.thread &&
           <div className="thread-wrapper">
             {this.props.mail.thread.map(mail => (
-              <div className="mail-wrapper" key={mail.id}>
+              <div className="mail-wrapper" key={mail.toString()}>
                 <h3>{mail.title}</h3>
                 <p>From: {mail.from}</p>
                 <p>
