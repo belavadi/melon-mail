@@ -1,5 +1,6 @@
-import contract from './contract.json';
 import bitcore from 'bitcore-lib';
+
+import contract from './contract.json';
 
 const NETWORK_ID = '42';
 const mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
@@ -74,7 +75,7 @@ const registerUserContract = (email, privateKey, publicKey) =>
         return reject(error);
       }
 
-      getBlockNumber()
+      return getBlockNumber()
         .then((startingBlock) => {
           resolve({
             email,
@@ -103,12 +104,12 @@ const signIn = () => new Promise((resolve, reject) => {
     .catch((error) => {
       reject(error);
     });
-
 });
 
 export default {
   getWeb3Status,
   getAccount,
+  registerUserContract,
   checkRegistration,
   signIn,
 };
