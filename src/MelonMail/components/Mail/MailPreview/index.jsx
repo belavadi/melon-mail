@@ -23,7 +23,7 @@ class MailPreview extends Component {
           !this.props.mail.isFetching &&
           this.props.mail.thread &&
           <div className="thread-wrapper">
-            {this.props.mail.thread.map((mail, i) => (
+            {this.props.mail.thread.map(mail => (
               <div className="mail-wrapper">
                 <h3>{mail.title}</h3>
                 <p>From: {mail.from}</p>

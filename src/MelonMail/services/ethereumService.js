@@ -1,4 +1,5 @@
 import contract from './contract.json';
+import bitcore from 'bitcore-lib';
 
 const NETWORK_ID = '42';
 const mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
@@ -43,15 +44,66 @@ const checkRegistration = () =>
     return resolve(true);
   });
 
-const signIn = () => new Promise((resolve, reject) => {
-  const acc = getAccount();
-  web3.eth.sign(acc, contract.stringToSign, (error, result) => {
-    // TODO
-    const status = !error;
-    resolve({
-      status, error,
+const signString = (account, stringToSign) =>
+  new Promise((resolve, reject) => {
+    web3.eth.sign(account, stringToSign, (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(result);
     });
   });
+
+const getBlockNumber = () =>
+  new Promise((resolve, reject) => {
+    web3.eth.getBlockNumber((error, latestBlock) => {
+      if (error) {
+        return reject(error);
+      }
+
+      return resolve(latestBlock);
+    });
+  });
+
+/* Calls registerUser function from the contract code */
+
+const registerUserContract = (email, privateKey, publicKey) =>
+  new Promise((resolve, reject) => {
+    mailContract.registerUser(email, publicKey.toString(), (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+
+      getBlockNumber()
+        .then((startingBlock) => {
+          resolve({
+            email,
+            privateKey,
+            startingBlock,
+          });
+        })
+        .catch(() => {
+          resolve({
+            email,
+            privateKey,
+            startingBlock: 0,
+          });
+        });
+    });
+  });
+
+const signIn = () => new Promise((resolve, reject) => {
+  const acc = getAccount();
+  signString
+    .then((result) => {
+      resolve({
+        status: true,
+      });
+    })
+    .catch((error) => {
+      reject(error);
+    });
+
 });
 
 export default {
