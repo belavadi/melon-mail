@@ -90,7 +90,7 @@ const getBlockNumber = () =>
 
 /* Calls registerUser function from the contract code */
 
-const registerUserContract = (email, privateKey, publicKey) =>
+const _registerUser = (email, privateKey, publicKey) =>
   new Promise((resolve, reject) => {
     mailContract.registerUser(email, publicKey.toString(), (error) => {
       if (error) {
@@ -117,7 +117,7 @@ const registerUserContract = (email, privateKey, publicKey) =>
 
 /* Scans the blockchain to find the public key for a user */
 
-const getPublicKeyContract = email =>
+const _getPublicKey = email =>
   new Promise((resolve, reject) => {
     mailContract.BroadcastPublicKey(
       {
@@ -164,7 +164,7 @@ const incomingMailEvent = startBlock =>
       });
   });
 
-const sendEmailContract = (toAddress, ipfsHash, threadId) =>
+const _sendEmail = (toAddress, ipfsHash, threadId) =>
   new Promise((resolve, reject) => {
     mailContract.sendEmail(toAddress, ipfsHash, threadId, (error, result) => {
       if (error) {
@@ -192,9 +192,9 @@ export default {
   getAccount,
   signString,
   incomingMailEvent,
-  registerUserContract,
-  getPublicKeyContract,
-  sendEmailContract,
+  _registerUser,
+  _getPublicKey,
+  _sendEmail,
   checkRegistration,
   signIn,
 };

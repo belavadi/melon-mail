@@ -71,7 +71,7 @@ export const registerUser = username => (dispatch) => {
       const publicKey = bitcore.PublicKey.fromPrivateKey(privateKey);
       const email = `${username}@melonmail.eth`;
 
-      return eth.registerUserContract(email, privateKey, publicKey);
+      return eth._registerUser(email, privateKey, publicKey);
     })
     .then((data) => {
       dispatch(registerSuccess(data));

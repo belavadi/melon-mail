@@ -59,7 +59,7 @@ export const sendMail = (mail) => {
     .then((threadLink) => {
       console.log(threadLink.toJSON());
       const multihash = threadLink.toJSON().multihash;
-      return eth.sendEmailContract(mail.to, multihash, multihash);
+      return eth._sendEmail(mail.to, multihash, multihash);
     })
     .then((res) => {
       console.log(res);
