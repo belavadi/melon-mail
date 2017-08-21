@@ -5,11 +5,13 @@ import contract from '../services/contract.json';
 
 export const userNotRegistered = () => ({
   type: 'USER_NOT_REGISTERED',
+  stage: 'register',
 });
 
 export const userIsRegistered = data => ({
   type: 'USER_IS_REGISTERED',
   data,
+  stage: 'signIn',
 });
 
 export const registerSuccess = () => ({
@@ -18,12 +20,14 @@ export const registerSuccess = () => ({
 
 export const registerError = error => ({
   type: 'REGISTER_ERROR',
+  stage: 'authError',
   error,
 });
 
 export const authError = error => ({
   type: 'AUTH_ERROR',
   isFetching: false,
+  stage: 'authError',
   error,
 });
 
@@ -33,6 +37,7 @@ export const loginSuccess = () => ({
 
 export const loginError = error => ({
   type: 'LOGIN_ERROR',
+  stage: 'authError',
   error,
 });
 
@@ -40,25 +45,22 @@ export const checkRegistration = () => (dispatch) => {
   eth.getWeb3Status()
     .then(() => eth.checkRegistration())
     .then((data) => {
-      console.log('User registered. Should sign transaction.');
       dispatch(userIsRegistered(data));
       return eth.signIn();
     })
     .then((result) => {
-      console.log(result);
       if (result.status) {
         return dispatch(loginSuccess());
       }
-
-      return dispatch(loginError(result.error.toString()));
+      console.error(result.error);
+      return dispatch(loginError('Login failed.'));
     })
     .catch((result) => {
-      if (!result.error) {
-        console.log('User not registered. Go to registration');
+      if (!result.error && result.notRegistered) {
         return dispatch(userNotRegistered());
       }
-      console.log('Error: ', result.message);
-      return dispatch(authError(result.message.toString()));
+      console.error(result.message);
+      return dispatch(authError('Login failed.'));
     });
 };
 

@@ -1,7 +1,11 @@
 import contract from './contract.json';
 
 const NETWORK_ID = '42';
-const mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
+let mailContract;
+
+window.onload = () => {
+  mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
+};
 
 const getWeb3Status = () =>
   new Promise((resolve, reject) => {
@@ -45,6 +49,7 @@ const checkRegistration = () =>
         if (!events.length) {
           return reject({
             error: false,
+            notRegistered: true,
             message: 'User not registered.',
           });
         }
@@ -87,7 +92,7 @@ const getBlockNumber = () =>
 
 const registerUserContract = (email, privateKey, publicKey) =>
   new Promise((resolve, reject) => {
-    mailContract.registerUser(email, publicKey.toString(), (error, result) => {
+    mailContract.registerUser(email, publicKey.toString(), (error) => {
       if (error) {
         return reject(error);
       }
@@ -172,7 +177,7 @@ const sendEmailContract = (toAddress, ipfsHash, threadId) =>
 
 const signIn = () => new Promise((resolve, reject) => {
   signString(getAccount(), contract.stringToSign)
-    .then((result) => {
+    .then(() => {
       resolve({
         status: true,
       });

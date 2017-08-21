@@ -31,62 +31,53 @@ class Auth extends Component {
     this.props.registerUser(this.username.value);
   }
 
+  renderRegistration() {
+    switch (this.props.user.stage) {
+      case 'check':
+        return (
+          <div>
+            <Header as="h2">Checking if user is registered...</Header>
+          </div>
+        );
+      case 'signIn':
+        return (
+          <div>
+            <Header as="h2">Signing in...</Header>
+            <Header as="h3">User should authenticate (sign transaction)</Header>
+          </div>
+        );
+      case 'authError':
+        return (
+          <div>
+            <Header as="h2">Authentication error</Header>
+            <Header as="h3">{this.props.user.authError}</Header>
+            <Button onClick={this.props.checkRegistration}>Try again?</Button>
+          </div>
+        );
+      case 'register':
+        return (
+          <div>
+            <Header as="h2">User is not registered.</Header>
+            <Header as="h3">User should register</Header>
+            <Segment>
+              <input ref={(input) => { this.username = input; }} type="text" />@mail.com
+              <Divider />
+              <Button onClick={this.register}>Register</Button>
+            </Segment>
+          </div>
+        );
+      default:
+        return null;
+    }
+  }
+
   render() {
     return (
       <Container text>
         <Header as="h1">Auth</Header>
 
         <Grid centered>
-          {
-            !this.props.user.registrationDetermined &&
-            !this.props.user.authError &&
-            <div>
-              <Header as="h2">Checking if user is registered...</Header>
-            </div>
-          }
-
-          {
-            this.props.user.registrationDetermined &&
-            this.props.user.isRegistered &&
-            this.props.user.loginError === '' &&
-            <div>
-              <Header as="h2">Signing in...</Header>
-              <Header as="h3">User should authenticate (sign transaction)</Header>
-            </div>
-          }
-
-          {
-            !this.props.user.registrationDetermined &&
-            this.props.user.authError &&
-            <div>
-              <Header as="h2">Authentication error</Header>
-              <Header as="h3">{this.props.user.authError}</Header>
-            </div>
-          }
-
-          {
-            this.props.user.registrationDetermined &&
-            this.props.user.isRegistered &&
-            this.props.user.loginError !== '' &&
-            <div>
-              <Header as="h2">Sign in failed.</Header>
-              <Header as="h3">{this.props.user.loginError}</Header>
-            </div>
-          }
-
-          {
-            this.props.user.registrationDetermined &&
-            !this.props.user.isRegistered &&
-            <div>
-              <Header as="h2">User is not registered.</Header>
-              <Header as="h3">User should register</Header>
-              <Segment>
-                <input ref={(input) => { this.username = input; }} type="text" />@mail.com
-                <Divider />
-                <Button onClick={this.register}>Register</Button>
-              </Segment>
-            </div>
-          }
+          {this.renderRegistration()}
         </Grid>
 
 
@@ -102,6 +93,7 @@ Auth.propTypes = {
     registrationDetermined: PropTypes.bool,
     authError: PropTypes.string,
     loginError: PropTypes.string,
+    stage: PropTypes.string,
   }).isRequired,
   registerUser: PropTypes.func.isRequired,
   checkRegistration: PropTypes.func.isRequired,
