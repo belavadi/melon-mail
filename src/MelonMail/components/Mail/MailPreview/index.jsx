@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { Card } from 'semantic-ui-react';
 
 class MailPreview extends Component {
   constructor(props) {
@@ -24,13 +25,19 @@ class MailPreview extends Component {
           this.props.mail.thread &&
           <div className="thread-wrapper">
             {this.props.mail.thread.map(mail => (
-              <div className="mail-wrapper" key={mail.toString()}>
-                <h3>{mail.title}</h3>
-                <p>From: {mail.from}</p>
-                <p>
-                  {JSON.stringify(mail)}
-                </p>
-              </div>
+              <Card fluid className="mail-wrapper" key={mail.toString()}>
+                <Card.Content>
+                  <Card.Header>
+                    Title: {mail.title}
+                  </Card.Header>
+                  <Card.Description>
+                    <p>From: {mail.from}</p>
+                    <p>
+                      {JSON.stringify(mail)}
+                    </p>
+                  </Card.Description>
+                </Card.Content>
+              </Card>
             ))}
           </div>
         }

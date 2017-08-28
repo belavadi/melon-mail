@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { List } from 'semantic-ui-react';
+
 import * as mailActions from '../../../actions/mail';
 import MailListItem from '../MailListItem';
 
@@ -19,11 +21,7 @@ class MailList extends Component {
   render() {
     return (
       <div className="mail-list">
-        <button onClick={() => mailActions.sendMail({
-          to: '0x11b6c106d52f0bB8ADb75A577076D33f33FA9C40',
-        })}
-        >send test</button>
-        <div className="list">
+        <List selection divided>
           {
             this.props.mails.mails &&
             this.props.mails.mails.length > 0 &&
@@ -38,7 +36,7 @@ class MailList extends Component {
               No mails :D
             </div>
           }
-        </div>
+        </List>
       </div>
     );
   }

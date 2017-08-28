@@ -1,6 +1,8 @@
+@import '../../../style/vars';
+
 header {
   height: 60px;
-  background-color: #222;
+  background-color: $primaryColor;
   color: white;
 
   .logout {

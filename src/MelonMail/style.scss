@@ -1,14 +1,20 @@
 .melonmail-wrapper {
-  font-family: 'Open Sans', sans-serif;
   height: 100%;
 
   * {
 	outline: none;
+    font-family: 'Ubuntu', sans-serif;
   }
+
+  @import "style/mixins/mixins";
+  @import "style/config/reset";
+  @import "style/config/fonts";
 
   @import "components/Mail/App/index";
   @import "components/Mail/Header/index";
   @import "components/Mail/Sidebar/index";
   @import "components/Mail/MailList/index";
+  @import "components/Mail/MailListItem/index";
   @import "components/Mail/MailPreview/index";
+  @import "components/Mail/Compose/index";
 }

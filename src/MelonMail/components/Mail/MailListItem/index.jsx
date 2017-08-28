@@ -2,16 +2,23 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { List } from 'semantic-ui-react';
+
 import * as mailActions from '../../../actions/mail';
 
 const MailListItem = ({ args, fetchMail }) => (
-  <div className="item" onClick={() => fetchMail(args.threadId)} role="button" tabIndex="-1">
-    <span className="title">Mail title</span>
+  <List.Item
+    className="mail-list-item"
+    onClick={() => fetchMail(args.threadId)}
+    role="button"
+    tabIndex="-1"
+  >
+    <List.Header>Mail Title</List.Header>
     <div className="meta">
-      <span className="from">{ args.from }</span>
+      <span className="from">{args.from}</span>
       <span className="date">12.3.2017</span>
     </div>
-  </div>
+  </List.Item>
 );
 
 MailListItem.propTypes = {
