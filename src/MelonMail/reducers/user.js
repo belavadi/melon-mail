@@ -45,6 +45,8 @@ export default (state = {
         registrationDetermined: true,
         isRegistered: true,
         loginError: '',
+        startingBlock: action.data.startingBlock,
+        address: action.data.email,
       };
     case 'AUTH_ERROR':
       return {

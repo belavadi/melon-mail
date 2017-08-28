@@ -46,7 +46,8 @@ export const fetchMail = id => (dispatch) => {
       dispatch(mailSuccess(mails));
     })
     .catch((error) => {
-      dispatch(mailError(error));
+      console.log(error);
+      dispatch(mailError(error.message));
     });
 };
 
@@ -66,5 +67,33 @@ export const sendMail = (mail) => {
     })
     .catch((error) => {
       console.log(error);
+    });
+};
+
+
+export const mailsRequest = () => ({
+  type: 'MAILS_REQUEST',
+});
+
+export const mailsSuccess = mails => ({
+  type: 'MAILS_SUCCESS',
+  mails,
+});
+
+export const mailsError = error => ({
+  type: 'MAILS_ERROR',
+  error,
+});
+
+export const getMails = folder => (dispatch, getState) => {
+  const startingBlock = getState().user.startingBlock;
+  eth.getMails(folder, startingBlock)
+    .then((mails) => {
+      console.log(mails);
+      dispatch(mailsSuccess(mails));
+    })
+    .catch((error) => {
+      console.log(error);
+      dispatch(mailsError(error));
     });
 };

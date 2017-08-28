@@ -3,12 +3,17 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as mailActions from '../../../actions/mail';
+import MailListItem from '../MailListItem';
 
 class MailList extends Component {
   constructor(props) {
     super(props);
 
     this.state = {};
+  }
+
+  componentDidMount() {
+    this.props.getMails('inbox');
   }
 
   render() {
@@ -19,29 +24,20 @@ class MailList extends Component {
         })}
         >send test</button>
         <div className="list">
-          <div className="item" onClick={() => this.props.fetchMail('QmbEzBHW2gdyywiEtaVS9NPm5K8aj4ohcjKs1EPtawgAbR')} role="button" tabIndex="-1">
-            <span className="title">Mail title</span>
-            <div className="meta">
-              <span className="from">from@email.com</span>
-              <span className="date">12.3.2017</span>
+          {
+            this.props.mails.mails &&
+            this.props.mails.mails.length > 0 &&
+            this.props.mails.mails.map(mail => (
+              <MailListItem args={mail.args} key={mail.transactionHash} />
+            ))
+          }
+          {
+            (!this.props.mails.mails ||
+            this.props.mails.mails.length === 0) &&
+            <div>
+              No mails :D
             </div>
-          </div>
-
-          <div className="item" onClick={() => this.props.fetchMail('QmbEzBHW2gdyywiEtaVS9NPm5K8aj4ohcjKs1EPtawgAbR')} role="button" tabIndex="-1">
-            <span className="title">Mail title</span>
-            <div className="meta">
-              <span className="from">from@email.com</span>
-              <span className="date">12.3.2017</span>
-            </div>
-          </div>
-
-          <div className="item" onClick={() => this.props.fetchMail('QmbEzBHW2gdyywiEtaVS9NPm5K8aj4ohcjKs1EPtawgAbR')} role="button" tabIndex="-1">
-            <span className="title">Mail title</span>
-            <div className="meta">
-              <span className="from">from@email.com</span>
-              <span className="date">12.3.2017</span>
-            </div>
-          </div>
+          }
         </div>
       </div>
     );
@@ -49,7 +45,10 @@ class MailList extends Component {
 }
 
 MailList.propTypes = {
-  fetchMail: PropTypes.func.isRequired,
+  getMails: PropTypes.func.isRequired,
+  mails: PropTypes.shape({
+    mails: PropTypes.array,
+  }).isRequired,
 };
 
 const mapStateToProps = state => state;

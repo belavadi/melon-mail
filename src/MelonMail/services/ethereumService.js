@@ -159,6 +159,27 @@ const incomingMailEvent = startBlock =>
       });
   });
 
+const getMails = (folder, startBlock) => {
+  const filter = folder === 'inbox' ?
+    { to: getAccount() } :
+    { from: getAccount() };
+  return new Promise((resolve, reject) => {
+    mailContract.SendEmail(
+      filter,
+      {
+        fromBlock: startBlock,
+        toBlock: 'latest',
+      })
+      .get((error, events) => {
+        if (error) {
+          return reject(error);
+        }
+        console.log(`Fetched emails: ${JSON.stringify(events)}`);
+        return resolve(events);
+      });
+  });
+};
+
 const sendEmailContract = (toAddress, ipfsHash, threadId) =>
   new Promise((resolve, reject) => {
     mailContract.sendEmail(toAddress, ipfsHash, threadId, (error, result) => {
@@ -192,4 +213,5 @@ export default {
   sendEmailContract,
   checkRegistration,
   signIn,
+  getMails,
 };

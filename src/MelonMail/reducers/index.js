@@ -1,12 +1,14 @@
 import { combineReducers } from 'redux';
-import mail from './mail';
 import user from './user';
 import router from './router';
+import mail from './mail';
+import mails from './mails';
 
 const appReducer = combineReducers({
   user,
-  mail,
   router,
+  mail,
+  mails,
 });
 
 /*   Clears the store state    */

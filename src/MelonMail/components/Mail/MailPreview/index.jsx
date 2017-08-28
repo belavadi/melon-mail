@@ -37,7 +37,17 @@ class MailPreview extends Component {
         {
           !this.props.mail.isFetching &&
           !this.props.mail.thread &&
-          <div>
+          this.props.mail.error &&
+          <div className="error-wrapper">
+            <h1>Error fetching mail</h1>
+            <h2>{ JSON.stringify(this.props.mail.error) }</h2>
+          </div>
+        }
+        {
+          !this.props.mail.isFetching &&
+          !this.props.mail.thread &&
+          !this.props.mail.error &&
+          <div className="empty-wrapper">
             <h1>:D</h1>
           </div>
         }
@@ -50,6 +60,7 @@ MailPreview.propTypes = {
   mail: PropTypes.shape({
     isFetching: PropTypes.bool,
     thread: PropTypes.array,
+    error: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
 };
 
