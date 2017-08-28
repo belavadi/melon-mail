@@ -1,7 +1,11 @@
 import contract from './contract.json';
 
 const NETWORK_ID = '42';
-const mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
+let mailContract;
+
+window.onload = () => {
+  mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
+};
 
 const getWeb3Status = () =>
   new Promise((resolve, reject) => {
@@ -45,6 +49,7 @@ const checkRegistration = () =>
         if (!events.length) {
           return reject({
             error: false,
+            notRegistered: true,
             message: 'User not registered.',
           });
         }
@@ -85,9 +90,9 @@ const getBlockNumber = () =>
 
 /* Calls registerUser function from the contract code */
 
-const registerUserContract = (email, privateKey, publicKey) =>
+const _registerUser = (email, privateKey, publicKey) =>
   new Promise((resolve, reject) => {
-    mailContract.registerUser(email, publicKey.toString(), (error, result) => {
+    mailContract.registerUser(email, publicKey.toString(), (error) => {
       if (error) {
         return reject(error);
       }
@@ -112,7 +117,7 @@ const registerUserContract = (email, privateKey, publicKey) =>
 
 /* Scans the blockchain to find the public key for a user */
 
-const getPublicKeyContract = email =>
+const _getPublicKey = email =>
   new Promise((resolve, reject) => {
     mailContract.BroadcastPublicKey(
       {
@@ -180,7 +185,7 @@ const getMails = (folder, startBlock) => {
   });
 };
 
-const sendEmailContract = (toAddress, ipfsHash, threadId) =>
+const _sendEmail = (toAddress, ipfsHash, threadId) =>
   new Promise((resolve, reject) => {
     mailContract.sendEmail(toAddress, ipfsHash, threadId, (error, result) => {
       if (error) {
@@ -193,7 +198,7 @@ const sendEmailContract = (toAddress, ipfsHash, threadId) =>
 
 const signIn = () => new Promise((resolve, reject) => {
   signString(getAccount(), contract.stringToSign)
-    .then((result) => {
+    .then(() => {
       resolve({
         status: true,
       });
@@ -208,9 +213,9 @@ export default {
   getAccount,
   signString,
   incomingMailEvent,
-  registerUserContract,
-  getPublicKeyContract,
-  sendEmailContract,
+  _registerUser,
+  _getPublicKey,
+  _sendEmail,
   checkRegistration,
   signIn,
   getMails,

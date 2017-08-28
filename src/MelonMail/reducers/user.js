@@ -2,8 +2,7 @@ export default (state = {
   isFetching: false,
   isAuthenticated: false,
   loginError: '',
-  registrationDetermined: false,
-  isRegistered: false,
+  stage: 'check',
 }, action) => {
   switch (action.type) {
     case 'REGISTER_REQUEST':
@@ -32,19 +31,18 @@ export default (state = {
         ...state,
         isFetching: action.isFetching,
         registerError: action.registerError,
+        stage: action.stage,
       };
     case 'USER_NOT_REGISTERED':
       return {
         ...state,
-        registrationDetermined: true,
-        isRegistered: false,
+        stage: action.stage,
       };
     case 'USER_IS_REGISTERED':
       return {
         ...state,
-        registrationDetermined: true,
-        isRegistered: true,
         loginError: '',
+        stage: action.stage,
         startingBlock: action.data.startingBlock,
         address: action.data.email,
       };
@@ -53,6 +51,7 @@ export default (state = {
         ...state,
         isFetching: action.isFetching,
         authError: action.error,
+        stage: action.stage,
       };
     default:
       return state;
