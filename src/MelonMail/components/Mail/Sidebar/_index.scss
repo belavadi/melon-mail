@@ -1,7 +1,8 @@
 @import '../../../style/vars';
 
 .sidebar {
-  width: 130px;
+  width: 100%;
+  max-width: 130px;
   padding: 10px 0;
   background-color: #ddd;
   border-right: 1px solid $OceanBlue;

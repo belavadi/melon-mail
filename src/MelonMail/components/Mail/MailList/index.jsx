@@ -26,7 +26,7 @@ class MailList extends Component {
             this.props.mails.mails &&
             this.props.mails.mails.length > 0 &&
             this.props.mails.mails.map(mail => (
-              <MailListItem args={mail.args} key={mail.transactionHash} />
+              <MailListItem args={mail} key={mail.transactionHash} />
             ))
           }
           {

@@ -22,7 +22,7 @@ contract Email is mortal {
     mapping (bytes32 => address) usernameToAddress;
 
     event BroadcastPublicKey(bytes32 indexed username, address indexed addr, string publicKey);
-    event SendEmail(address indexed from, address indexed to, string mailHash, string threadHash, string threadId);
+    event SendEmail(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
 
     function registerUser(bytes32 username, string publicKey) returns (bool) {
         if(usernameToAddress[username] != 0) {
@@ -36,7 +36,7 @@ contract Email is mortal {
         return true;
     }
 
-    function sendEmail(address to, string mailHash, string threadHash, string threadId) returns (bool result) {
+    function sendEmail(address to, string mailHash, string threadHash, bytes32 threadId) returns (bool result) {
         SendEmail(msg.sender, to, mailHash, threadHash, threadId);
 
         return true;

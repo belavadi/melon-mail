@@ -1,3 +1,5 @@
+import sha3 from 'solidity-sha3';
+
 import contract from './contract.json';
 import { generateKeys } from './cryptoService';
 
@@ -192,6 +194,19 @@ const getMails = (folder, startBlock) => {
   });
 };
 
+const getThread = (threadId, afterBlock) =>
+  new Promise((resolve, reject) => {
+    mailContract.SendEmail({ threadId }, {
+      fromBlock: afterBlock,
+      toBlock: 'latest',
+    }).get((error, events) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(events.pop());
+    });
+  });
+
 const _sendEmail = (toAddress, ipfsHash, threadId) =>
   new Promise((resolve, reject) => {
     mailContract.sendEmail(toAddress, ipfsHash, threadId, (error, result) => {
@@ -226,4 +241,5 @@ export default {
   checkRegistration,
   signIn,
   getMails,
+  getThread,
 };

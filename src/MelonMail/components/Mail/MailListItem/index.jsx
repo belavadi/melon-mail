@@ -6,14 +6,14 @@ import { List } from 'semantic-ui-react';
 
 import * as mailActions from '../../../actions/mail';
 
-const MailListItem = ({ args, fetchMail }) => (
+const MailListItem = ({ args, getThread }) => (
   <List.Item
     className="mail-list-item"
-    onClick={() => fetchMail(args.threadId)}
+    onClick={() => getThread(args.threadId, args.blockNumber)}
     role="button"
     tabIndex="-1"
   >
-    <List.Header>Mail Title</List.Header>
+    <List.Header>{args.title}</List.Header>
     <div className="meta">
       <span className="from">{args.from}</span>
       <span className="date">12.3.2017</span>
@@ -26,9 +26,10 @@ MailListItem.propTypes = {
     from: PropTypes.string.isRequired,
     to: PropTypes.string.isRequired,
     threadId: PropTypes.string.isRequired,
-    ipfsHash: PropTypes.string.isRequired,
+    mailHash: PropTypes.string.isRequired,
+    threadHash: PropTypes.string.isRequired,
   }).isRequired,
-  fetchMail: PropTypes.func.isRequired,
+  getThread: PropTypes.func.isRequired,
 };
 
 MailListItem.defaultProps = {

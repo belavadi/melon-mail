@@ -17,27 +17,26 @@ export const mailError = error => ({
   error,
 });
 
-export const fetchMail = id => (dispatch) => {
+export const getThread = (threadId, afterBlock) => (dispatch) => {
   dispatch(mailRequest());
 
-  ipfs.getThread(id)
+  eth.getThread(threadId, afterBlock)
+    .then((threadEvent) => {
+      console.log(threadEvent);
+      return ipfs.getThread(threadEvent.args.threadHash);
+    })
     .then((thread) => {
+      console.log(thread);
       const mailLinks = thread.toJSON().links;
 
-      const promises = [];
-      mailLinks.forEach((mailLink) => {
-        promises.push(ipfs.getFileStream(mailLink.multihash));
-      });
+      const promises = mailLinks.map(mailLink => ipfs.getFileStream(mailLink.multihash));
 
       return Promise.all(promises);
     })
     .then((mails) => {
-      const promises = [];
-      mails.forEach((mail) => {
-        promises.push(new Promise((resolve) => {
-          mail.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
-        }));
-      });
+      const promises = mails.map(mail => new Promise((resolve) => {
+        mail.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
+      }));
 
       return Promise.all(promises);
     })
@@ -88,9 +87,36 @@ export const mailsError = error => ({
 export const getMails = folder => (dispatch, getState) => {
   const startingBlock = getState().user.startingBlock;
   eth.getMails(folder, startingBlock)
-    .then((mails) => {
-      console.log(mails);
-      dispatch(mailsSuccess(mails));
+    .then((mailEvents) => {
+      console.log(mailEvents);
+
+      const ipfsFetchPromises = mailEvents.map(mail => ipfs.getFileStream(mail.args.mailHash));
+
+      return Promise.all(ipfsFetchPromises)
+        .then((ipfsMails) => {
+          console.log(ipfsMails);
+          const ipfsReadPromises = ipfsMails.map(mail => new Promise((resolve) => {
+            mail.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
+          }));
+          return Promise.all(ipfsReadPromises);
+        })
+        .then((mails) => {
+          // decrypt here
+          const dectyptedMails = mails.map(mail => JSON.parse(mail));
+          console.log(dectyptedMails);
+          const mailsWithEventInfo = dectyptedMails.map((mail, index) => ({
+            transactionHash: mailEvents[index].transactionHash,
+            blockNumber: mailEvents[index].blockNumber,
+            ...mailEvents[index].args,
+            ...mail,
+          }));
+          console.log(mailsWithEventInfo);
+          dispatch(mailsSuccess(mailsWithEventInfo));
+        })
+        .catch((error) => {
+          console.log(error);
+          dispatch(mailsError(error));
+        });
     })
     .catch((error) => {
       console.log(error);
