@@ -1,4 +1,4 @@
-pragma solidity ^0.4.9;
+pragma solidity ^0.4.16;
 
 contract mortal {
     address public administrator;
@@ -14,7 +14,7 @@ contract mortal {
     }
 
     function kill() {
-        suicide(administrator);
+        selfdestruct(administrator);
     }
 }
 
@@ -22,7 +22,7 @@ contract Email is mortal {
     mapping (bytes32 => address) usernameToAddress;
 
     event BroadcastPublicKey(bytes32 indexed username, address indexed addr, string publicKey);
-    event SendEmail(address indexed from, address indexed to, string ipfsHash, string threadId);
+    event SendEmail(address indexed from, address indexed to, string mailHash, string threadHash, string threadId);
 
     function registerUser(bytes32 username, string publicKey) returns (bool) {
         if(usernameToAddress[username] != 0) {
@@ -36,8 +36,8 @@ contract Email is mortal {
         return true;
     }
 
-    function sendEmail(address to, string ipfsHash, string threadId) returns (bool result) {
-        SendEmail(msg.sender, to, ipfsHash, threadId);
+    function sendEmail(address to, string mailHash, string threadHash, string threadId) returns (bool result) {
+        SendEmail(msg.sender, to, mailHash, threadHash, threadId);
 
         return true;
     }
