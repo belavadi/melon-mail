@@ -9,7 +9,7 @@ import * as composeActions from '../../../actions/compose';
 const Sidebar = ({ openCompose }) => (
   <div className="sidebar">
     <div className="compose-button-wrapper">
-      <Button primary basic compact content="Compose" icon="plus" onClick={openCompose} />
+      <Button primary basic compact content="Compose" icon="plus" onClick={() => openCompose()} />
     </div>
     <ul>
       <li>Inbox</li>

@@ -1,5 +1,6 @@
 export const openCompose = special => ({
   type: 'COMPOSE_BOX_OPEN',
+  special,
 });
 
 export const closeCompose = () => ({

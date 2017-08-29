@@ -8,6 +8,7 @@ export default (state = {
         ...state,
         isOpen: true,
         isMaximized: true,
+        special: action.special,
       };
     case 'COMPOSE_BOX_CLOSE':
       return {

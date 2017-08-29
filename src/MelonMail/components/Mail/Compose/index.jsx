@@ -9,7 +9,40 @@ class Compose extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      to: '',
+      title: '',
+      body: '',
+    };
+
+    this.handleInputChange = this.handleInputChange.bind(this);
+  }
+
+  componentWillMount() {
+    if (this.props.compose.special) {
+      const originThread = this.props.mail.thread;
+      const indexInThread = this.props.compose.special.indexInThread;
+      const originMail = indexInThread !== undefined ?
+        originThread[indexInThread] : originThread[originThread.length - 1];
+      if (this.props.compose.special.type === 'reply') {
+        this.state.title = 'Re: ' + originMail.title;
+        this.state.to = originMail.from;
+        this.state.body = '\n-----\n' + originMail.body;
+      } else if (this.props.compose.special.type === 'forward') {
+        this.state.title = 'Fw: ' + originMail.title;
+        this.state.body = '\n-----\n' + originMail.body;
+      }
+    }
+  }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value,
+    });
   }
 
   render() {
@@ -31,9 +64,26 @@ class Compose extends Component {
           </div>
 
           <div className="inputs-wrapper">
-            <input type="text" placeholder="To" />
-            <input type="text" placeholder="Title" />
-            <textarea name="" placeholder="Content" />
+            <input
+              type="text"
+              name="to"
+              placeholder="To"
+              value={this.state.to}
+              onChange={this.handleInputChange}
+            />
+            <input
+              type="text"
+              name="title"
+              placeholder="Title"
+              value={this.state.title}
+              onChange={this.handleInputChange}
+            />
+            <textarea
+              name="body"
+              placeholder="Content"
+              value={this.state.body}
+              onChange={this.handleInputChange}
+            />
           </div>
 
           <div className="actions-wrapper">
@@ -47,6 +97,21 @@ class Compose extends Component {
 
 Compose.propTypes = {
   closeCompose: PropTypes.func.isRequired,
+  compose: PropTypes.shape({
+    special: PropTypes.shape({
+      type: PropTypes.string,
+      indexInThread: PropTypes.number,
+    }),
+  }).isRequired,
+  mail: PropTypes.shape({
+    thread: PropTypes.array,
+  }),
+};
+
+Compose.defaultProps = {
+  mail: {
+    thread: [],
+  },
 };
 
 const mapStateToProps = state => state;

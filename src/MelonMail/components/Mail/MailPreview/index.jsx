@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Card } from 'semantic-ui-react';
+import { Card, Button } from 'semantic-ui-react';
+import * as composeActions from '../../../actions/compose';
 
 class MailPreview extends Component {
   constructor(props) {
@@ -24,10 +25,31 @@ class MailPreview extends Component {
           !this.props.mail.isFetching &&
           this.props.mail.thread &&
           <div className="thread-wrapper">
-            {this.props.mail.thread.map(mail => (
+            <div className="thread-actions">
+              <Button
+                primary
+                basic
+                content="Reply"
+                icon="reply"
+                onClick={() => this.props.openCompose({ type: 'reply' })}
+              />
+              <Button
+                primary
+                basic
+                content="Forward"
+                icon="mail forward"
+                onClick={() => this.props.openCompose({ type: 'forward' })}
+              />
+            </div>
+            {this.props.mail.thread.map((mail, index) => (
               <Card fluid className="mail-wrapper" key={mail.toString()}>
                 <Card.Content>
                   <Card.Header>
+                    <div className="mail-actions">
+                      {/* Should also send thread and mail ID for openCompose */}
+                      <Button icon="reply" onClick={() => this.props.openCompose({ type: 'reply', indexInThread: index })} />
+                      <Button icon="mail forward" onClick={() => this.props.openCompose({ type: 'forward', indexInThread: index })} />
+                    </div>
                     Title: {mail.title}
                   </Card.Header>
                   <Card.Description>
@@ -69,6 +91,7 @@ MailPreview.propTypes = {
     thread: PropTypes.array,
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
+  openCompose: PropTypes.func.isRequired,
 };
 
 MailPreview.defaultProps = {
@@ -76,7 +99,9 @@ MailPreview.defaultProps = {
 };
 
 const mapStateToProps = state => state;
-const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
+const mapDispatchToProps = dispatch => bindActionCreators({
+  ...composeActions,
+}, dispatch);
 
 export default connect(
   mapStateToProps,
