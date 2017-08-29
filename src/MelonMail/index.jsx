@@ -11,11 +11,35 @@ import './style.scss';
 /* App components import */
 import Router from './components/Router/';
 
-const MelonMail = () =>
-  (
-    <Provider store={store}>
-      <Router />
-    </Provider>
-  );
+class MelonMail extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      loaded: false,
+    };
+  }
+
+  componentWillMount() {
+    window.onload = () => {
+      this.setState({
+        loaded: true,
+      });
+    };
+  }
+
+  render() {
+    if (!this.state.loaded) {
+      return (
+        <div>Loading...</div>
+      );
+    }
+
+    return (
+      <Provider store={store}>
+        <Router />
+      </Provider>
+    );
+  }
+}
 
 export default MelonMail;
