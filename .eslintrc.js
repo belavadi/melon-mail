@@ -12,7 +12,8 @@ module.exports = {
     'no-unused-vars': 1,
     'no-underscore-dangle': 0,
     'global-require': 0,
-    'no-console': 0
+    'no-console': 0,
+    'new-cap': 0,
   },
   globals: {
     window: true,

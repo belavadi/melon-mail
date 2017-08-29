@@ -20,12 +20,6 @@ export default (state = {
         loginError: '',
         registerError: '',
       };
-    case 'LOGIN_ERROR':
-      return {
-        ...state,
-        isFetching: action.isFetching,
-        loginError: action.error,
-      };
     case 'REGISTER_ERROR':
       return {
         ...state,
@@ -51,6 +45,11 @@ export default (state = {
         ...state,
         isFetching: action.isFetching,
         authError: action.error,
+        stage: action.stage,
+      };
+    case 'NO_CONNECTION':
+      return {
+        ...state,
         stage: action.stage,
       };
     default:

@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import * as authActions from '../../actions/auth';
 import * as routerActions from '../../actions/router';
 import helper from '../../services/helperService';
+import crypto from '../../services/cryptoService';
 
 class Auth extends Component {
   constructor(props) {
@@ -18,7 +19,10 @@ class Auth extends Component {
   }
 
   componentDidMount() {
-    if (!this.props.user.isAuthenticated) { helper.executeWhenReady(this.props.checkRegistration); }
+    if (!this.props.user.isAuthenticated) {
+      helper.executeWhenReady(this.props.checkRegistration);
+    }
+    console.log(crypto);
   }
 
   componentDidUpdate() {
@@ -63,6 +67,20 @@ class Auth extends Component {
               <input ref={(input) => { this.username = input; }} type="text" />@mail.com
               <Divider />
               <Button onClick={this.register}>Register</Button>
+            </Segment>
+          </div>
+        );
+      case 'noConnection':
+        return (
+          <div>
+            <Segment>
+              <p className="regular-text">
+                It seems like you either don&#39;t have
+                <a href="https://metamask.io/" target="_blank" rel="noopener noreferrer">
+                  MetaMask </a>
+                extension installed or that the extension is not connected to the Kovan test
+                network.
+              </p>
             </Segment>
           </div>
         );

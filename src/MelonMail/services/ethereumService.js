@@ -1,10 +1,15 @@
 import contract from './contract.json';
+import { generateKeys } from './cryptoService';
 
 const NETWORK_ID = '42';
 let mailContract;
 
 window.onload = () => {
-  mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
+  try {
+    mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 const getWeb3Status = () =>
@@ -90,9 +95,12 @@ const getBlockNumber = () =>
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = (email, privateKey, publicKey) =>
+const _registerUser = (username, signedString) =>
   new Promise((resolve, reject) => {
-    mailContract.registerUser(email, publicKey.toString(), (error) => {
+    const email = `${username}@melonmail.eth`;
+    const { privateKey, publicKey } = generateKeys(signedString);
+
+    mailContract.registerUser(email, publicKey, (error) => {
       if (error) {
         return reject(error);
       }

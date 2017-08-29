@@ -1,5 +1,3 @@
-import bitcore from 'bitcore-lib';
-
 import eth from '../services/ethereumService';
 import contract from '../services/contract.json';
 
@@ -35,10 +33,9 @@ export const loginSuccess = () => ({
   type: 'LOGIN_SUCCESS',
 });
 
-export const loginError = error => ({
-  type: 'LOGIN_ERROR',
-  stage: 'authError',
-  error,
+export const noConnection = () => ({
+  type: 'NO_CONNECTION',
+  stage: 'noConnection',
 });
 
 export const checkRegistration = () => (dispatch) => {
@@ -53,26 +50,24 @@ export const checkRegistration = () => (dispatch) => {
         return dispatch(loginSuccess());
       }
       console.error(result.error);
-      return dispatch(loginError('Login failed.'));
+      return dispatch(authError('Login failed.'));
     })
     .catch((result) => {
+      console.log(result);
+      if (window.web3 === undefined) {
+        return dispatch(noConnection());
+      }
       if (!result.error && result.notRegistered) {
         return dispatch(userNotRegistered());
       }
-      console.error(result.message);
       return dispatch(authError('Login failed.'));
     });
 };
 
 export const registerUser = username => (dispatch) => {
   eth.signString(eth.getAccount(), contract.stringToSign)
-    .then((result) => {
-      const privateKey = bitcore.PrivateKey.fromString(result.slice(2, 66));
-      const publicKey = bitcore.PublicKey.fromPrivateKey(privateKey);
-      const email = `${username}@melonmail.eth`;
-
-      return eth._registerUser(email, privateKey, publicKey);
-    })
+    .then(signedString =>
+      eth._registerUser(username, signedString))
     .then((data) => {
       dispatch(registerSuccess(data));
     })
