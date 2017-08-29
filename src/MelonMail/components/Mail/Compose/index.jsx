@@ -21,16 +21,21 @@ class Compose extends Component {
   componentWillMount() {
     if (this.props.compose.special) {
       const originThread = this.props.mail.thread;
-      const indexInThread = this.props.compose.special.indexInThread;
+      const { indexInThread } = this.props.compose.special;
       const originMail = indexInThread !== undefined ?
         originThread[indexInThread] : originThread[originThread.length - 1];
       if (this.props.compose.special.type === 'reply') {
-        this.state.title = 'Re: ' + originMail.title;
-        this.state.to = originMail.from;
-        this.state.body = '\n-----\n' + originMail.body;
-      } else if (this.props.compose.special.type === 'forward') {
-        this.state.title = 'Fw: ' + originMail.title;
-        this.state.body = '\n-----\n' + originMail.body;
+        this.setState({
+          title: `Re: ${originMail.title}`,
+          to: originMail.from,
+          body: `\n-----\n${originMail.body}`,
+        });
+      }
+      if (this.props.compose.special.type === 'forward') {
+        this.setState({
+          title: `Fw: ${originMail.title}`,
+          body: `\n-----\n${originMail.body}`,
+        });
       }
     }
   }

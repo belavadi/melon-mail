@@ -4,13 +4,12 @@ import { generateKeys } from './cryptoService';
 const NETWORK_ID = '42';
 let mailContract;
 
-window.onload = () => {
-  try {
-    mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
-  } catch (e) {
-    console.log(e);
-  }
-};
+try {
+  mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
+} catch (e) {
+  console.log(e);
+}
+
 
 const getWeb3Status = () =>
   new Promise((resolve, reject) => {
