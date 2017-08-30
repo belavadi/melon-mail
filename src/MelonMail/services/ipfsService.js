@@ -11,9 +11,6 @@ const ipfs = () => {
 };
 
 const uploadMail = (mail) => {
-  if (!mail.to) {
-    return false;
-  }
   const preparedMail = new Buffer(JSON.stringify(mail));
 
   return ipfs().files.add(preparedMail);

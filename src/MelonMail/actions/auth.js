@@ -8,8 +8,8 @@ export const userNotRegistered = () => ({
 
 export const userIsRegistered = data => ({
   type: 'USER_IS_REGISTERED',
-  data,
   stage: 'signIn',
+  data,
 });
 
 export const registerSuccess = () => ({
@@ -29,8 +29,9 @@ export const authError = error => ({
   error,
 });
 
-export const loginSuccess = () => ({
+export const loginSuccess = data => ({
   type: 'LOGIN_SUCCESS',
+  data,
 });
 
 export const noConnection = () => ({
@@ -47,7 +48,7 @@ export const checkRegistration = () => (dispatch) => {
     })
     .then((result) => {
       if (result.status) {
-        return dispatch(loginSuccess());
+        return dispatch(loginSuccess(result));
       }
       console.error(result.error);
       return dispatch(authError('Login failed.'));

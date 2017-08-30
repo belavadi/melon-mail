@@ -23,3 +23,32 @@ export const decrypt = (keys, data) => {
 
   return privateKey.decrypt(new Buffer(data, 'hex')).toString('ascii');
 };
+/* eslint-disable no-loop-func, consistent-return */
+export const encryptAttachments = (files, keys) =>
+  new Promise((resolve, reject) => {
+    if (files.length === 0) {
+      return resolve([]);
+    }
+    const attachments = [];
+    let reader = null;
+    let attachment = '';
+
+    for (let i = 0; i < files.length; i += 1) {
+      reader = new FileReader();
+      reader.fileName = files[i].name;
+
+      reader.onload = (e) => {
+        attachment = JSON.stringify({
+          fileName: e.target.fileName,
+          fileData: e.target.result,
+        });
+
+        attachments.push(encrypt(keys, attachment));
+
+        if (attachments.length === files.length) {
+          return resolve(attachments);
+        }
+      };
+    }
+  });
+/* eslint-enable no-loop-func, consistent-return */

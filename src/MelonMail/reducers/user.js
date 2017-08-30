@@ -3,6 +3,10 @@ export default (state = {
   isAuthenticated: false,
   loginError: '',
   stage: 'check',
+  privateKey: null,
+  publicKey: null,
+  mailAddress: '',
+  ethAddress: '',
 }, action) => {
   switch (action.type) {
     case 'REGISTER_REQUEST':
@@ -11,14 +15,21 @@ export default (state = {
         ...state,
         isFetching: action.isFetching,
       };
-    case 'LOGIN_SUCCESS':
     case 'REGISTER_SUCCESS':
       return {
         ...state,
         isFetching: action.isFetching,
         isAuthenticated: true,
-        loginError: '',
         registerError: '',
+      };
+    case 'LOGIN_SUCCESS':
+      return {
+        ...state,
+        isFetching: action.isFetching,
+        isAuthenticated: true,
+        loginError: '',
+        privateKey: action.data.privateKey,
+        publicKey: action.data.publicKey,
       };
     case 'REGISTER_ERROR':
       return {
@@ -38,7 +49,8 @@ export default (state = {
         loginError: '',
         stage: action.stage,
         startingBlock: action.data.startingBlock,
-        address: action.data.email,
+        mailAddress: action.data.mail,
+        ethAddress: action.data.address,
       };
     case 'AUTH_ERROR':
       return {

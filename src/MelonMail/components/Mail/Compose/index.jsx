@@ -4,6 +4,9 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Container, Button } from 'semantic-ui-react';
 import * as composeActions from '../../../actions/compose';
+import { sendMail } from '../../../actions/mail';
+import { encrypt, encryptAttachments } from '../../../services/cryptoService';
+import eth from '../../../services/ethereumService';
 
 class Compose extends Component {
   constructor(props) {
@@ -11,11 +14,12 @@ class Compose extends Component {
 
     this.state = {
       to: '',
-      title: '',
+      subject: '',
       body: '',
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSend = this.handleSend.bind(this);
   }
 
   componentWillMount() {
@@ -26,14 +30,14 @@ class Compose extends Component {
         originThread[indexInThread] : originThread[originThread.length - 1];
       if (this.props.compose.special.type === 'reply') {
         this.setState({
-          title: `Re: ${originMail.title}`,
+          subject: `Re: ${originMail.subject}`,
           to: originMail.from,
           body: `\n-----\n${originMail.body}`,
         });
       }
       if (this.props.compose.special.type === 'forward') {
         this.setState({
-          title: `Fw: ${originMail.title}`,
+          subject: `Fw: ${originMail.subject}`,
           body: `\n-----\n${originMail.body}`,
         });
       }
@@ -48,6 +52,61 @@ class Compose extends Component {
     this.setState({
       [name]: value,
     });
+  }
+
+  handleSend() {
+    const files = [];
+
+    const mail = {
+      from: this.props.user.mailAddress,
+      to: this.state.to,
+      subject: this.state.subject,
+      body: this.state.body,
+      time: new Date().toString(),
+    };
+
+    eth._getPublicKey(this.state.to)
+      .then((data) => {
+        const keysForReceiver = {
+          privateKey: this.props.user.privateKey,
+          publicKey: data.publicKey,
+        };
+
+        const keysForSender = {
+          privateKey: this.props.user.privateKey,
+          publicKey: this.props.user.publicKey,
+        };
+
+        const promises = [
+          encryptAttachments(files, keysForReceiver),
+          encryptAttachments(files, keysForSender),
+        ];
+
+        Promise.all(promises)
+          .then(([senderAttachments, receiverAttachments]) => {
+            const senderMail = JSON.stringify({
+              ...mail,
+              attachments: senderAttachments,
+            });
+            const receiverMail = JSON.stringify({
+              ...mail,
+              attachments: receiverAttachments,
+            });
+            const senderData = encrypt(keysForSender, senderMail);
+            const receiverData = encrypt(keysForReceiver, receiverMail);
+
+            this.props.sendMail({
+              toAddress: data.address,
+              senderData,
+              receiverData,
+            });
+          })
+          .catch((err) => {
+            console.log('Error encrypting attachments!');
+            console.log(err);
+          });
+      })
+      .catch(err => console.error(err));
   }
 
   render() {
@@ -78,9 +137,9 @@ class Compose extends Component {
             />
             <input
               type="text"
-              name="title"
-              placeholder="Title"
-              value={this.state.title}
+              name="subject"
+              placeholder="Subject"
+              value={this.state.subject}
               onChange={this.handleInputChange}
             />
             <textarea
@@ -92,7 +151,14 @@ class Compose extends Component {
           </div>
 
           <div className="actions-wrapper">
-            <Button basic color="green" content="Send" icon="send" loading={false} />
+            <Button
+              onClick={this.handleSend}
+              basic
+              color="green"
+              content="Send"
+              icon="send"
+              loading={false}
+            />
           </div>
         </Container>
       </div>
@@ -101,7 +167,6 @@ class Compose extends Component {
 }
 
 Compose.propTypes = {
-  closeCompose: PropTypes.func.isRequired,
   compose: PropTypes.shape({
     special: PropTypes.shape({
       type: PropTypes.string,
@@ -111,17 +176,29 @@ Compose.propTypes = {
   mail: PropTypes.shape({
     thread: PropTypes.array,
   }),
+  user: PropTypes.shape({
+    mailAddress: PropTypes.string.isRequired,
+    ethAddress: PropTypes.string.isRequired,
+    privateKey: PropTypes.string.isRequired,
+    publicKey: PropTypes.string.isRequired,
+  }),
+  closeCompose: PropTypes.func.isRequired,
+  sendMail: PropTypes.func.isRequired,
 };
 
 Compose.defaultProps = {
   mail: {
     thread: [],
   },
+  user: {
+
+  },
 };
 
 const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators({
   ...composeActions,
+  sendMail,
 }, dispatch);
 
 export default connect(

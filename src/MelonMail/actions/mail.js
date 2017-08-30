@@ -1,3 +1,5 @@
+import sha3 from 'solidity-sha3';
+
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 
@@ -50,19 +52,17 @@ export const getThread = (threadId, afterBlock) => (dispatch) => {
     });
 };
 
-export const sendMail = (mail) => {
+export const sendMail = mail => (dispatch) => {
+  console.log(mail);
   ipfs.uploadMail(mail)
     .then((mailLink) => {
       const mailObject = mailLink.length ? mailLink[0] : mailLink;
-      return ipfs.newThread(mailObject);
-    })
-    .then((threadLink) => {
-      console.log(threadLink.toJSON());
-      const multihash = threadLink.toJSON().multihash;
-      return eth._sendEmail(mail.to, multihash, multihash);
-    })
-    .then((res) => {
-      console.log(res);
+      ipfs.newThread(mailObject)
+        .then((threadLink) => {
+          console.log(mailLink);
+          const multihash = threadLink.toJSON().multihash;
+          return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, sha3(multihash));
+        });
     })
     .catch((error) => {
       console.log(error);

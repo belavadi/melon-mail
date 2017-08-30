@@ -13,7 +13,6 @@ try {
   console.log(e);
 }
 
-
 const getWeb3Status = () =>
   new Promise((resolve, reject) => {
     if (!web3) {
@@ -52,7 +51,6 @@ const checkRegistration = () =>
       },
     )
       .get((error, events) => {
-        console.log(events, error);
         if (!events.length) {
           return reject({
             error: false,
@@ -66,9 +64,9 @@ const checkRegistration = () =>
             message: error,
           });
         }
-
         return resolve({
-          email: web3.toAscii(events[0].args.username),
+          mail: web3.toAscii(events[0].args.username),
+          address: events[0].args.addr,
           startingBlock: events[0].blockNumber,
         });
       });
@@ -104,7 +102,9 @@ const _registerUser = (username, signedString) =>
 
     mailContract.registerUser(email, publicKey, (error) => {
       if (error) {
-        return reject(error);
+        return reject({
+          message: error,
+        });
       }
 
       return getBlockNumber()
@@ -112,6 +112,7 @@ const _registerUser = (username, signedString) =>
           resolve({
             email,
             privateKey,
+            publicKey,
             startingBlock,
           });
         })
@@ -119,6 +120,7 @@ const _registerUser = (username, signedString) =>
           resolve({
             email,
             privateKey,
+            publicKey,
             startingBlock: 0,
           });
         });
@@ -139,11 +141,17 @@ const _getPublicKey = email =>
       })
       .get((error, events) => {
         if (!events.length) {
-          return reject(events);
+          return reject({
+            message: 'User not found!',
+            events,
+          });
         }
 
         if (error) {
-          return reject(error);
+          return reject({
+            message: error,
+            events: null,
+          });
         }
 
         return resolve({
@@ -205,7 +213,9 @@ const getMails = (folder, startBlock) => {
       })
       .get((error, events) => {
         if (error) {
-          return reject(error);
+          return reject({
+            message: error,
+          });
         }
         const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
         console.log(`Fetched and filtered emails: ${JSON.stringify(filteredEvents)}`);
@@ -221,17 +231,22 @@ const getThread = (threadId, afterBlock) =>
       toBlock: 'latest',
     }).get((error, events) => {
       if (error) {
-        return reject(error);
+        return reject({
+          message: error,
+        });
       }
       return resolve(events.pop());
     });
   });
 
-const _sendEmail = (toAddress, ipfsHash, threadId) =>
+const _sendEmail = (toAddress, mailHash, threadHash, threadId) =>
   new Promise((resolve, reject) => {
-    mailContract.sendEmail(toAddress, ipfsHash, threadId, (error, result) => {
+    console.log(toAddress, mailHash, threadHash, threadId);
+    mailContract.sendEmail(toAddress, mailHash, threadHash, threadId, (error, result) => {
       if (error) {
-        return reject(error);
+        return reject({
+          message: error,
+        });
       }
 
       return resolve(result);
@@ -240,13 +255,18 @@ const _sendEmail = (toAddress, ipfsHash, threadId) =>
 
 const signIn = () => new Promise((resolve, reject) => {
   signString(getAccount(), contract.stringToSign)
-    .then(() => {
+    .then((signedString) => {
+      const { privateKey, publicKey } = generateKeys(signedString);
       resolve({
         status: true,
+        privateKey,
+        publicKey,
       });
     })
     .catch((error) => {
-      reject(error);
+      reject({
+        message: error,
+      });
     });
 });
 
