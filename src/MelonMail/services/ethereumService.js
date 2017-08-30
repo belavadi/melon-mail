@@ -155,24 +155,42 @@ const _getPublicKey = email =>
 
 /* Subscribes to the mail send event */
 
-const incomingMailEvent = startBlock =>
-  new Promise((resolve, reject) => {
-    mailContract.SendEmail(
-      {
-        to: getAccount(),
-      },
-      {
-        fromBlock: startBlock,
-        toBlock: 'latest',
-      })
-      .watch((error, event) => {
-        if (error) {
-          return reject(error);
-        }
-        console.log(`Mail event: Received an email${JSON.stringify(event)}`);
-        return resolve(event);
-      });
-  });
+const listenForMails = callback =>
+  getBlockNumber()
+    .then((startingBlock) => {
+      console.log('!!! Listening for mails');
+      console.log(getAccount());
+      mailContract.SendEmail(
+        {
+          to: getAccount(),
+        },
+        {
+          fromBlock: startingBlock,
+          toBlock: 'latest',
+        })
+        .watch((error, event) => {
+          if (error) {
+            console.log(error);
+          }
+          callback(event);
+        });
+
+      mailContract.SendEmail(
+        {
+          from: getAccount(),
+        },
+        {
+          fromBlock: startingBlock,
+          toBlock: 'latest',
+        })
+        .watch((error, event) => {
+          if (error) {
+            console.log(error);
+          }
+          console.log(`Mail event: Received an email${JSON.stringify(event)}`);
+          callback(event);
+        });
+    });
 
 const getMails = (folder, startBlock) => {
   const filter = folder === 'inbox' ?
@@ -236,7 +254,7 @@ export default {
   getWeb3Status,
   getAccount,
   signString,
-  incomingMailEvent,
+  listenForMails,
   _registerUser,
   _getPublicKey,
   _sendEmail,

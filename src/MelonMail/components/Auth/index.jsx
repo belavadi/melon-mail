@@ -22,7 +22,6 @@ class Auth extends Component {
     if (!this.props.user.isAuthenticated) {
       helper.executeWhenReady(this.props.checkRegistration);
     }
-    console.log(crypto);
   }
 
   componentDidUpdate() {

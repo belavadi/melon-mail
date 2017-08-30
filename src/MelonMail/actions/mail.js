@@ -1,8 +1,6 @@
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 
-const concat = require('concat-stream');
-
 export const mailRequest = () => ({
   type: 'MAIL_REQUEST',
 });
@@ -28,16 +26,9 @@ export const getThread = (threadId, afterBlock) => (dispatch) => {
       console.log(thread);
       const mailLinks = thread.toJSON().links;
 
-      const ipfsFetchPromises = mailLinks.map(mailLink => ipfs.getFileStream(mailLink.multihash));
+      const ipfsFetchPromises = mailLinks.map(mailLink => ipfs.getFileContent(mailLink.multihash));
 
       Promise.all(ipfsFetchPromises)
-        .then((mails) => {
-          const ipfsReadPromises = mails.map(mail => new Promise((resolve) => {
-            mail.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
-          }));
-
-          return Promise.all(ipfsReadPromises);
-        })
         .then((mails) => {
           // decrypt here
           const dectyptedMails = mails.map(mail => JSON.parse(mail));
@@ -79,42 +70,63 @@ export const sendMail = (mail) => {
 };
 
 
-export const mailsRequest = () => ({
-  type: 'MAILS_REQUEST',
+export const changeMailsFolder = folder => ({
+  type: 'MAILS_FOLDER_CHANGE',
+  folder,
 });
 
-export const mailsSuccess = mails => ({
-  type: 'MAILS_SUCCESS',
+export const mailsInboxRequest = () => ({
+  type: 'MAILS_INBOX_REQUEST',
+});
+
+export const mailsInboxSuccess = mails => ({
+  type: 'MAILS_INBOX_SUCCESS',
   mails,
 });
 
-export const mailsError = error => ({
-  type: 'MAILS_ERROR',
+export const mailsInboxError = error => ({
+  type: 'MAILS_INBOX_ERROR',
   error,
 });
 
+export const newMailInbox = mail => ({
+  type: 'NEW_INBOX_MAIL',
+  mail,
+});
+
+export const mailsOutboxRequest = () => ({
+  type: 'MAILS_OUTBOX_REQUEST',
+});
+
+export const mailsOutboxSuccess = mails => ({
+  type: 'MAILS_OUTBOX_SUCCESS',
+  mails,
+});
+
+export const mailsOutboxError = error => ({
+  type: 'MAILS_OUTBOX_ERROR',
+  error,
+});
+
+export const newMailOutbox = mail => ({
+  type: 'NEW_OUTBOX_MAIL',
+  mail,
+});
+
 export const getMails = folder => (dispatch, getState) => {
-  dispatch(mailsRequest());
+  dispatch(folder === 'inbox' ?
+    mailsInboxRequest() : mailsOutboxRequest());
   const startingBlock = getState().user.startingBlock;
   eth.getMails(folder, startingBlock)
     .then((mailEvents) => {
       console.log(mailEvents);
 
-      const ipfsFetchPromises = mailEvents.map(mail => ipfs.getFileStream(mail.args.mailHash));
+      const ipfsFetchPromises = mailEvents.map(mail => ipfs.getFileContent(mail.args.mailHash));
 
       return Promise.all(ipfsFetchPromises)
-        .then((ipfsMails) => {
-          console.log(ipfsMails);
-          const ipfsReadPromises = ipfsMails.map(mail => new Promise((resolve) => {
-            mail.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
-          }));
-          return Promise.all(ipfsReadPromises);
-        })
         .then((mails) => {
           // decrypt here
-          console.log(mails);
           const dectyptedMails = mails.map(mail => JSON.parse(mail));
-          console.log(dectyptedMails);
           const mailsWithEventInfo = dectyptedMails.map((mail, index) => ({
             transactionHash: mailEvents[index].transactionHash,
             blockNumber: mailEvents[index].blockNumber,
@@ -122,15 +134,33 @@ export const getMails = folder => (dispatch, getState) => {
             ...mail,
           }));
           console.log(mailsWithEventInfo);
-          dispatch(mailsSuccess(mailsWithEventInfo));
+          dispatch(folder === 'inbox' ?
+            mailsInboxSuccess(mailsWithEventInfo) : mailsOutboxSuccess(mailsWithEventInfo));
         })
         .catch((error) => {
           console.log(error);
-          dispatch(mailsError(error));
+          dispatch(folder === 'inbox' ?
+            mailsInboxError(error) : mailsOutboxError(error));
         });
     })
     .catch((error) => {
       console.log(error);
-      dispatch(mailsError(error));
+      dispatch(folder === 'inbox' ?
+        mailsInboxError(error) : mailsOutboxError(error));
     });
+};
+
+export const listenForMails = () => (dispatch) => {
+  eth.listenForMails((mail) => {
+    console.log(mail);
+    ipfs.getFileContent(mail.args.mailHash)
+      .then((content) => {
+        if (mail.to === eth.getAccount()) {
+          dispatch(newMailInbox(mail));
+        } else {
+          dispatch(newMailOutbox(mail));
+        }
+        console.log(content);
+      });
+  });
 };

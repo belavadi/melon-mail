@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { List, Loader } from 'semantic-ui-react';
+import { List, Segment } from 'semantic-ui-react';
 
 import * as mailActions from '../../../actions/mail';
 import MailListItem from '../MailListItem';
@@ -15,33 +15,36 @@ class MailList extends Component {
   }
 
   componentDidMount() {
-    this.props.getMails('inbox');
+    this.props.getMails(this.props.mails.folder);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.mails.folder !== this.props.mails.folder) {
+      console.log(this.props.mails.folder);
+      this.props.getMails(this.props.mails.folder);
+    }
   }
 
   render() {
     return (
       <div className="mail-list">
-        <List selection divided>
-          {
-            this.props.mails.mails &&
-            this.props.mails.mails.length > 0 &&
-            this.props.mails.mails.map(mail => (
-              <MailListItem args={mail} key={mail.transactionHash} />
-            ))
-          }
-          {
-            !this.props.mails.isFetching &&
-            (!this.props.mails.mails ||
-            this.props.mails.mails.length === 0) &&
-            <div>
-              No mails :D
-            </div>
-          }
-          <div className="loader-wrapper">
-            <Loader active={this.props.mails.isFetching} />
-          </div>
-        </List>
-        <Loader />
+        <Segment vertical loading={this.props.mails.isFetching} >
+          <List selection divided>
+            {
+              this.props.mails[this.props.mails.folder].length > 0 &&
+              this.props.mails[this.props.mails.folder].map(mail => (
+                <MailListItem args={mail} key={mail.transactionHash} />
+              ))
+            }
+            {
+              !this.props.mails.isFetching &&
+              (this.props.mails[this.props.mails.folder].length === 0) &&
+              <div>
+                No mails :D
+              </div>
+            }
+          </List>
+        </Segment>
       </div>
     );
   }
@@ -50,8 +53,10 @@ class MailList extends Component {
 MailList.propTypes = {
   getMails: PropTypes.func.isRequired,
   mails: PropTypes.shape({
-    mails: PropTypes.array,
+    inbox: PropTypes.array,
+    outbox: PropTypes.array,
     isFetching: PropTypes.bool,
+    folder: PropTypes.string,
   }).isRequired,
 };
 

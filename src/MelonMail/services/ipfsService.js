@@ -1,10 +1,10 @@
 const ipfsAPI = require('ipfs-api');
+const concat = require('concat-stream');
 
 let ipfsNode;
 
 const ipfs = () => {
   if (!ipfsNode) {
-    console.log('IPFS init');
     ipfsNode = ipfsAPI();
   }
   return ipfsNode;
@@ -41,10 +41,17 @@ const getFile = hash => ipfs().files.get(hash);
 
 const getFileStream = hash => ipfs().files.cat(hash);
 
+const getFileContent = hash =>
+  new Promise((resolve, reject) => {
+    ipfs().files.cat(hash)
+      .then(file => file.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data)))));
+  });
+
 export default {
   uploadMail,
   newThread,
   getThread,
   getFile,
   getFileStream,
+  getFileContent,
 };

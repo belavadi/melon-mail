@@ -53,7 +53,6 @@ export const checkRegistration = () => (dispatch) => {
       return dispatch(authError('Login failed.'));
     })
     .catch((result) => {
-      console.log(result);
       if (window.web3 === undefined) {
         return dispatch(noConnection());
       }

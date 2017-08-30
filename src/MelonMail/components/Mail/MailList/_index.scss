@@ -6,7 +6,12 @@
   background-color: #eee;
   border-right: 1px solid $OceanBlue;
 
-  .list {
+  .segment {
+    padding: 0;
+    min-height: 60px;
+    &.loading::before {
+      background-color: rgba(#eee, .8);
+    }
   }
 
   .loader-wrapper {
