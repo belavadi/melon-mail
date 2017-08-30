@@ -2,6 +2,7 @@ import sha3 from 'solidity-sha3';
 
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
+import { decrypt } from '../services/cryptoService';
 
 export const mailRequest = () => ({
   type: 'MAIL_REQUEST',
@@ -17,8 +18,12 @@ export const mailError = error => ({
   error,
 });
 
-export const getThread = (threadId, afterBlock) => (dispatch) => {
+export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
   dispatch(mailRequest());
+  const keys = {
+    publicKey: getState().user.publicKey,
+    privateKey: getState().user.privateKey,
+  };
   eth.getThread(threadId, afterBlock)
     .then((threadEvent) => {
       console.log(threadEvent);
@@ -33,8 +38,15 @@ export const getThread = (threadId, afterBlock) => (dispatch) => {
       Promise.all(ipfsFetchPromises)
         .then((mails) => {
           // decrypt here
-          const dectyptedMails = mails.map(mail => JSON.parse(mail));
-          const mailsWithIpfsHash = dectyptedMails.map((mail, index) => ({
+          const decryptedMails = mails.map((mail) => {
+            const mailToDecrypt = JSON.parse(mail);
+            return JSON.parse(decrypt(
+              keys,
+              mailToDecrypt.to === eth.getAccount() ?
+                mailToDecrypt.receiverData : mailToDecrypt.receiverData,
+            ));
+          });
+          const mailsWithIpfsHash = decryptedMails.map((mail, index) => ({
             hash: mailLinks[index].multihash,
             ...mail,
           }));
@@ -68,7 +80,6 @@ export const sendMail = mail => (dispatch) => {
       console.log(error);
     });
 };
-
 
 export const changeMailsFolder = folder => ({
   type: 'MAILS_FOLDER_CHANGE',
@@ -117,6 +128,10 @@ export const getMails = folder => (dispatch, getState) => {
   dispatch(folder === 'inbox' ?
     mailsInboxRequest() : mailsOutboxRequest());
   const startingBlock = getState().user.startingBlock;
+  const keys = {
+    publicKey: getState().user.publicKey,
+    privateKey: getState().user.privateKey,
+  };
   eth.getMails(folder, startingBlock)
     .then((mailEvents) => {
       console.log(mailEvents);
@@ -126,8 +141,15 @@ export const getMails = folder => (dispatch, getState) => {
       return Promise.all(ipfsFetchPromises)
         .then((mails) => {
           // decrypt here
-          const dectyptedMails = mails.map(mail => JSON.parse(mail));
-          const mailsWithEventInfo = dectyptedMails.map((mail, index) => ({
+          const decryptedMails = mails.map((mail) => {
+            const mailToDecrypt = JSON.parse(mail);
+            return JSON.parse(decrypt(
+              keys,
+              folder === 'inbox' ? mailToDecrypt.receiverData : mailToDecrypt.receiverData,
+            ));
+          });
+          console.info(decryptedMails);
+          const mailsWithEventInfo = decryptedMails.map((mail, index) => ({
             transactionHash: mailEvents[index].transactionHash,
             blockNumber: mailEvents[index].blockNumber,
             ...mailEvents[index].args,
