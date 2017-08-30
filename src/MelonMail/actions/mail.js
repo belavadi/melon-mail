@@ -24,6 +24,7 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,
   };
+  const folder = getState().mails.folder;
   eth.getThread(threadId, afterBlock)
     .then((threadEvent) => {
       console.log(threadEvent);
@@ -40,11 +41,15 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
           // decrypt here
           const decryptedMails = mails.map((mail) => {
             const mailToDecrypt = JSON.parse(mail);
-            return JSON.parse(decrypt(
-              keys,
-              mailToDecrypt.to === eth.getAccount() ?
-                mailToDecrypt.receiverData : mailToDecrypt.senderData,
-            ));
+            let mailBody;
+            if (folder === 'inbox') {
+              mailBody = mailToDecrypt.to === eth.getAccount() ?
+                mailToDecrypt.senderData : mailToDecrypt.receiverData;
+            } else {
+              mailBody = mailToDecrypt.to === eth.getAccount() ?
+                mailToDecrypt.receiverData : mailToDecrypt.senderData;
+            }
+            return JSON.parse(decrypt(keys, mailBody));
           });
           const mailsWithIpfsHash = decryptedMails.map((mail, index) => ({
             hash: mailLinks[index].multihash,
