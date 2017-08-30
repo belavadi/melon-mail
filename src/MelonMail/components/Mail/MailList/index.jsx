@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { List } from 'semantic-ui-react';
+import { List, Loader } from 'semantic-ui-react';
 
 import * as mailActions from '../../../actions/mail';
 import MailListItem from '../MailListItem';
@@ -30,13 +30,18 @@ class MailList extends Component {
             ))
           }
           {
+            !this.props.mails.isFetching &&
             (!this.props.mails.mails ||
             this.props.mails.mails.length === 0) &&
             <div>
               No mails :D
             </div>
           }
+          <div className="loader-wrapper">
+            <Loader active={this.props.mails.isFetching} />
+          </div>
         </List>
+        <Loader />
       </div>
     );
   }
@@ -46,6 +51,7 @@ MailList.propTypes = {
   getMails: PropTypes.func.isRequired,
   mails: PropTypes.shape({
     mails: PropTypes.array,
+    isFetching: PropTypes.bool,
   }).isRequired,
 };
 

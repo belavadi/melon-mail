@@ -1,4 +1,5 @@
 import sha3 from 'solidity-sha3';
+import uniqBy from 'lodash/uniqBy';
 
 import contract from './contract.json';
 import { generateKeys } from './cryptoService';
@@ -188,8 +189,9 @@ const getMails = (folder, startBlock) => {
         if (error) {
           return reject(error);
         }
-        console.log(`Fetched emails: ${JSON.stringify(events)}`);
-        return resolve(events);
+        const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
+        console.log(`Fetched and filtered emails: ${JSON.stringify(filteredEvents)}`);
+        return resolve(filteredEvents);
       });
   });
 };

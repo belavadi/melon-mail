@@ -42,7 +42,7 @@ class MailPreview extends Component {
               />
             </div>
             {this.props.mail.thread.map((mail, index) => (
-              <Card fluid className="mail-wrapper" key={mail.toString()}>
+              <Card fluid className="mail-wrapper" key={mail.hash}>
                 <Card.Content>
                   <Card.Header>
                     <div className="mail-actions">
@@ -50,13 +50,11 @@ class MailPreview extends Component {
                       <Button icon="reply" onClick={() => this.props.openCompose({ type: 'reply', indexInThread: index })} />
                       <Button icon="mail forward" onClick={() => this.props.openCompose({ type: 'forward', indexInThread: index })} />
                     </div>
-                    Title: {mail.title}
+                    {mail.title}
                   </Card.Header>
                   <Card.Description>
                     <p>From: {mail.from}</p>
-                    <p>
-                      {JSON.stringify(mail)}
-                    </p>
+                    <p>{mail.body}</p>
                   </Card.Description>
                 </Card.Content>
               </Card>

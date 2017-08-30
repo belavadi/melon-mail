@@ -19,7 +19,6 @@ export const mailError = error => ({
 
 export const getThread = (threadId, afterBlock) => (dispatch) => {
   dispatch(mailRequest());
-
   eth.getThread(threadId, afterBlock)
     .then((threadEvent) => {
       console.log(threadEvent);
@@ -29,20 +28,30 @@ export const getThread = (threadId, afterBlock) => (dispatch) => {
       console.log(thread);
       const mailLinks = thread.toJSON().links;
 
-      const promises = mailLinks.map(mailLink => ipfs.getFileStream(mailLink.multihash));
+      const ipfsFetchPromises = mailLinks.map(mailLink => ipfs.getFileStream(mailLink.multihash));
 
-      return Promise.all(promises);
-    })
-    .then((mails) => {
-      const promises = mails.map(mail => new Promise((resolve) => {
-        mail.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
-      }));
+      Promise.all(ipfsFetchPromises)
+        .then((mails) => {
+          const ipfsReadPromises = mails.map(mail => new Promise((resolve) => {
+            mail.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
+          }));
 
-      return Promise.all(promises);
-    })
-    .then((mails) => {
-      console.log(mails);
-      dispatch(mailSuccess(mails));
+          return Promise.all(ipfsReadPromises);
+        })
+        .then((mails) => {
+          // decrypt here
+          const dectyptedMails = mails.map(mail => JSON.parse(mail));
+          const mailsWithIpfsHash = dectyptedMails.map((mail, index) => ({
+            hash: mailLinks[index].multihash,
+            ...mail,
+          }));
+          console.log(mailsWithIpfsHash);
+          dispatch(mailSuccess(mailsWithIpfsHash));
+        })
+        .catch((error) => {
+          console.log(error);
+          dispatch(mailError(error.message));
+        });
     })
     .catch((error) => {
       console.log(error);
@@ -85,6 +94,7 @@ export const mailsError = error => ({
 });
 
 export const getMails = folder => (dispatch, getState) => {
+  dispatch(mailsRequest());
   const startingBlock = getState().user.startingBlock;
   eth.getMails(folder, startingBlock)
     .then((mailEvents) => {
@@ -102,6 +112,7 @@ export const getMails = folder => (dispatch, getState) => {
         })
         .then((mails) => {
           // decrypt here
+          console.log(mails);
           const dectyptedMails = mails.map(mail => JSON.parse(mail));
           console.log(dectyptedMails);
           const mailsWithEventInfo = dectyptedMails.map((mail, index) => ({

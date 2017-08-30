@@ -26,7 +26,7 @@ Router.propTypes = {
 };
 
 Router.defaultProps = {
-  path: '/',
+  path: 'auth',
 };
 
 const mapStateToProps = state => state.router;
