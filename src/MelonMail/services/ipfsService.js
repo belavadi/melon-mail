@@ -32,6 +32,18 @@ const newThread = (mail) => {
   return ipfs().object.put(thread);
 };
 
+const replyToThread = (reply, threadHash) =>
+  ipfs().object.get(threadHash)
+    .then((thread) => {
+      const parsedThread = thread.toJSON();
+      const replyLink = {
+        ...reply,
+        multihash: reply.hash,
+        name: parsedThread.links.length,
+      };
+      return ipfs().object.patch.addLink(threadHash, replyLink);
+    });
+
 const getThread = hash => ipfs().object.get(hash);
 
 const getFile = hash => ipfs().files.get(hash);
@@ -47,6 +59,7 @@ const getFileContent = hash =>
 export default {
   uploadMail,
   newThread,
+  replyToThread,
   getThread,
   getFile,
   getFileStream,

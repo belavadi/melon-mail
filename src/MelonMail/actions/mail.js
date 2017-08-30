@@ -8,9 +8,11 @@ export const mailRequest = () => ({
   type: 'MAIL_REQUEST',
 });
 
-export const mailSuccess = thread => ({
+export const mailSuccess = (thread, threadHash, threadId) => ({
   type: 'MAIL_SUCCESS',
   thread,
+  threadHash,
+  threadId,
 });
 
 export const mailError = error => ({
@@ -28,39 +30,42 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
   eth.getThread(threadId, afterBlock)
     .then((threadEvent) => {
       console.log(threadEvent);
-      return ipfs.getThread(threadEvent.args.threadHash);
-    })
-    .then((thread) => {
-      console.log(thread);
-      const mailLinks = thread.toJSON().links;
+      return ipfs.getThread(threadEvent.args.threadHash)
+        .then((thread) => {
+          console.log(thread);
+          const mailLinks = thread.toJSON().links;
 
-      const ipfsFetchPromises = mailLinks.map(mailLink => ipfs.getFileContent(mailLink.multihash));
+          const ipfsFetchPromises = mailLinks.map(mailLink =>
+            ipfs.getFileContent(mailLink.multihash));
 
-      Promise.all(ipfsFetchPromises)
-        .then((mails) => {
-          // decrypt here
-          const decryptedMails = mails.map((mail) => {
-            const mailToDecrypt = JSON.parse(mail);
-            let mailBody;
-            if (folder === 'inbox') {
-              mailBody = mailToDecrypt.toAddress === eth.getAccount() ?
-                mailToDecrypt.receiverData : mailToDecrypt.senderData;
-            } else {
-              mailBody = mailToDecrypt.toAddress === eth.getAccount() ?
-                mailToDecrypt.senderData : mailToDecrypt.receiverData;
-            }
-            return JSON.parse(decrypt(keys, mailBody));
-          });
-          const mailsWithIpfsHash = decryptedMails.map((mail, index) => ({
-            hash: mailLinks[index].multihash,
-            ...mail,
-          }));
-          console.log(mailsWithIpfsHash);
-          dispatch(mailSuccess(mailsWithIpfsHash));
-        })
-        .catch((error) => {
-          console.log(error);
-          dispatch(mailError(error.message));
+          Promise.all(ipfsFetchPromises)
+            .then((mails) => {
+              // decrypt here
+              const decryptedMails = mails.map((mail) => {
+                const mailToDecrypt = JSON.parse(mail);
+                let mailBody;
+                if (folder === 'inbox') {
+                  mailBody = mailToDecrypt.toAddress === eth.getAccount() ?
+                    mailToDecrypt.receiverData : mailToDecrypt.senderData;
+                } else {
+                  mailBody = mailToDecrypt.toAddress === eth.getAccount() ?
+                    mailToDecrypt.senderData : mailToDecrypt.receiverData;
+                }
+                return JSON.parse(decrypt(keys, mailBody));
+              });
+              const mailsWithIpfsHash = decryptedMails.map((mail, index) => ({
+                hash: mailLinks[index].multihash,
+                ...mail,
+              }));
+              console.log(mailsWithIpfsHash);
+              const threadHash = threadEvent.args.threadHash;
+              console.log(threadHash);
+              dispatch(mailSuccess(mailsWithIpfsHash, threadHash, threadId));
+            })
+            .catch((error) => {
+              console.log(error);
+              dispatch(mailError(error.message));
+            });
         });
     })
     .catch((error) => {
@@ -69,17 +74,26 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
     });
 };
 
-export const sendMail = mail => (dispatch) => {
+export const sendMail = (mail, threadId) => (dispatch, getState) => {
   console.log(mail);
   ipfs.uploadMail(mail)
     .then((mailLink) => {
       const mailObject = mailLink.length ? mailLink[0] : mailLink;
-      ipfs.newThread(mailObject)
-        .then((threadLink) => {
-          console.log(mailLink);
-          const multihash = threadLink.toJSON().multihash;
-          return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, sha3(multihash));
-        });
+      if (threadId) {
+        const threadHash = getState().mail.threadHash;
+        ipfs.replyToThread(mailObject, threadHash)
+          .then((threadLink) => {
+            const multihash = threadLink.toJSON().multihash;
+            return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, threadId);
+          });
+      } else {
+        ipfs.newThread(mailObject)
+          .then((threadLink) => {
+            console.log(mailLink);
+            const multihash = threadLink.toJSON().multihash;
+            return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, sha3(multihash));
+          });
+      }
     })
     .catch((error) => {
       console.log(error);

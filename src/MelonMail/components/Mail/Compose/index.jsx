@@ -94,12 +94,15 @@ class Compose extends Component {
             });
             const senderData = encrypt(keysForSender, senderMail);
             const receiverData = encrypt(keysForReceiver, receiverMail);
+            const threadId = this.props.compose.special.type === 'reply' ? this.props.mail.threadId : null;
+
+            console.log(threadId);
 
             this.props.sendMail({
               toAddress: data.address,
               senderData,
               receiverData,
-            });
+            }, threadId);
           })
           .catch((err) => {
             console.log('Error encrypting attachments!');
@@ -175,6 +178,7 @@ Compose.propTypes = {
   }).isRequired,
   mail: PropTypes.shape({
     thread: PropTypes.array,
+    threadId: PropTypes.string,
   }),
   user: PropTypes.shape({
     mailAddress: PropTypes.string.isRequired,

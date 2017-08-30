@@ -11,6 +11,8 @@ export default (state = {}, action) => {
         ...state,
         isFetching: false,
         thread: action.thread,
+        threadId: action.threadId,
+        threadHash: action.threadHash,
       };
     case 'MAIL_ERROR':
       return {
