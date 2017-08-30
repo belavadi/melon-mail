@@ -1,7 +1,7 @@
 @import '../../../style/vars';
 
 .mail-list {
-  width: 100%;
+  min-width: 300px;
   max-width: 300px;
   background-color: #eee;
   border-right: 1px solid $OceanBlue;

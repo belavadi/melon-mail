@@ -16,6 +16,7 @@ class MailList extends Component {
 
   componentDidMount() {
     this.props.getMails(this.props.mails.folder);
+    this.props.listenForMails();
   }
 
   componentDidUpdate(prevProps) {
@@ -52,6 +53,7 @@ class MailList extends Component {
 
 MailList.propTypes = {
   getMails: PropTypes.func.isRequired,
+  listenForMails: PropTypes.func.isRequired,
   mails: PropTypes.shape({
     inbox: PropTypes.array,
     outbox: PropTypes.array,

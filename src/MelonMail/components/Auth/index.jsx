@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 
 import * as authActions from '../../actions/auth';
 import * as routerActions from '../../actions/router';
-import helper from '../../services/helperService';
 import crypto from '../../services/cryptoService';
 
 class Auth extends Component {
@@ -20,7 +19,7 @@ class Auth extends Component {
 
   componentDidMount() {
     if (!this.props.user.isAuthenticated) {
-      helper.executeWhenReady(this.props.checkRegistration);
+      this.props.checkRegistration();
     }
   }
 

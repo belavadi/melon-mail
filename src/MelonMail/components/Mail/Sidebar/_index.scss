@@ -1,7 +1,7 @@
 @import '../../../style/vars';
 
 .sidebar {
-  width: 100%;
+  min-width: 130px;
   max-width: 130px;
   padding: 10px 0;
   background-color: #ddd;

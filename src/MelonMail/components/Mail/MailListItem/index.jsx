@@ -5,6 +5,7 @@ import { bindActionCreators } from 'redux';
 import { List } from 'semantic-ui-react';
 
 import * as mailActions from '../../../actions/mail';
+import { formatDate } from '../../../services/helperService';
 
 const MailListItem = ({ args, getThread }) => (
   <List.Item
@@ -13,10 +14,10 @@ const MailListItem = ({ args, getThread }) => (
     role="button"
     tabIndex="-1"
   >
-    <List.Header>{args.title}</List.Header>
+    <List.Header>{args.subject}</List.Header>
     <div className="meta">
       <span className="from">{args.from}</span>
-      <span className="date">12.3.2017</span>
+      <span className="date">{formatDate(Date.parse(args.time))}</span>
     </div>
   </List.Item>
 );

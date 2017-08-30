@@ -3,7 +3,9 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Card, Button } from 'semantic-ui-react';
+
 import * as composeActions from '../../../actions/compose';
+import { formatDate } from '../../../services/helperService';
 
 class MailPreview extends Component {
   constructor(props) {
@@ -46,14 +48,14 @@ class MailPreview extends Component {
                 <Card.Content>
                   <Card.Header>
                     <div className="mail-actions">
-                      {/* Should also send thread and mail ID for openCompose */}
                       <Button icon="reply" onClick={() => this.props.openCompose({ type: 'reply', indexInThread: index })} />
                       <Button icon="mail forward" onClick={() => this.props.openCompose({ type: 'forward', indexInThread: index })} />
                     </div>
-                    {mail.title}
+                    {mail.subject}
                   </Card.Header>
                   <Card.Description>
                     <p>From: {mail.from}</p>
+                    <p>{formatDate(Date.parse(mail.time))}</p>
                     <p>{mail.body}</p>
                   </Card.Description>
                 </Card.Content>
