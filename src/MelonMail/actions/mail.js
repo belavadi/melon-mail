@@ -43,7 +43,7 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
             return JSON.parse(decrypt(
               keys,
               mailToDecrypt.to === eth.getAccount() ?
-                mailToDecrypt.receiverData : mailToDecrypt.receiverData,
+                mailToDecrypt.receiverData : mailToDecrypt.senderData,
             ));
           });
           const mailsWithIpfsHash = decryptedMails.map((mail, index) => ({
@@ -145,7 +145,7 @@ export const getMails = folder => (dispatch, getState) => {
             const mailToDecrypt = JSON.parse(mail);
             return JSON.parse(decrypt(
               keys,
-              folder === 'inbox' ? mailToDecrypt.receiverData : mailToDecrypt.receiverData,
+              folder === 'inbox' ? mailToDecrypt.receiverData : mailToDecrypt.senderData,
             ));
           });
           console.info(decryptedMails);
