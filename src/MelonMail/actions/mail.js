@@ -43,11 +43,11 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
             const mailToDecrypt = JSON.parse(mail);
             let mailBody;
             if (folder === 'inbox') {
-              mailBody = mailToDecrypt.to === eth.getAccount() ?
-                mailToDecrypt.senderData : mailToDecrypt.receiverData;
-            } else {
-              mailBody = mailToDecrypt.to === eth.getAccount() ?
+              mailBody = mailToDecrypt.toAddress === eth.getAccount() ?
                 mailToDecrypt.receiverData : mailToDecrypt.senderData;
+            } else {
+              mailBody = mailToDecrypt.toAddress === eth.getAccount() ?
+                mailToDecrypt.senderData : mailToDecrypt.receiverData;
             }
             return JSON.parse(decrypt(keys, mailBody));
           });
