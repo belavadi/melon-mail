@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Container, Grid, Segment, Header, Button, Divider } from 'semantic-ui-react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import AuthHeader from '../Mail/Header';
 
 import * as authActions from '../../actions/auth';
 import * as routerActions from '../../actions/router';
@@ -29,7 +30,8 @@ class Auth extends Component {
     }
   }
 
-  register() {
+  register(e) {
+    e.preventDefault();
     this.props.registerUser(this.username.value);
   }
 
@@ -38,48 +40,55 @@ class Auth extends Component {
       case 'check':
         return (
           <div>
-            <Header as="h2">Checking if user is registered...</Header>
+            <Header as="h2" className="form-title">Checking if user is registered...</Header>
+            <Divider />
           </div>
         );
       case 'signIn':
         return (
           <div>
-            <Header as="h2">Signing in...</Header>
-            <Header as="h3">User should authenticate (sign transaction)</Header>
+            <Header as="h2" className="form-title">Signing in...</Header>
+            <Divider />
+            <div className="line-divider" />
+            <p>You will be prompted to sign a transaction, this mechanism will log you in.</p>
           </div>
         );
       case 'authError':
         return (
           <div>
-            <Header as="h2">Authentication error</Header>
-            <Header as="h3">{this.props.user.authError}</Header>
-            <Button onClick={this.props.checkRegistration}>Try again?</Button>
+            <Header as="h2" className="form-title">Authentication error</Header>
+            <Divider />
+            <p>{this.props.user.authError}</p>
+            <Button primary onClick={this.props.checkRegistration}>Try again?</Button>
           </div>
         );
       case 'register':
         return (
-          <div>
-            <Header as="h2">User is not registered.</Header>
-            <Header as="h3">User should register</Header>
-            <Segment>
-              <input ref={(input) => { this.username = input; }} type="text" />@mail.com
-              <Divider />
-              <Button onClick={this.register}>Register</Button>
-            </Segment>
-          </div>
+          <form onSubmit={this.register}>
+            <Header as="h2" className="form-title">You have not registered yet!</Header>
+            <Divider />
+            <div className="ui right labeled input">
+              <input ref={(input) => { this.username = input; }} type="text" />
+              <div className="ui label">
+                @melonmail.eth
+              </div>
+            </div>
+            <p className="form-error">{this.props.user.registerError}</p>
+            <Button className="spread-button" primary onClick={this.register}>Register</Button>
+          </form>
         );
       case 'noConnection':
         return (
           <div>
-            <Segment>
-              <p className="regular-text">
-                It seems like you either don&#39;t have
-                <a href="https://metamask.io/" target="_blank" rel="noopener noreferrer">
-                  MetaMask </a>
-                extension installed or that the extension is not connected to the Kovan test
-                network.
-              </p>
-            </Segment>
+            <Header as="h2" className="form-title">Please install Metamask</Header>
+            <Divider />
+            <p className="regular-text">
+              It seems like you either don&#39;t have &nbsp;
+              <a href="https://metamask.io/" target="_blank" rel="noopener noreferrer">
+                MetaMask </a>
+              extension installed or that the extension is not connected to the Kovan test
+              network.
+            </p>
           </div>
         );
       default:
@@ -89,15 +98,14 @@ class Auth extends Component {
 
   render() {
     return (
-      <Container text>
-        <Header as="h1">Auth</Header>
-
-        <Grid centered>
-          {this.renderRegistration()}
+      <div>
+        <AuthHeader />
+        <Grid padded centered>
+          <div className="form-wrapper">
+            {this.renderRegistration()}
+          </div>
         </Grid>
-
-
-      </Container>
+      </div>
     );
   }
 }
@@ -108,7 +116,7 @@ Auth.propTypes = {
     isRegistered: PropTypes.bool,
     registrationDetermined: PropTypes.bool,
     authError: PropTypes.string,
-    loginError: PropTypes.string,
+    registerError: PropTypes.string,
     stage: PropTypes.string,
   }).isRequired,
   registerUser: PropTypes.func.isRequired,

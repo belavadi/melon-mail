@@ -93,6 +93,39 @@ const getBlockNumber = () =>
     });
   });
 
+const checkUsername = (username) => {
+  const email = `${username}@melonmail.eth`;
+
+  return new Promise((resolve, reject) => {
+    mailContract.BroadcastPublicKey(
+      {
+        username: web3.fromAscii(email),
+      },
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      })
+      .get((error, events) => {
+        if (events.length > 0) {
+          return reject({
+            message: 'Username is already taken.',
+          });
+        }
+
+        if (error) {
+          return reject({
+            message: error,
+            events: null,
+          });
+        }
+
+        return resolve({
+          message: 'Username is available.',
+        });
+      });
+  });
+};
+
 /* Calls registerUser function from the contract code */
 
 const _registerUser = (username, signedString) =>
@@ -279,6 +312,7 @@ export default {
   _getPublicKey,
   _sendEmail,
   checkRegistration,
+  checkUsername,
   signIn,
   getMails,
   getThread,

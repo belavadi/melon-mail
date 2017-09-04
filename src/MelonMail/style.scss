@@ -10,6 +10,8 @@
   @import "style/config/reset";
   @import "style/config/fonts";
 
+  @import "style/components/forms";
+
   @import "components/Mail/App/index";
   @import "components/Mail/Header/index";
   @import "components/Mail/Sidebar/index";

@@ -4,7 +4,6 @@
   min-width: 130px;
   max-width: 130px;
   padding: 10px 0;
-  background-color: #ddd;
   border-right: 1px solid $OceanBlue;
 
   .compose-button-wrapper {
@@ -17,13 +16,16 @@
 
     a {
       display: block;
-      padding: .5rem 1rem;
-      font-size: 1rem;
+      padding: 1rem 1rem;
+      font-size: 1.3rem;
       cursor: pointer;
-      border-bottom: 1px solid;
+      border-top: 1px solid;
       color: $OceanBlue;
+      &:first-of-type {
+        margin-top: 10px;
+      }
       &:last-of-type {
-        border: 0;
+        border-bottom: 1px solid;
       }
       &:active {
         opacity: .8;

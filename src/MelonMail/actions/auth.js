@@ -18,7 +18,6 @@ export const registerSuccess = () => ({
 
 export const registerError = error => ({
   type: 'REGISTER_ERROR',
-  stage: 'authError',
   error,
 });
 
@@ -65,13 +64,20 @@ export const checkRegistration = () => (dispatch) => {
 };
 
 export const registerUser = username => (dispatch) => {
-  eth.signString(eth.getAccount(), contract.stringToSign)
-    .then(signedString =>
-      eth._registerUser(username, signedString))
-    .then((data) => {
-      dispatch(registerSuccess(data));
+  eth.checkUsername(username)
+    .then((events) => {
+      console.log(events);
+      eth.signString(eth.getAccount(), contract.stringToSign)
+        .then(signedString =>
+          eth._registerUser(username, signedString))
+        .then((data) => {
+          dispatch(registerSuccess(data));
+        })
+        .catch((error) => {
+          dispatch(authError('Error occured while registering.'));
+        });
     })
     .catch((error) => {
-      dispatch(registerError(error));
+      dispatch(registerError(error.message));
     });
 };

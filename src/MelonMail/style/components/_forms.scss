@@ -1,0 +1,35 @@
+.form-wrapper{
+  padding: 30px;
+  border: 1px solid #dddddd;
+  margin: 50px 0;
+  width: 500px;
+
+  .ui.divider{
+    margin: 27px 0;
+  }
+
+  .form-title{
+    color: #4e4e4e;
+    font-size: 22px;
+    font-weight: 400;
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+    line-height: 1;
+  }
+
+  .spread-button{
+    margin: 15px auto 0 auto;
+    display: block;
+    text-align: center;
+  }
+
+  .form-error {
+    color: #b62626;
+    margin: 10px 0;
+  }
+
+  p{
+    margin-bottom: 15px;
+  }
+}
