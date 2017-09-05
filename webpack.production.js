@@ -5,7 +5,8 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const config = {
   devtool: 'source-map',
   entry: [
-    './src/MelonMail/',
+    './src/',
+    './src/MelonMail',
   ],
   output: {
     path: path.join(__dirname, './public/web/dist'),
@@ -19,7 +20,7 @@ const config = {
     rules: [
       {
         test: /\.jsx?$/,
-        include: path.join(__dirname, 'src/MelonMail'),
+        include: path.join(__dirname, 'src'),
         use: [
           {
             loader: 'babel-loader',
@@ -90,11 +91,6 @@ const config = {
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('production'),
-      },
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: true,
       },
     }),
   ],
