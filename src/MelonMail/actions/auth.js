@@ -12,8 +12,9 @@ export const userIsRegistered = data => ({
   data,
 });
 
-export const registerSuccess = () => ({
+export const registerSuccess = data => ({
   type: 'REGISTER_SUCCESS',
+  data,
 });
 
 export const registerError = error => ({
@@ -74,6 +75,7 @@ export const registerUser = username => (dispatch) => {
           dispatch(registerSuccess(data));
         })
         .catch((error) => {
+          console.log(error);
           dispatch(authError('Error occured while registering.'));
         });
     })
