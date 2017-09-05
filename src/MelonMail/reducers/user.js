@@ -22,6 +22,8 @@ export default (state = {
         isFetching: action.isFetching,
         isAuthenticated: true,
         registerError: '',
+        privateKey: action.data.privateKey,
+        publicKey: action.data.publicKey,
       };
     case 'REGISTER_ERROR':
       return {

@@ -36,7 +36,6 @@ export const encryptAttachments = (files, keys) =>
     for (let i = 0; i < files.length; i += 1) {
       reader = new FileReader();
       reader.fileName = files[i].name;
-
       reader.onload = (e) => {
         attachment = JSON.stringify({
           fileName: e.target.fileName,
@@ -49,6 +48,8 @@ export const encryptAttachments = (files, keys) =>
           return resolve(attachments);
         }
       };
+
+      reader.readAsDataURL(files[i]);
     }
   });
 /* eslint-enable no-loop-func, consistent-return */

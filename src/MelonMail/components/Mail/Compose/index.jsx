@@ -27,6 +27,7 @@ class Compose extends Component {
     this.handleSend = this.handleSend.bind(this);
     this.checkRecipient = this.checkRecipient.bind(this);
     this.resetRecipient = this.resetRecipient.bind(this);
+    this.removeFile = this.removeFile.bind(this);
   }
 
   componentWillMount() {
@@ -61,6 +62,18 @@ class Compose extends Component {
     });
   }
 
+  removeFile(index) {
+    this.setState({
+      files: {
+        ...this.state.files,
+        files: [
+          ...this.state.files.files.slice(0, index),
+          ...this.state.files.files.slice(index + 1),
+        ],
+      },
+    });
+  }
+
   resetRecipient() {
     this.setState({ recipientExists: 'undetermined' });
   }
@@ -77,7 +90,7 @@ class Compose extends Component {
   }
 
   handleSend() {
-    const files = this.files.files;
+    const files = this.state.files.files;
 
     const mail = {
       from: this.props.user.mailAddress,
@@ -106,16 +119,8 @@ class Compose extends Component {
 
         Promise.all(promises)
           .then(([senderAttachments, receiverAttachments]) => {
-            const senderMail = JSON.stringify({
-              ...mail,
-              attachments: senderAttachments,
-            });
-            const receiverMail = JSON.stringify({
-              ...mail,
-              attachments: receiverAttachments,
-            });
-            const senderData = encrypt(keysForSender, senderMail);
-            const receiverData = encrypt(keysForReceiver, receiverMail);
+            const senderData = encrypt(keysForSender, JSON.stringify(mail));
+            const receiverData = encrypt(keysForReceiver, JSON.stringify(mail));
             let threadId = null;
             if (this.props.compose.special && this.props.compose.special.type === 'reply') {
               threadId = this.props.mail.threadId;
@@ -127,6 +132,8 @@ class Compose extends Component {
               toAddress: data.address,
               senderData,
               receiverData,
+              senderAttachments,
+              receiverAttachments,
             }, threadId);
           })
           .catch((err) => {
@@ -184,13 +191,18 @@ class Compose extends Component {
             />
             <div className="files-preview">
               {
-                [...this.state.files.files].map((item, i) => (
+                this.state.files.files.map((item, i) => (
                   <a className="ui label" key={item.name}>
                     <i className={`file outline icon ${item.name.split('.').pop()}`} />
                     {item.name}
                     &nbsp;-&nbsp;
                     {(item.size / 1024).toFixed(2)}kB
-                    <i className="delete icon" />
+                    <i
+                      role="button"
+                      tabIndex="-1"
+                      className="delete icon"
+                      onClick={() => this.removeFile(i)}
+                    />
                   </a>
                 ))
               }
@@ -204,12 +216,13 @@ class Compose extends Component {
                 multiple
                 value={this.state.files.value}
                 onChange={(e) => {
-                  console.log(e.target.files);
                   this.setState({
-                    files: e.target,
+                    files: {
+                      ...e.target,
+                      files: [...e.target.files],
+                    },
                   });
-                }
-                }
+                }}
               />
             </div>
             <Button

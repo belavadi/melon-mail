@@ -3,6 +3,7 @@ import sha3 from 'solidity-sha3';
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import { decrypt } from '../services/cryptoService';
+import { closeCompose } from './compose';
 
 export const mailRequest = () => ({
   type: 'MAIL_REQUEST',
@@ -76,6 +77,7 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
         ipfs.newThread(mailObject)
           .then((threadLink) => {
             const multihash = threadLink.toJSON().multihash;
+            dispatch(closeCompose());
             return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, sha3(multihash));
           });
       }
@@ -131,10 +133,10 @@ export const getMails = folder => (dispatch, getState) => {
             const mailToDecrypt = JSON.parse(mail);
             const mailBody = folder === 'inbox' ? mailToDecrypt.receiverData : mailToDecrypt.senderData;
             return {
-              ...JSON.parse(decrypt(keys, mailBody)),
-              ...mailEvents[index].args,
               transactionHash: mailEvents[index].transactionHash,
               blockNumber: mailEvents[index].blockNumber,
+              ...mailEvents[index].args,
+              ...JSON.parse(decrypt(keys, mailBody)),
             };
           });
           dispatch(mailsSuccess(folder, decryptedMails));

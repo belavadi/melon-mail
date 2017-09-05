@@ -173,6 +173,13 @@ const _getPublicKey = email =>
         toBlock: 'latest',
       })
       .get((error, events) => {
+        if (error) {
+          return reject({
+            message: error,
+            events: null,
+          });
+        }
+
         if (!events.length) {
           return reject({
             message: 'User not found!',
@@ -180,12 +187,6 @@ const _getPublicKey = email =>
           });
         }
 
-        if (error) {
-          return reject({
-            message: error,
-            events: null,
-          });
-        }
 
         return resolve({
           address: events[0].args.addr,
@@ -251,7 +252,6 @@ const getMails = (folder, startBlock) => {
           });
         }
         const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
-        console.log(`Fetched and filtered emails: ${JSON.stringify(filteredEvents)}`);
         return resolve(filteredEvents);
       });
   });
