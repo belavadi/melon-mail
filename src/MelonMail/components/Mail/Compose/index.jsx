@@ -16,6 +16,10 @@ class Compose extends Component {
       to: '',
       subject: '',
       body: '',
+      files: {
+        value: '',
+        files: [],
+      },
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -45,9 +49,7 @@ class Compose extends Component {
   }
 
   handleInputChange(event) {
-    const target = event.target;
-    const value = target.value;
-    const name = target.name;
+    const { value, name } = event.target;
 
     this.setState({
       [name]: value,
@@ -55,7 +57,7 @@ class Compose extends Component {
   }
 
   handleSend() {
-    const files = [];
+    const files = this.files.files;
 
     const mail = {
       from: this.props.user.mailAddress,
@@ -147,13 +149,40 @@ class Compose extends Component {
             />
             <textarea
               name="body"
-              placeholder="Content"
+              placeholder="Your message..."
               value={this.state.body}
               onChange={this.handleInputChange}
             />
+            <div className="files-preview">
+              {
+                [...this.state.files.files].map((item, i) => (
+                  <a className="ui label" key={item.name}>
+                    <i className={`file outline icon ${item.name.split('.').pop()}`} />
+                    {item.name}
+                    &nbsp;-&nbsp;
+                    {(item.size / 1024).toFixed(2)}kB
+                    <i className="delete icon" />
+                  </a>
+                ))
+              }
+            </div>
           </div>
 
           <div className="actions-wrapper">
+            <div className="ui input">
+              <input
+                type="file"
+                multiple
+                value={this.state.files.value}
+                onChange={(e) => {
+                  console.log(e.target.files);
+                  this.setState({
+                    files: e.target,
+                  });
+                }
+                }
+              />
+            </div>
             <Button
               onClick={this.handleSend}
               basic
@@ -194,9 +223,7 @@ Compose.defaultProps = {
   mail: {
     thread: [],
   },
-  user: {
-
-  },
+  user: {},
 };
 
 const mapStateToProps = state => state;

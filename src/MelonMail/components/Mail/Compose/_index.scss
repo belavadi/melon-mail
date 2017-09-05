@@ -57,17 +57,27 @@
         border: 0;
         outline: 0;
         padding: 10px;
-        border-bottom: 1px solid #bbb;
         resize: none;
         color: $textColor;
       }
     }
+
+    .files-preview{
+      padding: 5px;
+    }
+
     .actions-wrapper {
       height: 60px;
       padding: 0 10px;
       text-align: right;
       background-color: white;
       line-height: 60px;
+      border-top: 1px solid #bbb;
+
+      input[type=file]{
+        margin-right: 10px;
+      }
+
       :last-child {
         margin-right: 0;
       }
