@@ -98,10 +98,10 @@ export const mailsRequest = mailType => (
     { type: 'MAILS_OUTBOX_REQUEST' }
 );
 
-export const mailsSuccess = (mailType, mails) => (
+export const mailsSuccess = (mailType, mails, fetchedFromBlock) => (
   mailType === 'inbox' ?
-    { type: 'MAILS_INBOX_SUCCESS', mails } :
-    { type: 'MAILS_OUTBOX_SUCCESS', mails }
+    { type: 'MAILS_INBOX_SUCCESS', mails, fetchedFromBlock } :
+    { type: 'MAILS_OUTBOX_SUCCESS', mails, fetchedFromBlock }
 );
 
 export const mailsError = (mailType, error) => (
@@ -116,15 +116,24 @@ export const newMail = (mailType, mail) => (
     { type: 'NEW_OUTBOX_MAIL', mail }
 );
 
+export const mailsNoMore = () => ({
+  type: 'MAILS_NO_MORE',
+});
+
 export const getMails = folder => (dispatch, getState) => {
-  dispatch(mailsRequest(folder));
-  const startingBlock = getState().user.startingBlock;
+  const userStartingBlock = getState().user.startingBlock;
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,
   };
-  eth.getMails(folder, startingBlock)
-    .then((mailEvents) => {
+  const fetchToBlock = folder === 'inbox' ?
+    getState().mails.inboxFetchedFromBlock : getState().mails.outboxFetchedFromBlock;
+  const blocksInBatch = folder === 'inbox' ?
+    getState().mails.inboxBatchSize : getState().mails.outboxBatchSize;
+  dispatch(mailsRequest(folder));
+  eth.getMails(folder, fetchToBlock, blocksInBatch, userStartingBlock)
+    .then((res) => {
+      const { mailEvents, fromBlock } = res;
       const ipfsFetchPromises = mailEvents.map(mail => ipfs.getFileContent(mail.args.mailHash));
 
       return Promise.all(ipfsFetchPromises)
@@ -139,7 +148,7 @@ export const getMails = folder => (dispatch, getState) => {
               ...JSON.parse(decrypt(keys, mailBody)),
             };
           });
-          dispatch(mailsSuccess(folder, decryptedMails));
+          dispatch(mailsSuccess(folder, decryptedMails, fromBlock));
         })
         .catch((error) => {
           console.log(error);
@@ -148,6 +157,9 @@ export const getMails = folder => (dispatch, getState) => {
     })
     .catch((error) => {
       console.log(error);
+      if (error.message === 'OVER_STARTING_BLOCK') {
+        dispatch(mailsNoMore());
+      }
       dispatch(mailsError(folder, error));
     });
 };

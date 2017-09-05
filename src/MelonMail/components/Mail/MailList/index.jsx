@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { List, Segment } from 'semantic-ui-react';
+import { List, Loader } from 'semantic-ui-react';
+import InfiniteScroll from 'react-infinite-scroller';
 
 import * as mailActions from '../../../actions/mail';
 import MailListItem from '../MailListItem';
@@ -15,21 +16,26 @@ class MailList extends Component {
   }
 
   componentDidMount() {
-    this.props.getMails(this.props.mails.folder);
+    // this.props.getMails(this.props.mails.folder);
     this.props.listenForMails();
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.mails.folder !== this.props.mails.folder) {
       console.log(this.props.mails.folder);
-      this.props.getMails(this.props.mails.folder);
+      // this.props.getMails(this.props.mails.folder);
     }
   }
 
   render() {
     return (
       <div className="mail-list">
-        <Segment vertical loading={this.props.mails.isFetching} >
+        <InfiniteScroll
+          hasMore={!this.props.mails.isFetching && this.props.mails.hasMoreMails}
+          useWindow={false}
+          loadMore={() => this.props.getMails(this.props.mails.folder)}
+          threshold={50}
+        >
           <List selection divided>
             {
               this.props.mails[this.props.mails.folder].length > 0 &&
@@ -45,7 +51,13 @@ class MailList extends Component {
               </div>
             }
           </List>
-        </Segment>
+        </InfiniteScroll>
+        {
+          this.props.mails.isFetching &&
+          <div className="loader-wrapper">
+            <Loader inline active={this.props.mails.isFetching} />
+          </div>
+        }
       </div>
     );
   }
@@ -59,6 +71,7 @@ MailList.propTypes = {
     outbox: PropTypes.array,
     isFetching: PropTypes.bool,
     folder: PropTypes.string,
+    hasMoreMails: PropTypes.bool,
   }).isRequired,
 };
 

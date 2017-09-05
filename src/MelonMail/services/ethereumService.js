@@ -200,8 +200,6 @@ const _getPublicKey = email =>
 const listenForMails = callback =>
   getBlockNumber()
     .then((startingBlock) => {
-      console.log('!!! Listening for mails');
-      console.log(getAccount());
       mailContract.SendEmail(
         {
           to: getAccount(),
@@ -234,27 +232,39 @@ const listenForMails = callback =>
         });
     });
 
-const getMails = (folder, startBlock) => {
-  const filter = folder === 'inbox' ?
-    { to: getAccount() } :
-    { from: getAccount() };
-  return new Promise((resolve, reject) => {
-    mailContract.SendEmail(
-      filter,
-      {
-        fromBlock: startBlock,
-        toBlock: 'latest',
-      })
-      .get((error, events) => {
-        if (error) {
-          return reject({
-            message: error,
+const getMails = (folder, fetchToBlock, blocksToFetch, userStartingBlock) => {
+  console.log(`Eth service: Fetching emails in ${blocksToFetch} blocks`);
+  return getBlockNumber()
+    .then((currentBlock) => {
+      const filter = folder === 'inbox' ? { to: getAccount() } : { from: getAccount() };
+      const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
+      return new Promise((resolve, reject) => {
+        if (fetchTo <= userStartingBlock) {
+          reject({
+            message: 'OVER_STARTING_BLOCK',
           });
         }
-        const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
-        return resolve(filteredEvents);
+        mailContract.SendEmail(
+          filter,
+          {
+            fromBlock: fetchTo - blocksToFetch,
+            toBlock: fetchTo,
+          })
+          .get((error, events) => {
+            if (error) {
+              return reject({
+                message: error,
+              });
+            }
+            const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
+            // console.log(`Fetched and filtered emails: ${JSON.stringify(filteredEvents)}`);
+            return resolve({
+              mailEvents: filteredEvents,
+              fromBlock: fetchTo - blocksToFetch,
+            });
+          });
       });
-  });
+    });
 };
 
 const getThread = (threadId, afterBlock) =>

@@ -1,8 +1,13 @@
 export default (state = {
-  isFetching: true,
+  isFetching: false,
   folder: 'inbox',
   inbox: [],
   outbox: [],
+  inboxFetchedFromBlock: null,
+  inboxBatchSize: 1000,
+  outboxFetchedFromBlock: null,
+  outboxBatchSize: 1000,
+  hasMoreMails: true,
 }, action) => {
   switch (action.type) {
     case 'MAILS_INBOX_REQUEST':
@@ -15,13 +20,17 @@ export default (state = {
       return {
         ...state,
         isFetching: false,
-        inbox: action.mails,
+        inboxFetchedFromBlock: action.fetchedFromBlock,
+        inboxBatchSize: state.inboxBatchSize * 2,
+        inbox: [...state.inbox, ...action.mails],
       };
     case 'MAILS_OUTBOX_SUCCESS':
       return {
         ...state,
         isFetching: false,
-        outbox: action.mails,
+        outboxFetchedFromBlock: action.fetchedFromBlock,
+        outboxBatchSize: state.outboxBatchSize * 2,
+        outbox: [...state.outbox, ...action.mails],
       };
     case 'MAILS_INBOX_ERROR':
     case 'MAILS_OUTBOX_ERROR':
@@ -34,6 +43,12 @@ export default (state = {
       return {
         ...state,
         folder: action.folder,
+        hasMoreMails: true,
+      };
+    case 'MAILS_NO_MORE':
+      return {
+        ...state,
+        hasMoreMails: false,
       };
     default:
       return state;
