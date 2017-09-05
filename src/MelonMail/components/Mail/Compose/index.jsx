@@ -20,10 +20,13 @@ class Compose extends Component {
         value: '',
         files: [],
       },
+      recipientExists: 'undetermined',
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSend = this.handleSend.bind(this);
+    this.checkRecipient = this.checkRecipient.bind(this);
+    this.resetRecipient = this.resetRecipient.bind(this);
   }
 
   componentWillMount() {
@@ -48,12 +51,29 @@ class Compose extends Component {
     }
   }
 
-  handleInputChange(event) {
-    const { value, name } = event.target;
+  handleInputChange(event, clean) {
+    const target = event.target;
+    const value = clean ? target.value.toLowerCase().trim() : target.value;
+    const name = target.name;
 
     this.setState({
       [name]: value,
     });
+  }
+
+  resetRecipient() {
+    this.setState({ recipientExists: 'undetermined' });
+  }
+
+  checkRecipient() {
+    this.setState({ recipientExists: 'loading' });
+    eth._getPublicKey(this.state.to.toLowerCase().trim())
+      .then(() => {
+        this.setState({ recipientExists: 'true' });
+      })
+      .catch(() => {
+        this.setState({ recipientExists: 'false' });
+      });
   }
 
   handleSend() {
@@ -96,7 +116,10 @@ class Compose extends Component {
             });
             const senderData = encrypt(keysForSender, senderMail);
             const receiverData = encrypt(keysForReceiver, receiverMail);
-            const threadId = this.props.compose.special.type === 'reply' ? this.props.mail.threadId : null;
+            let threadId = null;
+            if (this.props.compose.special && this.props.compose.special.type === 'reply') {
+              threadId = this.props.mail.threadId;
+            }
 
             console.log(threadId);
 
@@ -138,7 +161,13 @@ class Compose extends Component {
               name="to"
               placeholder="To"
               value={this.state.to}
-              onChange={this.handleInputChange}
+              onChange={e => this.handleInputChange(e, true)}
+              onFocus={this.resetRecipient}
+              onBlur={this.checkRecipient}
+              className={
+                `${this.state.recipientExists === 'true' ? 'input-ok' : ''}
+                 ${this.state.recipientExists === 'false' ? 'input-error' : ''}`
+              }
             />
             <input
               type="text"
