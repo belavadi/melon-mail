@@ -1,4 +1,5 @@
 import sha3 from 'solidity-sha3';
+import uniqBy from 'lodash/uniqBy';
 
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
@@ -110,10 +111,10 @@ export const mailsError = (mailType, error) => (
     { type: 'MAILS_OUTBOX_ERROR', error }
 );
 
-export const newMail = (mailType, mail) => (
+export const newMail = (mailType, mails) => (
   mailType === 'inbox' ?
-    { type: 'NEW_INBOX_MAIL', mail } :
-    { type: 'NEW_OUTBOX_MAIL', mail }
+    { type: 'NEW_INBOX_MAIL', mails } :
+    { type: 'NEW_OUTBOX_MAIL', mails }
 );
 
 export const mailsNoMore = () => ({
@@ -148,7 +149,8 @@ export const getMails = folder => (dispatch, getState) => {
               ...JSON.parse(decrypt(keys, mailBody)),
             };
           });
-          dispatch(mailsSuccess(folder, decryptedMails, fromBlock));
+          const newMailsState = [...getState().mails[folder], ...decryptedMails];
+          dispatch(mailsSuccess(folder, uniqBy(newMailsState, 'threadId'), fromBlock));
         })
         .catch((error) => {
           console.log(error);
@@ -164,16 +166,33 @@ export const getMails = folder => (dispatch, getState) => {
     });
 };
 
-export const listenForMails = () => (dispatch) => {
-  eth.listenForMails((mail) => {
-    ipfs.getFileContent(mail.args.mailHash)
-      .then((content) => {
-        if (mail.to === eth.getAccount()) {
-          dispatch(newMail('inbox', mail));
+export const listenForMails = () => (dispatch, getState) => {
+  console.log('listening for mail');
+  eth.listenForMails((mailEvent, mailType) => {
+    ipfs.getFileContent(mailEvent.args.mailHash)
+      .then((ipfsContent) => {
+        const encryptedMail = JSON.parse(ipfsContent);
+        const mailContent = mailType === 'inbox' ?
+          encryptedMail.receiverData : encryptedMail.senderData;
+        const keys = {
+          publicKey: getState().user.publicKey,
+          privateKey: getState().user.privateKey,
+        };
+        const mail = {
+          transactionHash: mailEvent.transactionHash,
+          blockNumber: mailEvent.blockNumber,
+          ...mailEvent.args,
+          ...JSON.parse(decrypt(keys, mailContent)),
+        };
+
+        if (mailType === 'inbox') {
+          const mails = [mail, ...getState().mails.inbox];
+          dispatch(newMail('inbox', uniqBy(mails, 'threadId')));
         } else {
-          dispatch(newMail('outbox', mail));
+          const mails = [mail, ...getState().mails.outbox];
+          dispatch(newMail('outbox', uniqBy(mails, 'threadId')));
         }
-        console.log(content);
+        console.log(mailContent);
       });
   });
 };

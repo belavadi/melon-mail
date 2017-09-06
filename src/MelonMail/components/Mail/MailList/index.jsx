@@ -16,14 +16,12 @@ class MailList extends Component {
   }
 
   componentDidMount() {
-    // this.props.getMails(this.props.mails.folder);
     this.props.listenForMails();
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.mails.folder !== this.props.mails.folder) {
       console.log(this.props.mails.folder);
-      // this.props.getMails(this.props.mails.folder);
     }
   }
 

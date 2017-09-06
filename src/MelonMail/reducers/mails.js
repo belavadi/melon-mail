@@ -25,7 +25,7 @@ export default (state = {
         showLoader: !action.mails.length,
         inboxFetchedFromBlock: action.fetchedFromBlock,
         inboxBatchSize: state.inboxBatchSize * 2,
-        inbox: [...state.inbox, ...action.mails],
+        inbox: action.mails,
       };
     case 'MAILS_OUTBOX_SUCCESS':
       return {
@@ -34,7 +34,7 @@ export default (state = {
         showLoader: !action.mails.length,
         outboxFetchedFromBlock: action.fetchedFromBlock,
         outboxBatchSize: state.outboxBatchSize * 2,
-        outbox: [...state.outbox, ...action.mails],
+        outbox: action.mails,
       };
     case 'MAILS_INBOX_ERROR':
     case 'MAILS_OUTBOX_ERROR':
@@ -47,12 +47,12 @@ export default (state = {
     case 'NEW_INBOX_MAIL':
       return {
         ...state,
-        inbox: [action.mail, ...state.inbox],
+        inbox: action.mails,
       };
     case 'NEW_OUTBOX_MAIL':
       return {
         ...state,
-        inbox: [action.mail, ...state.outbox],
+        outbox: action.mails,
       };
     case 'MAILS_FOLDER_CHANGE':
       return {

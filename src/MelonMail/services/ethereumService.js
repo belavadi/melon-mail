@@ -212,7 +212,7 @@ const listenForMails = callback =>
           if (error) {
             console.log(error);
           }
-          callback(event);
+          callback(event, 'inbox');
         });
 
       mailContract.SendEmail(
@@ -228,7 +228,7 @@ const listenForMails = callback =>
             console.log(error);
           }
           console.log(`Mail event: Received an email${JSON.stringify(event)}`);
-          callback(event);
+          callback(event, 'outbox');
         });
     });
 
@@ -257,7 +257,6 @@ const getMails = (folder, fetchToBlock, blocksToFetch, userStartingBlock) => {
               });
             }
             const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
-            // console.log(`Fetched and filtered emails: ${JSON.stringify(filteredEvents)}`);
             return resolve({
               mailEvents: filteredEvents,
               fromBlock: fetchTo - blocksToFetch,
