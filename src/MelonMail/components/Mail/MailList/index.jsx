@@ -53,9 +53,9 @@ class MailList extends Component {
           </List>
         </InfiniteScroll>
         {
-          this.props.mails.isFetching &&
+          this.props.mails.showLoader &&
           <div className="loader-wrapper">
-            <Loader inline active={this.props.mails.isFetching} />
+            <Loader inline active={this.props.mails.showLoader} />
           </div>
         }
       </div>
@@ -70,6 +70,7 @@ MailList.propTypes = {
     inbox: PropTypes.array,
     outbox: PropTypes.array,
     isFetching: PropTypes.bool,
+    showLoader: PropTypes.bool,
     folder: PropTypes.string,
     hasMoreMails: PropTypes.bool,
   }).isRequired,
