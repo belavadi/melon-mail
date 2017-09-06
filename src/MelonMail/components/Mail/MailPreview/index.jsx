@@ -57,6 +57,22 @@ class MailPreview extends Component {
                     <p>From: {mail.from}</p>
                     <p>{formatDate(Date.parse(mail.time))}</p>
                     <p>{mail.body}</p>
+                    {
+                      mail.attachments.map((item, i) => (
+                        <a className="ui label" key={item.name}>
+                          <i className={`file outline icon ${item.name.split('.').pop()}`} />
+                          {item.name}
+                          &nbsp;-&nbsp;
+                          {(item.size / 1024).toFixed(2)}kB
+                          &nbsp;
+                          <i
+                            role="button"
+                            tabIndex="-1"
+                            className="download icon"
+                          />
+                        </a>
+                      ))
+                    }
                   </Card.Description>
                 </Card.Content>
               </Card>
@@ -90,6 +106,7 @@ MailPreview.propTypes = {
     isFetching: PropTypes.bool,
     thread: PropTypes.array,
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    attachments: PropTypes.array,
   }),
   openCompose: PropTypes.func.isRequired,
 };

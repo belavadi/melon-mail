@@ -8,6 +8,7 @@ export default (state = {
   publicKey: null,
   mailAddress: '',
   ethAddress: '',
+  startingBlock: 0,
 }, action) => {
   switch (action.type) {
     case 'REGISTER_REQUEST':
@@ -24,6 +25,7 @@ export default (state = {
         registerError: '',
         privateKey: action.data.privateKey,
         publicKey: action.data.publicKey,
+        startingBlock: action.data.startingBlock,
       };
     case 'REGISTER_ERROR':
       return {

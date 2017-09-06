@@ -64,7 +64,7 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
 };
 
 export const sendMail = (mail, threadId) => (dispatch, getState) => {
-  ipfs.uploadMail(mail)
+  ipfs.uploadData(mail)
     .then((mailLink) => {
       const mailObject = mailLink.length ? mailLink[0] : mailLink;
       if (threadId) {

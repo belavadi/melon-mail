@@ -5,15 +5,15 @@ let ipfsNode;
 
 const ipfs = () => {
   if (!ipfsNode) {
-    ipfsNode = ipfsAPI('46.101.79.241');
+    ipfsNode = ipfsAPI();
   }
   return ipfsNode;
 };
 
-const uploadMail = (mail) => {
-  const preparedMail = new Buffer(JSON.stringify(mail));
+const uploadData = (data) => {
+  const preparedData = new Buffer(JSON.stringify(data));
 
-  return ipfs().files.add(preparedMail);
+  return ipfs().files.add(preparedData);
 };
 
 const newThread = (mail) => {
@@ -57,7 +57,7 @@ const getFileContent = hash =>
   });
 
 export default {
-  uploadMail,
+  uploadData,
   newThread,
   replyToThread,
   getThread,

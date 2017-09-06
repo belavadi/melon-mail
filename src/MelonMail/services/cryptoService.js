@@ -1,5 +1,6 @@
 import bitcore from 'bitcore-lib';
 import ecies from 'bitcore-ecies';
+import ipfs from './ipfsService';
 
 export const generateKeys = (data) => {
   const privateKey = bitcore.PrivateKey.fromString(data.slice(2, 66));
@@ -23,33 +24,54 @@ export const decrypt = (keys, data) => {
 
   return privateKey.decrypt(new Buffer(data, 'hex')).toString('ascii');
 };
+
+const encryptFile = (file, keys) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.fileName = file.name;
+    reader.onload = (e) => {
+      resolve({
+        name: file.name,
+        size: file.size,
+        attachment: encrypt(keys, JSON.stringify({
+          fileName: e.target.fileName,
+          fileData: e.target.result,
+        })),
+      });
+    };
+
+    reader.readAsDataURL(file);
+  });
+
 /* eslint-disable no-loop-func, consistent-return */
 export const encryptAttachments = (files, keys) =>
   new Promise((resolve, reject) => {
     if (files.length === 0) {
       return resolve([]);
     }
-    const attachments = [];
-    let reader = null;
-    let attachment = '';
+    const attachments = files.map(file => encryptFile(file, keys));
 
-    for (let i = 0; i < files.length; i += 1) {
-      reader = new FileReader();
-      reader.fileName = files[i].name;
-      reader.onload = (e) => {
-        attachment = JSON.stringify({
-          fileName: e.target.fileName,
-          fileData: e.target.result,
+    Promise.all(attachments)
+      .then((encryptedAttachments) => {
+        const uploaded = encryptedAttachments.map(attachment =>
+          ipfs.uploadData(attachment.attachment),
+        );
+        Promise.all(uploaded)
+          .then((ipfsObjects) => {
+            const data = ipfsObjects.map((ipfsObject, i) => ({
+              name: encryptedAttachments[i].name,
+              size: encryptedAttachments[i].size,
+              hash: ipfsObject.length ? ipfsObject[0].hash : ipfsObject,
+            }));
+            resolve(data);
+          });
+      })
+      .catch((error) => {
+        reject({
+          message: 'Mail encryption / upload failed.',
+          error,
         });
-
-        attachments.push(encrypt(keys, attachment));
-
-        if (attachments.length === files.length) {
-          return resolve(attachments);
-        }
-      };
-
-      reader.readAsDataURL(files[i]);
-    }
-  });
+      });
+  })
+;
 /* eslint-enable no-loop-func, consistent-return */

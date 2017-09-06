@@ -112,28 +112,30 @@ class Compose extends Component {
           publicKey: this.props.user.publicKey,
         };
 
-        const promises = [
+        const attachments = [
           encryptAttachments(files, keysForReceiver),
           encryptAttachments(files, keysForSender),
         ];
 
-        Promise.all(promises)
+        return Promise.all(attachments)
           .then(([senderAttachments, receiverAttachments]) => {
-            const senderData = encrypt(keysForSender, JSON.stringify(mail));
-            const receiverData = encrypt(keysForReceiver, JSON.stringify(mail));
+            const senderData = encrypt(keysForSender, JSON.stringify({
+              ...mail,
+              attachments: senderAttachments,
+            }));
+            const receiverData = encrypt(keysForReceiver, JSON.stringify({
+              ...mail,
+              attachments: receiverAttachments,
+            }));
             let threadId = null;
             if (this.props.compose.special && this.props.compose.special.type === 'reply') {
               threadId = this.props.mail.threadId;
             }
 
-            console.log(threadId);
-
             this.props.sendMail({
               toAddress: data.address,
               senderData,
               receiverData,
-              senderAttachments,
-              receiverAttachments,
             }, threadId);
           })
           .catch((err) => {
