@@ -5,7 +5,7 @@ let ipfsNode;
 
 const ipfs = () => {
   if (!ipfsNode) {
-    ipfsNode = ipfsAPI('46.101.79.241');
+    ipfsNode = ipfsAPI('46.101.79.241', '5001');
   }
   return ipfsNode;
 };
