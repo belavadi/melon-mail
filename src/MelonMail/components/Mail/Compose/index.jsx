@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Container, Button } from 'semantic-ui-react';
+import { Container, Button, Loader } from 'semantic-ui-react';
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
@@ -100,6 +100,8 @@ class Compose extends Component {
       time: new Date().toString(),
     };
 
+    this.props.changeComposeState('ENCRYPTING_ATTACHMENTS');
+
     eth._getPublicKey(this.state.to)
       .then((data) => {
         const keysForReceiver = {
@@ -119,6 +121,7 @@ class Compose extends Component {
 
         return Promise.all(attachments)
           .then(([senderAttachments, receiverAttachments]) => {
+            this.props.changeComposeState('ENCRYPTING_MAIL');
             const senderData = encrypt(keysForSender, JSON.stringify({
               ...mail,
               attachments: senderAttachments,
@@ -132,15 +135,20 @@ class Compose extends Component {
               threadId = this.props.mail.threadId;
             }
 
-            this.props.sendMail({
+            return this.props.sendMail({
               toAddress: data.address,
               senderData,
               receiverData,
             }, threadId);
           })
+          .then((res) => {
+            console.log(res);
+            this.props.closeCompose();
+          })
           .catch((err) => {
-            console.log('Error encrypting attachments!');
+            console.log(`Error in state: ${this.props.compose.sendingState}!`);
             console.log(err);
+            this.props.changeComposeState('ERROR');
           });
       })
       .catch(err => console.error(err));
@@ -211,30 +219,46 @@ class Compose extends Component {
             </div>
           </div>
 
-          <div className="actions-wrapper">
-            <div className="ui input">
-              <input
-                type="file"
-                multiple
-                value={this.state.files.value}
-                onChange={(e) => {
-                  this.setState({
-                    files: {
-                      ...e.target,
-                      files: [...e.target.files],
-                    },
-                  });
-                }}
+          <div className="compose-footer">
+            <span className="status-wrapper">
+              <Loader
+                inline
+                active={
+                  this.props.compose.sendingState !== 'EDITING' &&
+                  this.props.compose.sendingState !== 'ERROR'
+                }
+              />
+              {this.props.compose.sendingState}
+            </span>
+            <div className="actions-wrapper">
+              <div className="ui input">
+                <input
+                  type="file"
+                  multiple
+                  value={this.state.files.value}
+                  onChange={(e) => {
+                    this.setState({
+                      files: {
+                        ...e.target,
+                        files: [...e.target.files],
+                      },
+                    });
+                  }}
+                />
+              </div>
+              <Button
+                onClick={this.handleSend}
+                basic
+                color="green"
+                content="Send"
+                icon="send"
+                loading={false}
+                disabled={
+                  this.props.compose.sendingState !== 'EDITING' &&
+                  this.props.compose.sendingState !== 'ERROR'
+                }
               />
             </div>
-            <Button
-              onClick={this.handleSend}
-              basic
-              color="green"
-              content="Send"
-              icon="send"
-              loading={false}
-            />
           </div>
         </Container>
       </div>
@@ -248,6 +272,7 @@ Compose.propTypes = {
       type: PropTypes.string,
       indexInThread: PropTypes.number,
     }),
+    sendingState: PropTypes.string.isRequired,
   }).isRequired,
   mail: PropTypes.shape({
     thread: PropTypes.array,
@@ -260,6 +285,7 @@ Compose.propTypes = {
     publicKey: PropTypes.string.isRequired,
   }),
   closeCompose: PropTypes.func.isRequired,
+  changeComposeState: PropTypes.func.isRequired,
   sendMail: PropTypes.func.isRequired,
 };
 

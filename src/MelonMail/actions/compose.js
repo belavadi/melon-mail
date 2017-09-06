@@ -14,3 +14,8 @@ export const minimizeCompose = () => ({
 export const maximizeCompose = () => ({
   type: 'COMPOSE_BOX_SHOW',
 });
+
+export const changeComposeState = sendingState => ({
+  type: 'COMPOSE_BOX_CHANGE_STATE',
+  sendingState,
+});

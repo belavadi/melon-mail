@@ -86,20 +86,31 @@
       padding: 5px;
     }
 
-    .actions-wrapper {
+    .compose-footer {
       height: 60px;
       padding: 0 10px;
-      text-align: right;
       background-color: white;
       line-height: 60px;
       border-top: 1px solid #bbb;
 
-      input[type=file]{
+      .loader {
         margin-right: 10px;
       }
 
-      :last-child {
-        margin-right: 0;
+      .status-wrapper {
+
+      }
+
+      .actions-wrapper {
+        float: right;
+
+        input[type=file] {
+          margin-right: 10px;
+        }
+
+        :last-child {
+          margin-right: 0;
+        }
       }
     }
   }

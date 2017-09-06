@@ -1,6 +1,7 @@
 export default (state = {
   isOpen: false,
   isMaximized: false,
+  sendingState: 'EDITING',
 }, action) => {
   switch (action.type) {
     case 'COMPOSE_BOX_OPEN':
@@ -9,6 +10,7 @@ export default (state = {
         isOpen: true,
         isMaximized: true,
         special: action.special,
+        sendingState: 'EDITING',
       };
     case 'COMPOSE_BOX_CLOSE':
       return {
@@ -24,6 +26,11 @@ export default (state = {
       return {
         ...state,
         isMaximized: false,
+      };
+    case 'COMPOSE_BOX_CHANGE_STATE':
+      return {
+        ...state,
+        sendingState: action.sendingState,
       };
     default:
       return state;
