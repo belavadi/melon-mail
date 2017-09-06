@@ -131,6 +131,10 @@ export const getMails = folder => (dispatch, getState) => {
     getState().mails.inboxFetchedFromBlock : getState().mails.outboxFetchedFromBlock;
   const blocksInBatch = folder === 'inbox' ?
     getState().mails.inboxBatchSize : getState().mails.outboxBatchSize;
+  if (fetchToBlock !== null && fetchToBlock <= userStartingBlock) {
+    dispatch(mailsNoMore());
+    return;
+  }
   dispatch(mailsRequest(folder));
   eth.getMails(folder, fetchToBlock, blocksInBatch, userStartingBlock)
     .then((res) => {
@@ -159,9 +163,6 @@ export const getMails = folder => (dispatch, getState) => {
     })
     .catch((error) => {
       console.log(error);
-      if (error.message === 'OVER_STARTING_BLOCK') {
-        dispatch(mailsNoMore());
-      }
       dispatch(mailsError(folder, error));
     });
 };

@@ -239,11 +239,6 @@ const getMails = (folder, fetchToBlock, blocksToFetch, userStartingBlock) => {
       const filter = folder === 'inbox' ? { to: getAccount() } : { from: getAccount() };
       const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
       return new Promise((resolve, reject) => {
-        if (fetchTo <= userStartingBlock) {
-          reject({
-            message: 'OVER_STARTING_BLOCK',
-          });
-        }
         mailContract.SendEmail(
           filter,
           {

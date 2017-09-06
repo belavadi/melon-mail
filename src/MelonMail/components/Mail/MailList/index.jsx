@@ -19,12 +19,6 @@ class MailList extends Component {
     this.props.listenForMails();
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.mails.folder !== this.props.mails.folder) {
-      console.log(this.props.mails.folder);
-    }
-  }
-
   render() {
     return (
       <div className="mail-list">
