@@ -64,6 +64,7 @@ export default (state = {
       return {
         ...state,
         hasMoreMails: false,
+        showLoader: false,
       };
     default:
       return state;

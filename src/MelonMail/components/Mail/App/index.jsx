@@ -24,6 +24,12 @@ class App extends Component {
     }
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (this.props.user.isAuthenticated !== nextProps.user.isAuthenticated) {
+      this.props.push('auth');
+    }
+  }
+
   render() {
     return (
       <div className="app">

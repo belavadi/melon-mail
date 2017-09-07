@@ -4,6 +4,7 @@ export default (state = {
   authError: '',
   registerError: '',
   stage: 'check',
+  activeAccount: '',
   privateKey: null,
   publicKey: null,
   mailAddress: '',
@@ -67,6 +68,12 @@ export default (state = {
       return {
         ...state,
         stage: action.stage,
+      };
+    case 'ACCOUNT_CHANGE':
+      return {
+        activeAccount: action.account,
+        stage: 'check',
+        isAuthenticated: false,
       };
     default:
       return state;

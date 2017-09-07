@@ -29,7 +29,7 @@ Header.propTypes = {
 Header.defaultProps = {
   children: [],
   isAuthenticated: false,
-  mailAddress: PropTypes.string,
+  mailAddress: '',
 };
 
 const mapStateToProps = state => state.user;

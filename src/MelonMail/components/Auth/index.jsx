@@ -24,9 +24,14 @@ class Auth extends Component {
     }
   }
 
-  componentDidUpdate() {
-    if (this.props.user.isAuthenticated) {
+  componentWillReceiveProps(nextProps) {
+    const { isAuthenticated } = this.props.user;
+
+    if (nextProps.user.isAuthenticated && isAuthenticated !== nextProps.user.isAuthenticated) {
       this.props.push('/');
+    }
+    if (nextProps.user.stage !== this.props.user.stage && nextProps.user.stage === 'check') {
+      this.props.checkRegistration();
     }
   }
 
@@ -67,6 +72,7 @@ class Auth extends Component {
           <form onSubmit={this.register}>
             <Header as="h2" className="form-title">You have not registered yet!</Header>
             <Divider />
+            <p>{web3.eth.accounts.length === 0 ? 'Please login to metamask first.' : ''}</p>
             <div className="ui right labeled input">
               <input ref={(input) => { this.username = input; }} type="text" />
               <div className="ui label">
@@ -74,7 +80,14 @@ class Auth extends Component {
               </div>
             </div>
             <p className="form-error">{this.props.user.registerError}</p>
-            <Button className="spread-button" primary onClick={this.register}>Register</Button>
+            <Button
+              disabled={web3.eth.accounts.length === 0}
+              primary
+              onClick={this.register}
+              className="spread-button"
+            >
+              Register
+            </Button>
           </form>
         );
       case 'noConnection':

@@ -1,6 +1,11 @@
 import eth from '../services/ethereumService';
 import contract from '../services/contract.json';
 
+export const changeAccount = account => ({
+  type: 'ACCOUNT_CHANGE',
+  account,
+});
+
 export const userNotRegistered = () => ({
   type: 'USER_NOT_REGISTERED',
   stage: 'register',
