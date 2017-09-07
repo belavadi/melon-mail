@@ -39,6 +39,24 @@ const getAccount = () => {
   return web3.eth.accounts[0];
 };
 
+const getBalance = () => {
+  const account = getAccount();
+  if (!web3.isAddress(account)) {
+    return Promise.resolve(0);
+  }
+  return new Promise((resolve, reject) => {
+    web3.eth.getBalance(getAccount(), (error, balance) => {
+      if (error) {
+        return reject({
+          message: error,
+        });
+      }
+
+      return resolve(parseFloat(web3.fromWei(balance)));
+    });
+  });
+};
+
 const checkRegistration = () =>
   new Promise((resolve, reject) => {
     mailContract.BroadcastPublicKey(
@@ -187,7 +205,6 @@ const _getPublicKey = email =>
           });
         }
 
-
         return resolve({
           address: events[0].args.addr,
           publicKey: events[0].args.publicKey,
@@ -320,4 +337,5 @@ export default {
   signIn,
   getMails,
   getThread,
+  getBalance,
 };

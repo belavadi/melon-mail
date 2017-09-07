@@ -61,7 +61,7 @@ export const checkRegistration = () => (dispatch) => {
         return dispatch(loginSuccess(result));
       }
       console.error(result.error);
-      return dispatch(authError('Login failed.'));
+      return dispatch(authError('You need to sign the string in order to login.'));
     })
     .catch((result) => {
       if (window.web3 === undefined) {
@@ -73,8 +73,9 @@ export const checkRegistration = () => (dispatch) => {
       if (result.message === 'WRONG_NETWORK') {
         return dispatch(wrongNetwork());
       }
-      console.log(result);
-      return dispatch(authError('Login failed.'));
+      return dispatch(authError(
+        'Something wen\'t wrong or you didn\'t accept the signing process.',
+      ));
     });
 };
 

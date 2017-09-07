@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import AuthHeader from '../Mail/Header';
 
 import * as authActions from '../../actions/auth';
+import * as utilityActions from '../../actions/utility';
 import * as routerActions from '../../actions/router';
 import crypto from '../../services/cryptoService';
 
@@ -18,9 +19,10 @@ class Auth extends Component {
     this.register = this.register.bind(this);
   }
 
-  componentDidMount() {
+  componentWillMount() {
     if (!this.props.user.isAuthenticated) {
       this.props.checkRegistration();
+      this.props.getBalance();
     }
   }
 
@@ -61,7 +63,7 @@ class Auth extends Component {
       case 'authError':
         return (
           <div>
-            <Header as="h2" className="form-title">Authentication error</Header>
+            <Header as="h2" className="form-title">There was a problem authenticating you</Header>
             <Divider />
             <p>{this.props.user.authError}</p>
             <Button primary onClick={this.props.checkRegistration}>Try again?</Button>
@@ -73,6 +75,30 @@ class Auth extends Component {
             <Header as="h2" className="form-title">You have not registered yet!</Header>
             <Divider />
             <p>{web3.eth.accounts.length === 0 ? 'Please login to metamask first.' : ''}</p>
+            {
+              this.props.user.balance === 0 &&
+              <div>
+                <p className="regular-text">In order to create a fund, you need to have some Kovan
+                  test ether in your wallet.
+                  You can request k-eth on our gitter channel or on the Kovan Faucet.</p>
+                <Button
+                  href="https://gitter.im/melonproject/general?source=orgpage"
+                  target="blank"
+                  rel="noopener "
+                >
+                  Melon Gitter
+                </Button>
+                <Button
+                  href="https://github.com/kovan-testnet/faucet"
+                  target="blank"
+                  rel="noopener "
+                >
+                  Kovan Faucet
+                </Button>
+                <Divider />
+              </div>
+            }
+
             <div className="ui right labeled input">
               <input ref={(input) => { this.username = input; }} type="text" />
               <div className="ui label">
@@ -141,9 +167,11 @@ Auth.propTypes = {
     authError: PropTypes.string,
     registerError: PropTypes.string,
     stage: PropTypes.string,
+    balance: PropTypes.number,
   }).isRequired,
   registerUser: PropTypes.func.isRequired,
   checkRegistration: PropTypes.func.isRequired,
+  getBalance: PropTypes.func.isRequired,
   push: PropTypes.func.isRequired,
 };
 
@@ -156,6 +184,7 @@ const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators({
   ...authActions,
   ...routerActions,
+  ...utilityActions,
 }, dispatch);
 
 export default connect(

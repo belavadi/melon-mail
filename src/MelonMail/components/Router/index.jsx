@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import { changeAccount } from '../../actions/auth';
+import { getBalance } from '../../actions/utility';
 
 /* Import React Components */
 
@@ -21,6 +22,7 @@ class Router extends Component {
     setInterval(() => {
       if (this.props.user.activeAccount !== web3.eth.accounts[0] && web3.eth.accounts.length > 0) {
         this.props.changeAccount(web3.eth.accounts[0]);
+        this.props.getBalance();
       }
     }, 100);
   }
@@ -42,14 +44,15 @@ class Router extends Component {
 }
 
 Router.propTypes = {
-  path: PropTypes.string.isRequired,
-  changeAccount: PropTypes.func.isRequired,
   user: PropTypes.shape({
     activeAccount: PropTypes.string.isRequired,
   }).isRequired,
   router: PropTypes.shape({
     path: PropTypes.string.isRequired,
   }).isRequired,
+  path: PropTypes.string.isRequired,
+  changeAccount: PropTypes.func.isRequired,
+  getBalance: PropTypes.func.isRequired,
 };
 
 Router.defaultProps = {
@@ -59,6 +62,7 @@ Router.defaultProps = {
 const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators({
   changeAccount,
+  getBalance,
 }, dispatch);
 
 export default connect(

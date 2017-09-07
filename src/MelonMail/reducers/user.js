@@ -10,6 +10,7 @@ export default (state = {
   mailAddress: '',
   ethAddress: '',
   startingBlock: 0,
+  balance: 0,
 }, action) => {
   switch (action.type) {
     case 'REGISTER_REQUEST':
@@ -76,9 +77,20 @@ export default (state = {
       };
     case 'ACCOUNT_CHANGE':
       return {
+        ...state,
         activeAccount: action.account,
+        privateKey: null,
+        publicKey: null,
+        mailAddress: '',
+        ethAddress: '',
+        startingBlock: 0,
         stage: 'check',
         isAuthenticated: false,
+      };
+    case 'UPDATE_BALANCE':
+      return {
+        ...state,
+        balance: action.balance,
       };
     default:
       return state;
