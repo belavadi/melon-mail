@@ -104,6 +104,16 @@ class Auth extends Component {
             </p>
           </div>
         );
+      case 'wrongNetwork':
+        return (
+          <div>
+            <Header as="h2" className="form-title">You are connected to the wrong network</Header>
+            <Divider />
+            <p className="regular-text">
+              Open MetaMask plugin and switch to Kovan Test Network.
+            </p>
+          </div>
+        );
       default:
         return null;
     }

@@ -69,6 +69,11 @@ export default (state = {
         ...state,
         stage: action.stage,
       };
+    case 'WRONG_NETWORK':
+      return {
+        ...state,
+        stage: action.stage,
+      };
     case 'ACCOUNT_CHANGE':
       return {
         activeAccount: action.account,

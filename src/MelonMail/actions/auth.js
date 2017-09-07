@@ -34,6 +34,11 @@ export const authError = error => ({
   error,
 });
 
+export const wrongNetwork = () => ({
+  type: 'WRONG_NETWORK',
+  stage: 'wrongNetwork',
+});
+
 export const loginSuccess = data => ({
   type: 'LOGIN_SUCCESS',
   data,
@@ -65,6 +70,10 @@ export const checkRegistration = () => (dispatch) => {
       if (!result.error && result.notRegistered) {
         return dispatch(userNotRegistered());
       }
+      if (result.message === 'WRONG_NETWORK') {
+        return dispatch(wrongNetwork());
+      }
+      console.log(result);
       return dispatch(authError('Login failed.'));
     });
 };
