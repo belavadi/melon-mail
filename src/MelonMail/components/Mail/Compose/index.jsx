@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Container, Button, Loader } from 'semantic-ui-react';
-import { Editor, EditorState, RichUtils } from 'draft-js';
+import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 
 import * as composeActions from '../../../actions/compose';
@@ -18,7 +18,6 @@ class Compose extends Component {
     this.state = {
       to: '',
       subject: '',
-      body: '',
       files: {
         value: '',
         files: [],
@@ -41,24 +40,47 @@ class Compose extends Component {
       const originThread = this.props.mail.thread;
       const { indexInThread } = this.props.compose.special;
       const originMail = indexInThread !== undefined ?
-        originThread[indexInThread] : originThread[originThread.length - 1];
+        originThread[indexInThread] : originThread[0];
 
       if (this.props.compose.special.type === 'reply') {
         this.setState({
           to: originMail.from,
+          subject: `${originMail.subject}`,
         });
-        if (this.state.subject.substr(0, 4) !== 'Re: ') {
+        if (originMail.subject.substr(0, 4) !== 'Re: ') {
           this.setState({
             subject: `Re: ${originMail.subject}`,
           });
         }
       }
 
-      if (this.props.compose.special.type === 'forward' &&
-          this.state.subject.substr(0, 4) !== 'Fw: ') {
+      if (this.props.compose.special.type === 'forward') {
+        this.setState({
+          subject: `${originMail.subject}`,
+        });
+        if (originMail.subject.substr(0, 4) !== 'Fw: ') {
+          this.setState({
+            subject: `Fw: ${originMail.subject}`,
+          });
+        }
+      }
+
+
+      if (this.props.compose.special.type === 'forward') {
         this.setState({
           subject: `Fw: ${originMail.subject}`,
         });
+        const bodyMarkup = `
+          <p>-----<br><span>Forwarding mail from ${originMail.from}</span>
+            <blockquote>${originMail.body}</blockquote>
+          </p>`;
+        const blocksFromHTML = convertFromHTML(bodyMarkup);
+        const newContentState = ContentState.createFromBlockArray(
+          [convertFromHTML('<p></p>').contentBlocks[0], ...blocksFromHTML.contentBlocks],
+          [convertFromHTML('<p></p>').entityMap[0], ...blocksFromHTML.entityMap],
+        );
+        const newEditorState = EditorState.createWithContent(newContentState);
+        this.setState({ editorState: newEditorState });
       }
     }
   }

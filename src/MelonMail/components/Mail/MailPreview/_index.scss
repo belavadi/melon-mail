@@ -5,9 +5,15 @@
   overflow: auto;
   height: 100%;
 
+  .loader-wrapper {
+    height: 60px;
+    position: relative;
+  }
+
   .thread-wrapper {
     padding: 10px;
-
+    max-width: 1000px;
+    margin: auto;
     .mail-wrapper {
       .mail-actions {
         float: right;

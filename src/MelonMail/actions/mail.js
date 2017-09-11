@@ -74,6 +74,7 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
         return ipfs.replyToThread(mailObject, threadHash)
           .then((threadLink) => {
             const multihash = threadLink.toJSON().multihash;
+            dispatch(changeComposeState('SENDING'));
             return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, threadId);
           });
       }
