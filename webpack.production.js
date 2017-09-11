@@ -1,12 +1,11 @@
 const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const config = {
-  devtool: 'source-map',
   entry: [
     './src/',
-    './src/MelonMail',
   ],
   output: {
     path: path.join(__dirname, './public/web/dist'),
@@ -24,9 +23,12 @@ const config = {
         use: [
           {
             loader: 'babel-loader',
-            query:
+            options:
               {
-                presets: ['es2015', 'react'],
+                presets: ['es2015', 'react', 'babel-preset-es2015'],
+                plugins: [
+                  'transform-object-rest-spread',
+                ],
               },
           },
         ],
@@ -81,6 +83,11 @@ const config = {
     ],
   },
   plugins: [
+    new UglifyJsPlugin({
+      compress: {
+        warnings: false,
+      },
+    }),
     new webpack.HotModuleReplacementPlugin(),
     new ExtractTextPlugin(
       {

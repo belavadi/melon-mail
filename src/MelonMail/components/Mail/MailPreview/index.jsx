@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Card, Button } from 'semantic-ui-react';
+import { Card, Button, Loader } from 'semantic-ui-react';
 
 import * as composeActions from '../../../actions/compose';
 import { downloadAttachment } from '../../../actions/mail';
@@ -26,7 +26,7 @@ class MailPreview extends Component {
         }
         {
           !this.props.mail.isFetching &&
-          this.props.mail.thread &&
+          this.props.mail.thread.length > 0 &&
           <div className="thread-wrapper">
             <div className="thread-actions">
               <Button
@@ -44,7 +44,7 @@ class MailPreview extends Component {
                 onClick={() => this.props.openCompose({ type: 'forward' })}
               />
             </div>
-            {this.props.mail.thread.map((mail, index) => (
+            {this.props.mail.thread.map((mail, mailIndex) => (
               <Card fluid className="mail-wrapper" key={mail.hash}>
                 <Card.Content>
                   <Card.Header>
@@ -53,14 +53,14 @@ class MailPreview extends Component {
                         icon="reply"
                         onClick={() => this.props.openCompose({
                           type: 'reply',
-                          indexInThread: index,
+                          indexInThread: mailIndex,
                         })}
                       />
                       <Button
                         icon="mail forward"
                         onClick={() => this.props.openCompose({
                           type: 'forward',
-                          indexInThread: index,
+                          indexInThread: mailIndex,
                         })}
                       />
                     </div>
@@ -73,13 +73,15 @@ class MailPreview extends Component {
                       <p dangerouslySetInnerHTML={{ __html: mail.body }} />
                     </div>
                     {
-                      mail.attachments.map((item, i) => (
+                      mail.attachments.map((item, attachmentIndex) => (
                         <a
                           className="ui label"
                           key={item.name}
                           role="button"
                           tabIndex="-1"
-                          onClick={() => this.props.downloadAttachment(item)}
+                          onClick={() => {
+                            this.props.downloadAttachment(item, mailIndex, attachmentIndex);
+                          }}
                         >
                           <i className={`file outline icon ${item.name.split('.').pop()}`} />
                           {`
@@ -87,7 +89,16 @@ class MailPreview extends Component {
                            -
                           ${(item.size / 1024).toFixed(2)}kB
                           `}
-                          <i role="button" tabIndex="-1" className="download icon" />
+                          {
+                            !item.downloading &&
+                            <i role="button" tabIndex="-1" className="download icon" />
+                          }
+                          <Loader
+                            inline
+                            indeterminate
+                            size="tiny"
+                            active={item.downloading}
+                          />
                         </a>
                       ))
                     }
@@ -99,7 +110,7 @@ class MailPreview extends Component {
         }
         {
           !this.props.mail.isFetching &&
-          !this.props.mail.thread &&
+          !this.props.mail.thread.length > 0 &&
           this.props.mail.error &&
           <div className="error-wrapper">
             <h1>Error fetching mail</h1>
@@ -108,7 +119,7 @@ class MailPreview extends Component {
         }
         {
           !this.props.mail.isFetching &&
-          !this.props.mail.thread &&
+          !this.props.mail.thread.length > 0 &&
           !this.props.mail.error &&
           <div className="empty-wrapper">
             <h1>:D</h1>

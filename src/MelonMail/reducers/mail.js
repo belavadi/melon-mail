@@ -1,10 +1,16 @@
-export default (state = {}, action) => {
+export default (state = {
+  isFetching: false,
+  thread: [],
+  threadId: null,
+  threadHash: null,
+  error: '',
+}, action) => {
   switch (action.type) {
     case 'MAIL_REQUEST':
       return {
         ...state,
         isFetching: true,
-        thread: undefined,
+        thread: [],
       };
     case 'MAIL_SUCCESS':
       return {
@@ -19,6 +25,42 @@ export default (state = {}, action) => {
         ...state,
         isFetching: false,
         error: action.error,
+      };
+    case 'ATTACHMENT_REQUEST':
+      console.log({ ...state.thread[action.mailIndex] }, action.mailIndex);
+      return {
+        ...state,
+        thread: [
+          ...state.thread.slice(0, action.mailIndex),
+          {
+            ...state.thread[action.mailIndex],
+            attachments: [
+              ...state.thread[action.mailIndex].attachments.slice(0, action.attachmentIndex),
+              {
+                ...state.thread[action.mailIndex].attachments[action.attachmentIndex],
+                downloading: true,
+              },
+              ...state.thread[action.mailIndex].attachments.slice(action.attachmentIndex + 1),
+            ],
+          },
+          ...state.thread.slice(action.mailIndex + 1),
+        ],
+      };
+    case 'ATTACHMENT_SUCCESS':
+      return {
+        ...state,
+        thread: [
+          ...state.thread.slice(0, action.mailIndex),
+          {
+            ...state.thread[action.mailIndex],
+            attachments: [
+              ...state.thread[action.mailIndex].attachments.slice(0, action.attachmentIndex),
+              action.attachment,
+              ...state.thread[action.mailIndex].attachments.slice(action.attachmentIndex + 1),
+            ],
+          },
+          ...state.thread.slice(action.mailIndex + 1),
+        ],
       };
     default:
       return state;
