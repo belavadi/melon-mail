@@ -41,24 +41,29 @@ class Compose extends Component {
       const originThread = this.props.mail.thread;
       const { indexInThread } = this.props.compose.special;
       const originMail = indexInThread !== undefined ?
-        originThread[indexInThread] : originThread[originThread.length - 1];
+        originThread[indexInThread] : originThread[0];
 
       if (this.props.compose.special.type === 'reply') {
         this.setState({
           to: originMail.from,
+          subject: `${originMail.subject}`,
         });
-        if (this.state.subject.substr(0, 4) !== 'Re: ') {
+        if (originMail.subject.substr(0, 4) !== 'Re: ') {
           this.setState({
             subject: `Re: ${originMail.subject}`,
           });
         }
       }
 
-      if (this.props.compose.special.type === 'forward' &&
-          this.state.subject.substr(0, 4) !== 'Fw: ') {
+      if (this.props.compose.special.type === 'forward') {
         this.setState({
-          subject: `Fw: ${originMail.subject}`,
+          subject: `${originMail.subject}`,
         });
+        if (originMail.subject.substr(0, 4) !== 'Fw: ') {
+          this.setState({
+            subject: `Fw: ${originMail.subject}`,
+          });
+        }
       }
     }
   }

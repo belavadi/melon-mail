@@ -6,10 +6,15 @@
     font-weight: bold;
   }
   .meta {
-    * {
+    > * {
       text-overflow: ellipsis;
       overflow: hidden;
       display: block;
+    }
+    .header {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
   }
 }

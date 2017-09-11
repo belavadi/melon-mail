@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Card, Button } from 'semantic-ui-react';
+import { Card, Button, Loader, Icon } from 'semantic-ui-react';
 
 import * as composeActions from '../../../actions/compose';
 import { downloadAttachment } from '../../../actions/mail';
@@ -20,8 +20,8 @@ class MailPreview extends Component {
       <div className="mail-preview">
         {
           this.props.mail.isFetching &&
-          <div>
-            <h1>Loading</h1>
+          <div className="loader-wrapper">
+            <Loader active />
           </div>
         }
         {
@@ -67,7 +67,11 @@ class MailPreview extends Component {
                     {mail.subject}
                   </Card.Header>
                   <Card.Description>
-                    <p>From: {mail.from}</p>
+                    {
+                      mail.from !== this.props.user.mailAddress ?
+                        <p><Icon name="level down" /> {mail.from}</p> :
+                        <p><Icon name="level up" /> {mail.to}</p>
+                    }
                     <p>{formatDate(Date.parse(mail.time))}</p>
                     <div className="mail-content">
                       <p dangerouslySetInnerHTML={{ __html: mail.body }} />
@@ -128,6 +132,9 @@ MailPreview.propTypes = {
   }),
   openCompose: PropTypes.func.isRequired,
   downloadAttachment: PropTypes.func.isRequired,
+  user: PropTypes.shape({
+    mailAddress: PropTypes.string.isRequired,
+  }).isRequired,
 };
 
 MailPreview.defaultProps = {

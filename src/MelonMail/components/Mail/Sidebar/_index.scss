@@ -30,6 +30,9 @@
       &:active {
         opacity: .8;
       }
+      &.active {
+        background-color: #eee;
+      }
     }
   }
 }
