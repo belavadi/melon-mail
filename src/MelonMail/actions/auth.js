@@ -1,5 +1,5 @@
 import eth from '../services/ethereumService';
-import contract from '../services/contract.json';
+import config from '../services/config.json';
 
 export const changeAccount = account => ({
   type: 'ACCOUNT_CHANGE',
@@ -83,7 +83,7 @@ export const registerUser = username => (dispatch) => {
   eth.checkUsername(username)
     .then((events) => {
       console.log(events);
-      eth.signString(eth.getAccount(), contract.stringToSign)
+      eth.signString(eth.getAccount(), config.stringToSign)
         .then(signedString =>
           eth._registerUser(username, signedString))
         .then((data) => {

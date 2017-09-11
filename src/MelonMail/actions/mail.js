@@ -199,3 +199,30 @@ export const listenForMails = () => (dispatch, getState) => {
       });
   });
 };
+
+export const downloadAttachment = attachment => (dispatch, getState) => {
+  const keys = {
+    publicKey: getState().user.publicKey,
+    privateKey: getState().user.privateKey,
+  };
+  ipfs.getFileContent(attachment.hash)
+    .then((ipfsContent) => {
+      const decryptedAttachment = JSON.parse(
+        decrypt(keys, ipfsContent.substr(1, ipfsContent.length - 2)),
+      );
+      const splitData = decryptedAttachment.fileData.split(',');
+      const fileType = splitData[0].substring(5).split(';')[0];
+      const byteCharacters = atob(splitData[1]);
+      const byteNumbers = [...byteCharacters].map(char => char.charCodeAt(0));
+
+      const byteArray = new Uint8Array(byteNumbers);
+
+      const blob = new Blob([byteArray], { type: fileType });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = attachment.name;
+      link.click();
+    })
+    .catch(err => console.error(err));
+};

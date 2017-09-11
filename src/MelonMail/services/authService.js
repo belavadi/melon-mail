@@ -1,11 +1,11 @@
 import bitcore from 'bitcore-lib';
 
 import eth from './ethereumService';
-import contract from './contract.json';
+import config from './config.json';
 
 const registerUser = username =>
   new Promise((resolve, reject) => {
-    eth.signString(eth.getAccount(), contract.stringToSign)
+    eth.signString(eth.getAccount(), config.stringToSign)
       .then((result) => {
         const privateKey = bitcore.PrivateKey.fromString(result.slice(2, 66));
         const publicKey = bitcore.PublicKey.fromPrivateKey(privateKey);

@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { Card, Button } from 'semantic-ui-react';
 
 import * as composeActions from '../../../actions/compose';
+import { downloadAttachment } from '../../../actions/mail';
 import { formatDate } from '../../../services/helperService';
 
 class MailPreview extends Component {
@@ -48,8 +49,20 @@ class MailPreview extends Component {
                 <Card.Content>
                   <Card.Header>
                     <div className="mail-actions">
-                      <Button icon="reply" onClick={() => this.props.openCompose({ type: 'reply', indexInThread: index })} />
-                      <Button icon="mail forward" onClick={() => this.props.openCompose({ type: 'forward', indexInThread: index })} />
+                      <Button
+                        icon="reply"
+                        onClick={() => this.props.openCompose({
+                          type: 'reply',
+                          indexInThread: index,
+                        })}
+                      />
+                      <Button
+                        icon="mail forward"
+                        onClick={() => this.props.openCompose({
+                          type: 'forward',
+                          indexInThread: index,
+                        })}
+                      />
                     </div>
                     {mail.subject}
                   </Card.Header>
@@ -61,17 +74,20 @@ class MailPreview extends Component {
                     </div>
                     {
                       mail.attachments.map((item, i) => (
-                        <a className="ui label" key={item.name}>
+                        <a
+                          className="ui label"
+                          key={item.name}
+                          role="button"
+                          tabIndex="-1"
+                          onClick={() => this.props.downloadAttachment(item)}
+                        >
                           <i className={`file outline icon ${item.name.split('.').pop()}`} />
-                          {item.name}
-                          &nbsp;-&nbsp;
-                          {(item.size / 1024).toFixed(2)}kB
-                          &nbsp;
-                          <i
-                            role="button"
-                            tabIndex="-1"
-                            className="download icon"
-                          />
+                          {`
+                          ${item.name}
+                           -
+                          ${(item.size / 1024).toFixed(2)}kB
+                          `}
+                          <i role="button" tabIndex="-1" className="download icon" />
                         </a>
                       ))
                     }
@@ -87,7 +103,7 @@ class MailPreview extends Component {
           this.props.mail.error &&
           <div className="error-wrapper">
             <h1>Error fetching mail</h1>
-            <h2>{ JSON.stringify(this.props.mail.error) }</h2>
+            <h2>{JSON.stringify(this.props.mail.error)}</h2>
           </div>
         }
         {
@@ -111,6 +127,7 @@ MailPreview.propTypes = {
     attachments: PropTypes.array,
   }),
   openCompose: PropTypes.func.isRequired,
+  downloadAttachment: PropTypes.func.isRequired,
 };
 
 MailPreview.defaultProps = {
@@ -120,6 +137,7 @@ MailPreview.defaultProps = {
 const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators({
   ...composeActions,
+  downloadAttachment,
 }, dispatch);
 
 export default connect(

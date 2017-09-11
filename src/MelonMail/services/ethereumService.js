@@ -1,14 +1,20 @@
 import sha3 from 'solidity-sha3';
 import uniqBy from 'lodash/uniqBy';
 
-import contract from './contract.json';
+import config from './config.json';
 import { generateKeys } from './cryptoService';
 
-const NETWORK_ID = '42';
+const networks = {
+  mainnet: '1',
+  morden: '2',
+  ropsten: '3',
+  kovan: '42',
+};
+const NETWORK_ID = networks.kovan;
 let mailContract;
 
 try {
-  mailContract = web3.eth.contract(contract.abi).at(contract.contractAddress);
+  mailContract = web3.eth.contract(config.abi).at(config.contractAddress);
 } catch (e) {
   console.log(e);
 }
@@ -33,7 +39,6 @@ const getWeb3Status = () =>
   });
 
 const getAccount = () => {
-  // TODO: check diff between defaultAccount & accounts[0]
   if (!web3.eth.accounts || !web3.eth.accounts.length) { return false; }
 
   return web3.eth.accounts[0];
@@ -308,7 +313,7 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId) =>
   });
 
 const signIn = () => new Promise((resolve, reject) => {
-  signString(getAccount(), contract.stringToSign)
+  signString(getAccount(), config.stringToSign)
     .then((signedString) => {
       const { privateKey, publicKey } = generateKeys(signedString);
       resolve({
