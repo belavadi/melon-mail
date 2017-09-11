@@ -41,7 +41,7 @@ MailListItem.propTypes = {
     folder: PropTypes.string.isRequired,
   }).isRequired,
   mail: PropTypes.shape({
-    threadId: PropTypes.string.isRequired,
+    threadId: PropTypes.string,
   }).isRequired,
   getThread: PropTypes.func.isRequired,
 };

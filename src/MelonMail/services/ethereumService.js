@@ -4,6 +4,7 @@ import uniqBy from 'lodash/uniqBy';
 import config from './config.json';
 import { generateKeys } from './cryptoService';
 
+const ADDRESS_DOMAIN = 'melonmail.eth';
 const networks = {
   mainnet: '1',
   morden: '2',
@@ -153,10 +154,10 @@ const checkUsername = (username) => {
 
 const _registerUser = (username, signedString) =>
   new Promise((resolve, reject) => {
-    const email = `${username}@melonmail.eth`;
+    const mail = `${username}@${ADDRESS_DOMAIN}`;
     const { privateKey, publicKey } = generateKeys(signedString);
 
-    mailContract.registerUser(email, publicKey, (error) => {
+    mailContract.registerUser(mail, publicKey, (error) => {
       if (error) {
         return reject({
           message: error,
@@ -166,17 +167,19 @@ const _registerUser = (username, signedString) =>
       return getBlockNumber()
         .then((startingBlock) => {
           resolve({
-            email,
-            privateKey,
             publicKey,
+            privateKey,
+            mail,
+            address: getAccount(),
             startingBlock,
           });
         })
         .catch(() => {
           resolve({
-            email,
-            privateKey,
             publicKey,
+            privateKey,
+            mail,
+            address: getAccount(),
             startingBlock: 0,
           });
         });
