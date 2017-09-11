@@ -10,6 +10,15 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+
+
+  .superFancyBlockquote {
+    margin-left: 20px;
+    padding-left: 10px;
+    border-left: 3px #eee solid;
+  }
+
+
   .container {
     max-height: 100%;
     height: 600px;
@@ -44,6 +53,7 @@
         border: 0;
         outline: 0;
         height: 40px;
+        min-height: 40px;
         padding: 0 10px;
         border-bottom: 1px solid #bbb;
         color: $textColor;
@@ -71,6 +81,29 @@
           }
         }
       }
+      .DraftEditor-root {
+        padding: 10px;
+        overflow: auto;
+
+        &,
+        .DraftEditor-editorContainer,
+        .DraftEditor-editorContainer .public-DraftEditor-content {
+          flex-grow: 1;
+          display: flex;
+          flex-direction: column;
+        }
+
+        div[data-block="true"] {
+          margin: 5px 0;
+        }
+
+        blockquote {
+          margin-left: 20px;
+          padding: 10px;
+          border-left: 3px #eee solid;
+        }
+      }
+
 
       textarea {
         flex-grow: 1;

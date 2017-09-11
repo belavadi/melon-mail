@@ -192,6 +192,9 @@ export const listenForMails = () => (dispatch, getState) => {
           const mails = [mail, ...getState().mails.outbox];
           dispatch(newMail('outbox', uniqBy(mails, 'threadId')));
         }
+        if (mailEvent.args.threadId === getState().mail.threadId) {
+          dispatch(getThread(mailEvent.args.threadId, 0));
+        }
         console.log(mailContent);
       });
   });

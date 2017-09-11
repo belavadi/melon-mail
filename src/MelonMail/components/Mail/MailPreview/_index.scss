@@ -2,6 +2,8 @@
   background-color: white;
   flex-grow: 1;
   min-width: 400px;
+  overflow: auto;
+  height: 100%;
 
   .thread-wrapper {
     padding: 10px;
@@ -9,6 +11,19 @@
     .mail-wrapper {
       .mail-actions {
         float: right;
+      }
+      .mail-content {
+        margin-top: 20px;
+
+        > * {
+          margin: 5px 0;
+        }
+
+        blockquote {
+          margin-left: 20px;
+          padding: 10px;
+          border-left: 3px #eee solid;
+        }
       }
     }
   }

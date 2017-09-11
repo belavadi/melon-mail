@@ -10,7 +10,7 @@ export default (state = {}, action) => {
       return {
         ...state,
         isFetching: false,
-        thread: action.thread,
+        thread: action.thread.reverse(),
         threadId: action.threadId,
         threadHash: action.threadHash,
       };

@@ -3,6 +3,9 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Container, Button, Loader } from 'semantic-ui-react';
+import { Editor, EditorState, RichUtils } from 'draft-js';
+import { stateToHTML } from 'draft-js-export-html';
+
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
@@ -21,6 +24,7 @@ class Compose extends Component {
         files: [],
       },
       recipientExists: 'undetermined',
+      editorState: EditorState.createEmpty(),
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -28,6 +32,8 @@ class Compose extends Component {
     this.checkRecipient = this.checkRecipient.bind(this);
     this.resetRecipient = this.resetRecipient.bind(this);
     this.removeFile = this.removeFile.bind(this);
+    this.handleEditorChange = this.handleEditorChange.bind(this);
+    this.handleKeyCommand = this.handleKeyCommand.bind(this);
   }
 
   componentWillMount() {
@@ -36,17 +42,22 @@ class Compose extends Component {
       const { indexInThread } = this.props.compose.special;
       const originMail = indexInThread !== undefined ?
         originThread[indexInThread] : originThread[originThread.length - 1];
+
       if (this.props.compose.special.type === 'reply') {
         this.setState({
-          subject: `Re: ${originMail.subject}`,
           to: originMail.from,
-          body: `\n-----\n${originMail.body}`,
         });
+        if (this.state.subject.substr(0, 4) !== 'Re: ') {
+          this.setState({
+            subject: `Re: ${originMail.subject}`,
+          });
+        }
       }
-      if (this.props.compose.special.type === 'forward') {
+
+      if (this.props.compose.special.type === 'forward' &&
+          this.state.subject.substr(0, 4) !== 'Fw: ') {
         this.setState({
           subject: `Fw: ${originMail.subject}`,
-          body: `\n-----\n${originMail.body}`,
         });
       }
     }
@@ -60,6 +71,23 @@ class Compose extends Component {
     this.setState({
       [name]: value,
     });
+  }
+
+  handleEditorChange(editorState) {
+    this.setState({
+      editorState,
+    });
+  }
+
+  handleKeyCommand(command) {
+    const newState = RichUtils.handleKeyCommand(this.state.editorState, command);
+
+    if (newState) {
+      this.handleEditorChange(newState);
+      return 'handled';
+    }
+
+    return 'not-handled';
   }
 
   removeFile(index) {
@@ -92,11 +120,13 @@ class Compose extends Component {
   handleSend() {
     const files = this.state.files.files;
 
+    if (this.state.to === '') return;
+
     const mail = {
       from: this.props.user.mailAddress,
       to: this.state.to,
-      subject: this.state.subject,
-      body: this.state.body,
+      subject: this.state.subject ? this.state.subject : '(No subject)',
+      body: stateToHTML(this.state.editorState.getCurrentContent()).toString(),
       time: new Date().toString(),
     };
 
@@ -113,12 +143,10 @@ class Compose extends Component {
           privateKey: this.props.user.privateKey,
           publicKey: this.props.user.publicKey,
         };
-
         const attachments = [
           encryptAttachments(files, keysForReceiver),
           encryptAttachments(files, keysForSender),
         ];
-
         return Promise.all(attachments)
           .then(([senderAttachments, receiverAttachments]) => {
             this.props.changeComposeState('ENCRYPTING_MAIL');
@@ -146,12 +174,14 @@ class Compose extends Component {
             this.props.closeCompose();
           })
           .catch((err) => {
-            console.log(`Error in state: ${this.props.compose.sendingState}!`);
-            console.log(err);
-            this.props.changeComposeState('ERROR');
+            throw err;
           });
       })
-      .catch(err => console.error(err));
+      .catch((err) => {
+        console.log(`Error in state: ${this.props.compose.sendingState}!`);
+        console.log(err);
+        this.props.changeComposeState('ERROR');
+      });
   }
 
   render() {
@@ -193,11 +223,18 @@ class Compose extends Component {
               value={this.state.subject}
               onChange={this.handleInputChange}
             />
+            {/*
             <textarea
               name="body"
               placeholder="Your message..."
               value={this.state.body}
               onChange={this.handleInputChange}
+            />
+            */}
+            <Editor
+              editorState={this.state.editorState}
+              onChange={this.handleEditorChange}
+              handleKeyCommand={this.handleKeyCommand}
             />
             <div className="files-preview">
               {

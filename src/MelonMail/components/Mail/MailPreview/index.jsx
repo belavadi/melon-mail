@@ -56,7 +56,9 @@ class MailPreview extends Component {
                   <Card.Description>
                     <p>From: {mail.from}</p>
                     <p>{formatDate(Date.parse(mail.time))}</p>
-                    <p>{mail.body}</p>
+                    <div className="mail-content">
+                      <p dangerouslySetInnerHTML={{ __html: mail.body }} />
+                    </div>
                     {
                       mail.attachments.map((item, i) => (
                         <a className="ui label" key={item.name}>
