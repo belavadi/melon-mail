@@ -7,9 +7,10 @@ import { List, Icon } from 'semantic-ui-react';
 import * as mailActions from '../../../actions/mail';
 import { formatDate } from '../../../services/helperService';
 
-const MailListItem = ({ args, getThread, mails }) => (
+const MailListItem = ({ args, getThread, mails, mail }) => (
   <List.Item
-    className="mail-list-item"
+    className={`mail-list-item
+      ${mail.threadId === args.threadId ? 'active' : ''}`}
     onClick={() => getThread(args.threadId, args.blockNumber)}
     role="button"
     tabIndex="-1"
@@ -38,6 +39,9 @@ MailListItem.propTypes = {
   }).isRequired,
   mails: PropTypes.shape({
     folder: PropTypes.string.isRequired,
+  }).isRequired,
+  mail: PropTypes.shape({
+    threadId: PropTypes.string.isRequired,
   }).isRequired,
   getThread: PropTypes.func.isRequired,
 };
