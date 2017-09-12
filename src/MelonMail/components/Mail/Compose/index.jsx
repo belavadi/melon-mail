@@ -65,7 +65,6 @@ class Compose extends Component {
         }
       }
 
-
       if (this.props.compose.special.type === 'forward') {
         this.setState({
           subject: `Fw: ${originMail.subject}`,
@@ -156,18 +155,18 @@ class Compose extends Component {
 
     eth._getPublicKey(this.state.to)
       .then((data) => {
+        const keysForSender = {
+          privateKey: this.props.user.privateKey,
+          publicKey: this.props.user.publicKey,
+        };
         const keysForReceiver = {
           privateKey: this.props.user.privateKey,
           publicKey: data.publicKey,
         };
 
-        const keysForSender = {
-          privateKey: this.props.user.privateKey,
-          publicKey: this.props.user.publicKey,
-        };
         const attachments = [
-          encryptAttachments(files, keysForReceiver),
           encryptAttachments(files, keysForSender),
+          encryptAttachments(files, keysForReceiver),
         ];
         return Promise.all(attachments)
           .then(([senderAttachments, receiverAttachments]) => {

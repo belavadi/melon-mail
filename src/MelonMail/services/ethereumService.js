@@ -97,6 +97,7 @@ const checkRegistration = () =>
 
 const signString = (account, stringToSign) =>
   new Promise((resolve, reject) => {
+    console.log(account);
     web3.eth.sign(account, stringToSign, (error, result) => {
       if (error) {
         return reject(error);
