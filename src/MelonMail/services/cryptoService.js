@@ -22,7 +22,7 @@ export const encrypt = (keys, data) => {
 export const decrypt = (keys, data) => {
   const privateKey = ecies().privateKey(new bitcore.PrivateKey(keys.privateKey));
 
-  return privateKey.decrypt(new Buffer(data, 'hex')).toString('ascii');
+  return privateKey.decrypt(new Buffer(data, 'hex')).toString();
 };
 
 const encryptFile = (file, keys) =>
