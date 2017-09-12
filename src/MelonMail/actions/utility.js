@@ -12,3 +12,8 @@ export const getBalance = () => (dispatch) => {
     })
     .catch(err => console.log(err));
 };
+
+export const initialAppSetup = config => ({
+  type: 'INITIAL_SETUP',
+  config,
+});

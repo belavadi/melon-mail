@@ -4,9 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import { changeAccount } from '../../actions/auth';
-import { getBalance } from '../../actions/utility';
-
-/* Import React Components */
+import { getBalance, initialAppSetup } from '../..//actions/utility';
 
 import Auth from '../Auth/';
 import App from '../Mail/App/';
@@ -31,6 +29,12 @@ class Router extends Component {
         }
       }, 100);
     }
+
+
+    this.props.initialAppSetup({
+      useLocalStorage: this.props.useLocalStorage,
+      defaultDomain: this.props.defaultDomain,
+    });
   }
 
   render() {
@@ -59,6 +63,10 @@ Router.propTypes = {
   path: PropTypes.string.isRequired,
   changeAccount: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
+  initialAppSetup: PropTypes.func.isRequired,
+
+  useLocalStorage: PropTypes.bool.isRequired,
+  defaultDomain: PropTypes.string.isRequired,
 };
 
 Router.defaultProps = {
@@ -69,6 +77,7 @@ const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators({
   changeAccount,
   getBalance,
+  initialAppSetup,
 }, dispatch);
 
 export default connect(
