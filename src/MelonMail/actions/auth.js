@@ -68,6 +68,7 @@ export const checkRegistration = () => (dispatch) => {
       return dispatch(authError('You need to sign the string in order to login.'));
     })
     .catch((result) => {
+      console.error(result);
       if (window.web3 === undefined) {
         return dispatch(noConnection());
       }

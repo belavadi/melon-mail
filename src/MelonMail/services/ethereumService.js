@@ -98,7 +98,7 @@ const checkRegistration = () =>
 const signString = (account, stringToSign) =>
   new Promise((resolve, reject) => {
     console.log(account);
-    web3.eth.sign(account, stringToSign, (error, result) => {
+    web3.personal.sign(web3.fromUtf8(stringToSign), account, (error, result) => {
       if (error) {
         return reject(error);
       }
