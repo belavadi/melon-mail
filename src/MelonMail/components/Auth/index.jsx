@@ -8,7 +8,7 @@ import AuthHeader from '../Mail/Header';
 import * as authActions from '../../actions/auth';
 import * as utilityActions from '../../actions/utility';
 import * as routerActions from '../../actions/router';
-import crypto from '../../services/cryptoService';
+import downloadButton from './assets/download-metamask.png';
 
 class Auth extends Component {
   constructor(props) {
@@ -22,6 +22,8 @@ class Auth extends Component {
   componentWillMount() {
     if (!this.props.user.isAuthenticated) {
       this.props.checkRegistration();
+    }
+    if (window.web3 !== undefined && this.props.getBalance()) {
       this.props.getBalance();
     }
   }
@@ -43,6 +45,16 @@ class Auth extends Component {
   }
 
   renderRegistration() {
+    if (window.web3 !== undefined && web3.eth.accounts.length === 0) {
+      return (
+        <div>
+          <Header as="h2" className="form-title">Please log in to metamask first.</Header>
+          <Divider />
+          <p>You need to open your metamask extension and log in.</p>
+        </div>
+      );
+    }
+
     switch (this.props.user.stage) {
       case 'check':
         return (
@@ -78,8 +90,9 @@ class Auth extends Component {
             {
               this.props.user.balance === 0 &&
               <div>
-                <p className="regular-text">In order to create a fund, you need to have some Kovan
-                  test ether in your wallet.
+                <Header as="h4">Insufficient balance</Header>
+                <p className="regular-text">In order to create an account, you need to have some
+                  Kovan test ether in your wallet.
                   You can request k-eth on our gitter channel or on the Kovan Faucet.</p>
                 <Button
                   href="https://gitter.im/melonproject/general?source=orgpage"
@@ -107,7 +120,7 @@ class Auth extends Component {
             </div>
             <p className="form-error">{this.props.user.registerError}</p>
             <Button
-              disabled={web3.eth.accounts.length === 0}
+              disabled={web3.eth.accounts.length === 0 || this.props.user.balance === 0}
               primary
               onClick={this.register}
               className="spread-button"
@@ -122,11 +135,17 @@ class Auth extends Component {
             <Header as="h2" className="form-title">Please install Metamask</Header>
             <Divider />
             <p className="regular-text">
-              It seems like you either don&#39;t have &nbsp;
-              <a href="https://metamask.io/" target="_blank" rel="noopener noreferrer">
-                MetaMask </a>
-              extension installed or that the extension is not connected to the Kovan test
-              network.
+              It seems like you don&#39;t have&nbsp;
+              <a href="https://metamask.io/" target="_blank" rel="noopener noreferrer">MetaMask </a>
+              extension installed.
+              <a
+                href="https://metamask.io/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="href"
+              >
+                <img className="download-metamask" src={downloadButton} alt="Download metamask" />
+              </a>
             </p>
           </div>
         );

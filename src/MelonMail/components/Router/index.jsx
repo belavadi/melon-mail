@@ -19,12 +19,18 @@ class Router extends Component {
   }
 
   componentWillMount() {
-    setInterval(() => {
-      if (this.props.user.activeAccount !== web3.eth.accounts[0] && web3.eth.accounts.length > 0) {
-        this.props.changeAccount(web3.eth.accounts[0]);
-        this.props.getBalance();
-      }
-    }, 100);
+    if (window.web3 !== undefined) {
+      setInterval(() => {
+        if (
+          this.props.user.activeAccount !== web3.eth.accounts[0]
+          &&
+          web3.eth.accounts.length > 0
+        ) {
+          this.props.changeAccount(web3.eth.accounts[0]);
+          this.props.getBalance();
+        }
+      }, 100);
+    }
   }
 
   render() {

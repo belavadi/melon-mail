@@ -10,6 +10,9 @@
     height: 100%;
     line-height: 60px;
     padding: 0 20px;
-    cursor: pointer;
+
+    span:last-child {
+      cursor: pointer;
+    }
   }
 }

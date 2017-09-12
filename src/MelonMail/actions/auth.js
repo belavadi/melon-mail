@@ -49,6 +49,10 @@ export const noConnection = () => ({
   stage: 'noConnection',
 });
 
+export const logout = () => ({
+  type: 'CLEAR_STORE',
+});
+
 export const checkRegistration = () => (dispatch) => {
   eth.getWeb3Status()
     .then(() => eth.checkRegistration())
