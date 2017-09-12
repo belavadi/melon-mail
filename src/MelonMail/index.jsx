@@ -1,17 +1,14 @@
-/* React imports */
-import React from 'react';
-
-/* Redux / store imports */
+import React, { Component } from 'react';
 import { Provider } from 'react-redux';
+import PropTypes from 'prop-types';
 import store from './store';
 
-/* CSS import */
-import './style.scss';
-
-/* App components import */
 import Router from './components/Router/';
 
-class MelonMail extends React.Component {
+import './style.scss';
+
+
+class MelonMail extends Component {
   constructor() {
     super();
     this.state = {
@@ -36,10 +33,23 @@ class MelonMail extends React.Component {
 
     return (
       <Provider store={store}>
-        <Router />
+        <Router
+          useLocalStorage={this.props.useLocalStorage}
+          defaultDomain={this.props.defaultDomain}
+        />
       </Provider>
     );
   }
 }
+
+MelonMail.propTypes = {
+  useLocalStorage: PropTypes.bool,
+  defaultDomain: PropTypes.string,
+};
+
+MelonMail.defaultProps = {
+  useLocalStorage: false,
+  defaultDomain: 'melonmail.eth',
+};
 
 export default MelonMail;

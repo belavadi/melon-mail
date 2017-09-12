@@ -4,6 +4,7 @@ import router from './router';
 import mail from './mail';
 import mails from './mails';
 import compose from './compose';
+import config from './config';
 
 const appReducer = combineReducers({
   user,
@@ -11,6 +12,7 @@ const appReducer = combineReducers({
   mail,
   mails,
   compose,
+  config,
 });
 
 /*   Clears the store state    */
