@@ -39,11 +39,11 @@ const encryptFile = (file, keys) =>
         })),
       });
     };
+    reader.onerror = err => reject(err);
 
     reader.readAsDataURL(file);
   });
 
-/* eslint-disable no-loop-func, consistent-return */
 export const encryptAttachments = (files, keys) =>
   new Promise((resolve, reject) => {
     if (files.length === 0) {
@@ -51,7 +51,7 @@ export const encryptAttachments = (files, keys) =>
     }
     const attachments = files.map(file => encryptFile(file, keys));
 
-    Promise.all(attachments)
+    return Promise.all(attachments)
       .then((encryptedAttachments) => {
         const uploaded = encryptedAttachments.map(attachment =>
           ipfs.uploadData(attachment.attachment),
@@ -74,4 +74,3 @@ export const encryptAttachments = (files, keys) =>
       });
   })
 ;
-/* eslint-enable no-loop-func, consistent-return */

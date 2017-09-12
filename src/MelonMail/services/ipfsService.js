@@ -53,7 +53,8 @@ const getFileStream = hash => ipfs().files.cat(hash);
 const getFileContent = hash =>
   new Promise((resolve, reject) => {
     ipfs().files.cat(hash)
-      .then(file => file.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data)))));
+      .then(file => file.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data)))))
+      .catch(err => reject(err));
   });
 
 export default {

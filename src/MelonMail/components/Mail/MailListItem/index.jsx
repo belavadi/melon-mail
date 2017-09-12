@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { List, Icon } from 'semantic-ui-react';
+import { List } from 'semantic-ui-react';
 
 import * as mailActions from '../../../actions/mail';
 import { formatDate } from '../../../services/helperService';

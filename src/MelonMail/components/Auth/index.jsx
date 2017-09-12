@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Container, Grid, Segment, Header, Button, Divider } from 'semantic-ui-react';
+import { Grid, Header, Button, Divider } from 'semantic-ui-react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import AuthHeader from '../Mail/Header';

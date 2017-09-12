@@ -1,4 +1,3 @@
-import sha3 from 'solidity-sha3';
 import uniqBy from 'lodash/uniqBy';
 
 import config from './config.json';
@@ -257,7 +256,7 @@ const listenForMails = callback =>
         });
     });
 
-const getMails = (folder, fetchToBlock, blocksToFetch, userStartingBlock) => {
+const getMails = (folder, fetchToBlock, blocksToFetch) => {
   console.log(`Eth service: Fetching emails in ${blocksToFetch} blocks`);
   return getBlockNumber()
     .then((currentBlock) => {

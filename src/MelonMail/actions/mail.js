@@ -4,7 +4,7 @@ import uniqBy from 'lodash/uniqBy';
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import { decrypt } from '../services/cryptoService';
-import { closeCompose, changeComposeState } from './compose';
+import { changeComposeState } from './compose';
 
 export const mailRequest = () => ({
   type: 'MAIL_REQUEST',
@@ -140,7 +140,7 @@ export const getMails = folder => (dispatch, getState) => {
     return;
   }
   dispatch(mailsRequest(folder));
-  eth.getMails(folder, fetchToBlock, blocksInBatch, userStartingBlock)
+  eth.getMails(folder, fetchToBlock, blocksInBatch)
     .then((res) => {
       const { mailEvents, fromBlock } = res;
       const ipfsFetchPromises = mailEvents.map(mail => ipfs.getFileContent(mail.args.mailHash));

@@ -14,7 +14,10 @@ module.exports = {
     'global-require': 0,
     'no-console': 0,
     'new-cap': 0,
-  },
+    'react/no-danger': 0,
+    'eol-last': 1,
+    'react/jsx-tag-spacing': 1,
+},
   globals: {
     window: true,
     document: true,
