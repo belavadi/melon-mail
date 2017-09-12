@@ -126,7 +126,7 @@ class MailPreview extends Component {
           !this.props.mail.thread.length > 0 &&
           !this.props.mail.error &&
           <div className="empty-wrapper">
-            <h1>:D</h1>
+            <h1>No email selected</h1>
           </div>
         }
       </div>

@@ -29,7 +29,7 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
     privateKey: getState().user.privateKey,
   };
   eth.getThread(threadId, afterBlock)
-    .then(threadEvent => (
+    .then(threadEvent =>
       ipfs.getThread(threadEvent.args.threadHash)
         .then((thread) => {
           const mailLinks = thread.toJSON().links;
@@ -56,7 +56,11 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
               dispatch(mailError(error.message));
             });
         })
-    ))
+        .catch((error) => {
+          console.log(error);
+          dispatch(mailError(error.message));
+        }),
+    )
     .catch((error) => {
       console.log(error);
       dispatch(mailError(error.message));

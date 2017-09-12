@@ -39,7 +39,7 @@ class MailList extends Component {
               !this.props.mails.isFetching &&
               (this.props.mails[this.props.mails.folder].length === 0) &&
               <div>
-                No mails :D
+                No mails
               </div>
             }
           </List>

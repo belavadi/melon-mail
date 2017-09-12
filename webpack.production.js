@@ -83,11 +83,7 @@ const config = {
     ],
   },
   plugins: [
-    new UglifyJsPlugin({
-      compress: {
-        warnings: false,
-      },
-    }),
+    new UglifyJsPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new ExtractTextPlugin(
       {
