@@ -151,7 +151,7 @@ class Compose extends Component {
       time: new Date().toString(),
     };
 
-    this.props.changeComposeState('ENCRYPTING_ATTACHMENTS');
+    this.props.changeComposeState('FETCHING_RECIPIENT_KEYS');
 
     eth._getPublicKey(this.state.to)
       .then((data) => {
@@ -164,6 +164,7 @@ class Compose extends Component {
           publicKey: data.publicKey,
         };
 
+        this.props.changeComposeState('ENCRYPTING_ATTACHMENTS');
         const attachments = [
           encryptAttachments(files, keysForSender),
           encryptAttachments(files, keysForReceiver),
