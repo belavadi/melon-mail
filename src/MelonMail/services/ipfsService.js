@@ -1,19 +1,22 @@
-const ipfsAPI = require('ipfs-api');
+const IPFS = require('ipfs');
 const concat = require('concat-stream');
 
-let ipfsNode;
+const ipfsNodesList = [
+  '/ip4/127.0.0.1/tcp/9999/ws/ipfs/QmWc6qiH7rp7i8J2RcKvWgaw9daTW5LipfaBWbNkSuLTuU',
+  '/ip4/46.101.79.241/tcp/9999/ws/ipfs/QmNxpsbNJzvXpUbv9Kp9YnNAdgSzNz8DGWay8ie7pyLy5q',
+];
 
-const ipfs = () => {
-  if (!ipfsNode) {
-    ipfsNode = ipfsAPI('46.101.79.241', '443');
-  }
-  return ipfsNode;
-};
+const ipfsNode = new IPFS({
+  repo: 'ipfs-melon',
+  config: {
+    Bootstrap: ipfsNodesList,
+  },
+});
 
 const uploadData = (data) => {
   const preparedData = new Buffer(JSON.stringify(data));
 
-  return ipfs().files.add(preparedData);
+  return ipfsNode.files.add(preparedData);
 };
 
 const newThread = (mail) => {
@@ -29,11 +32,11 @@ const newThread = (mail) => {
     }],
   };
 
-  return ipfs().object.put(thread);
+  return ipfsNode.object.put(thread);
 };
 
 const replyToThread = (reply, threadHash) =>
-  ipfs().object.get(threadHash)
+  ipfsNode.object.get(threadHash)
     .then((thread) => {
       const parsedThread = thread.toJSON();
       const replyLink = {
@@ -41,18 +44,18 @@ const replyToThread = (reply, threadHash) =>
         multihash: reply.hash,
         name: parsedThread.links.length,
       };
-      return ipfs().object.patch.addLink(threadHash, replyLink);
+      return ipfsNode.object.patch.addLink(threadHash, replyLink);
     });
 
-const getThread = hash => ipfs().object.get(hash);
+const getThread = hash => ipfsNode.object.get(hash);
 
-const getFile = hash => ipfs().files.get(hash);
+const getFile = hash => ipfsNode.files.get(hash);
 
-const getFileStream = hash => ipfs().files.cat(hash);
+const getFileStream = hash => ipfsNode.files.cat(hash);
 
 const getFileContent = hash =>
   new Promise((resolve, reject) => {
-    ipfs().files.cat(hash)
+    ipfsNode.files.cat(hash)
       .then(file => file.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data)))))
       .catch(err => reject(err));
   });
