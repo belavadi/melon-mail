@@ -125,6 +125,7 @@ class Compose extends Component {
 
   resetRecipient() {
     this.setState({ recipientExists: 'undetermined' });
+    this.props.changeComposeState('EDITING');
   }
 
   checkRecipient() {
@@ -135,6 +136,7 @@ class Compose extends Component {
       })
       .catch(() => {
         this.setState({ recipientExists: 'false' });
+        this.props.changeComposeState('RECIPIENT_NOT_FOUND');
       });
   }
 
@@ -284,7 +286,8 @@ class Compose extends Component {
                 inline
                 active={
                   this.props.compose.sendingState !== 'EDITING' &&
-                  this.props.compose.sendingState !== 'ERROR'
+                  this.props.compose.sendingState !== 'ERROR' &&
+                  this.props.compose.sendingState !== 'RECIPIENT_NOT_FOUND'
                 }
               />
               {this.props.compose.sendingState}
@@ -313,8 +316,9 @@ class Compose extends Component {
                 icon="send"
                 loading={false}
                 disabled={
-                  this.props.compose.sendingState !== 'EDITING' &&
-                  this.props.compose.sendingState !== 'ERROR'
+                  (this.props.compose.sendingState !== 'EDITING' &&
+                  this.props.compose.sendingState !== 'ERROR') ||
+                  this.state.recipientExists !== 'true'
                 }
               />
             </div>
