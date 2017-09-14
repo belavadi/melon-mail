@@ -18,8 +18,8 @@
       .mail-actions {
         float: right;
       }
-      .mail-content {
-        margin-top: 20px;
+      .mail-body {
+        margin: 20px auto;
 
         > * {
           margin: 5px 0;
@@ -29,6 +29,16 @@
           margin-left: 20px;
           padding: 10px;
           border-left: 3px #eee solid;
+        }
+      }
+      .attachments-wrapper {
+        .attachment {
+          .download, .loader {
+            margin: 0 0 0 .75em;
+            line-height: 14px;
+            height: 12px;
+            vertical-align: bottom;
+          }
         }
       }
     }

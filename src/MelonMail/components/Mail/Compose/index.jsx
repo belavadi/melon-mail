@@ -84,6 +84,10 @@ class Compose extends Component {
     }
   }
 
+  componentDidMount() {
+    if (this.state.to !== '') this.checkRecipient();
+  }
+
   handleInputChange(event, clean) {
     const target = event.target;
     const value = clean ? target.value.toLowerCase().trim() : target.value;
@@ -125,6 +129,7 @@ class Compose extends Component {
 
   resetRecipient() {
     this.setState({ recipientExists: 'undetermined' });
+    this.props.changeComposeState('EDITING');
   }
 
   checkRecipient() {
@@ -135,6 +140,7 @@ class Compose extends Component {
       })
       .catch(() => {
         this.setState({ recipientExists: 'false' });
+        this.props.changeComposeState('RECIPIENT_NOT_FOUND');
       });
   }
 
@@ -191,8 +197,7 @@ class Compose extends Component {
               receiverData,
             }, threadId);
           })
-          .then((res) => {
-            console.log(res);
+          .then(() => {
             this.props.closeCompose();
           })
           .catch((err) => {
@@ -262,7 +267,7 @@ class Compose extends Component {
               {
                 this.state.files.files.map((item, i) => (
                   <a className="ui label" key={item.name}>
-                    <i className={`file outline icon ${item.name.split('.').pop()}`} />
+                    <i className={`file outline icon ${item.name.split('.').pop().toLowerCase()}`} />
                     {item.name}
                     &nbsp;-&nbsp;
                     {(item.size / 1024).toFixed(2)}kB
@@ -284,7 +289,8 @@ class Compose extends Component {
                 inline
                 active={
                   this.props.compose.sendingState !== 'EDITING' &&
-                  this.props.compose.sendingState !== 'ERROR'
+                  this.props.compose.sendingState !== 'ERROR' &&
+                  this.props.compose.sendingState !== 'RECIPIENT_NOT_FOUND'
                 }
               />
               {this.props.compose.sendingState}
@@ -313,8 +319,9 @@ class Compose extends Component {
                 icon="send"
                 loading={false}
                 disabled={
-                  this.props.compose.sendingState !== 'EDITING' &&
-                  this.props.compose.sendingState !== 'ERROR'
+                  (this.props.compose.sendingState !== 'EDITING' &&
+                  this.props.compose.sendingState !== 'ERROR') ||
+                  this.state.recipientExists !== 'true'
                 }
               />
             </div>

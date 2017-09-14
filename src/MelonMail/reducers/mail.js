@@ -62,6 +62,26 @@ export default (state = {
           ...state.thread.slice(action.mailIndex + 1),
         ],
       };
+    case 'ATTACHMENT_ERROR':
+      console.log({ ...state.thread[action.mailIndex] }, action.mailIndex);
+      return {
+        ...state,
+        thread: [
+          ...state.thread.slice(0, action.mailIndex),
+          {
+            ...state.thread[action.mailIndex],
+            attachments: [
+              ...state.thread[action.mailIndex].attachments.slice(0, action.attachmentIndex),
+              {
+                ...state.thread[action.mailIndex].attachments[action.attachmentIndex],
+                downloading: false,
+              },
+              ...state.thread[action.mailIndex].attachments.slice(action.attachmentIndex + 1),
+            ],
+          },
+          ...state.thread.slice(action.mailIndex + 1),
+        ],
+      };
     default:
       return state;
   }

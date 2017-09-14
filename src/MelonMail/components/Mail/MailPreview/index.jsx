@@ -45,6 +45,7 @@ class MailPreview extends Component {
               />
             </div>
             {this.props.mail.thread.map((mail, mailIndex) => (
+              mail.hash &&
               <Card fluid className="mail-wrapper" key={mail.hash}>
                 <Card.Content>
                   <Card.Header>
@@ -73,39 +74,41 @@ class MailPreview extends Component {
                         <p><Icon name="level up" /> {mail.to}</p>
                     }
                     <p>{formatDate(Date.parse(mail.time))}</p>
-                    <div className="mail-content">
+                    <div className="mail-body">
                       <p dangerouslySetInnerHTML={{ __html: mail.body }} />
                     </div>
-                    {
-                      mail.attachments.map((item, attachmentIndex) => (
-                        <a
-                          className="ui label"
-                          key={item.name}
-                          role="button"
-                          tabIndex="-1"
-                          onClick={() => {
-                            this.props.downloadAttachment(item, mailIndex, attachmentIndex);
-                          }}
-                        >
-                          <i className={`file outline icon ${item.name.split('.').pop()}`} />
-                          {`
-                          ${item.name}
-                           -
-                          ${(item.size / 1024).toFixed(2)}kB
-                          `}
-                          {
-                            !item.downloading &&
-                            <i role="button" tabIndex="-1" className="download icon" />
-                          }
-                          <Loader
-                            inline
-                            indeterminate
-                            size="tiny"
-                            active={item.downloading}
-                          />
-                        </a>
-                      ))
-                    }
+                    <div className="attachments-wrapper">
+                      {
+                        mail.attachments.map((item, attachmentIndex) => (
+                          <a
+                            className="ui label attachment"
+                            key={item.name}
+                            role="button"
+                            tabIndex="-1"
+                            onClick={() => {
+                              this.props.downloadAttachment(item, mailIndex, attachmentIndex);
+                            }}
+                          >
+                            <i className={`file outline icon ${item.name.split('.').pop().toLowerCase()}`} />
+                            {`
+                            ${item.name}
+                             -
+                            ${(item.size / 1024).toFixed(2)}kB
+                            `}
+                            {
+                              !item.downloading &&
+                              <i role="button" tabIndex="-1" className="download icon" />
+                            }
+                            <Loader
+                              inline
+                              indeterminate
+                              size="mini"
+                              active={item.downloading}
+                            />
+                          </a>
+                        ))
+                      }
+                    </div>
                   </Card.Description>
                 </Card.Content>
               </Card>
