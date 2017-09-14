@@ -45,6 +45,7 @@ class MailPreview extends Component {
               />
             </div>
             {this.props.mail.thread.map((mail, mailIndex) => (
+              mail.hash &&
               <Card fluid className="mail-wrapper" key={mail.hash}>
                 <Card.Content>
                   <Card.Header>

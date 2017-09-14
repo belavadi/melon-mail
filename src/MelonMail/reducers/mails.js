@@ -5,9 +5,9 @@ export default (state = {
   inbox: [],
   outbox: [],
   inboxFetchedFromBlock: null,
-  inboxBatchSize: 1000,
+  inboxBatchSize: 10000,
   outboxFetchedFromBlock: null,
-  outboxBatchSize: 1000,
+  outboxBatchSize: 10000,
   hasMoreMails: true,
 }, action) => {
   switch (action.type) {

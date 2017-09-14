@@ -193,8 +193,7 @@ class Compose extends Component {
               receiverData,
             }, threadId);
           })
-          .then((res) => {
-            console.log(res);
+          .then(() => {
             this.props.closeCompose();
           })
           .catch((err) => {
