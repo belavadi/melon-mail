@@ -230,6 +230,12 @@ export const attachmentSuccess = (mailIndex, attachmentIndex, attachment) => ({
   attachment,
 });
 
+export const attachmentError = (mailIndex, attachmentIndex) => ({
+  type: 'ATTACHMENT_ERROR',
+  attachmentIndex,
+  mailIndex,
+});
+
 export const downloadAttachment = (attachment, mailIndex, attachmentIndex) =>
   (dispatch, getState) => {
     const keys = {
@@ -259,5 +265,8 @@ export const downloadAttachment = (attachment, mailIndex, attachmentIndex) =>
 
         return dispatch(attachmentSuccess(mailIndex, attachmentIndex, attachment));
       })
-      .catch(err => console.error(err));
+      .catch((err) => {
+        console.error(err);
+        dispatch(attachmentError(mailIndex, attachmentIndex));
+      });
   };

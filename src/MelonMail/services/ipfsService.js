@@ -42,7 +42,7 @@ const replyToThread = (reply, threadHash) =>
       const replyLink = {
         ...reply,
         multihash: reply.hash,
-        name: parsedThread.links.length,
+        name: parsedThread.links.length.toString(),
       };
       return ipfsNode.object.patch.addLink(threadHash, replyLink);
     });
