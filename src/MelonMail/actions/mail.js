@@ -114,10 +114,10 @@ export const mailsSuccess = (mailType, mails, fetchedFromBlock) => (
     { type: 'MAILS_OUTBOX_SUCCESS', mails, fetchedFromBlock }
 );
 
-export const mailsError = (mailType, error) => (
+export const mailsError = (mailType, error, fetchedFromBlock) => (
   mailType === 'inbox' ?
-    { type: 'MAILS_INBOX_ERROR', error } :
-    { type: 'MAILS_OUTBOX_ERROR', error }
+    { type: 'MAILS_INBOX_ERROR', error, fetchedFromBlock } :
+    { type: 'MAILS_OUTBOX_ERROR', error, fetchedFromBlock }
 );
 
 export const newMail = (mailType, mails) => (
@@ -172,12 +172,13 @@ export const getMails = folder => (dispatch, getState) => {
           dispatch(mailsSuccess(folder, uniqBy(newMailsState, 'threadId'), fromBlock));
         })
         .catch((error) => {
-          throw error;
+          console.log(error);
+          dispatch(mailsError(folder, error, fromBlock));
         });
     })
     .catch((error) => {
       console.log(error);
-      dispatch(mailsError(folder, error));
+      dispatch(mailsError(folder, error, 0));
     });
 };
 
