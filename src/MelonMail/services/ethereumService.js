@@ -303,7 +303,6 @@ const getThread = (threadId, afterBlock) =>
 
 const _sendEmail = (toAddress, mailHash, threadHash, threadId) =>
   new Promise((resolve, reject) => {
-    console.log(toAddress, mailHash, threadHash, threadId);
     mailContract.sendEmail(toAddress, mailHash, threadHash, threadId, (error, result) => {
       if (error) {
         return reject({
