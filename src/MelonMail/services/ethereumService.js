@@ -97,7 +97,6 @@ const checkRegistration = () =>
 
 const signString = (account, stringToSign) =>
   new Promise((resolve, reject) => {
-    console.log(account);
     web3.personal.sign(web3.fromUtf8(stringToSign), account, (error, result) => {
       if (error) {
         return reject(error);
@@ -252,13 +251,13 @@ const listenForMails = callback =>
           if (error) {
             console.log(error);
           }
-          console.log(`Mail event: Received an email${JSON.stringify(event)}`);
+          console.log('Mail event: Received an email', event);
           callback(event, 'outbox');
         });
     });
 
 const getMails = (folder, fetchToBlock, blocksToFetch) => {
-  console.log(`Eth service: Fetching emails in ${blocksToFetch} blocks`);
+  console.log(`Fetching emails with batch size of ${blocksToFetch} blocks`);
   return getBlockNumber()
     .then((currentBlock) => {
       const filter = folder === 'inbox' ? { to: getAccount() } : { from: getAccount() };

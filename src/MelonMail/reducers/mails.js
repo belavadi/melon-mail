@@ -5,9 +5,9 @@ export default (state = {
   inbox: [],
   outbox: [],
   inboxFetchedFromBlock: null,
-  inboxBatchSize: 1000,
+  inboxBatchSize: 10000,
   outboxFetchedFromBlock: null,
-  outboxBatchSize: 1000,
+  outboxBatchSize: 10000,
   hasMoreMails: true,
 }, action) => {
   switch (action.type) {
@@ -37,12 +37,24 @@ export default (state = {
         outbox: action.mails,
       };
     case 'MAILS_INBOX_ERROR':
+      return {
+        ...state,
+        isFetching: false,
+        showLoader: false,
+        error: action.error,
+        inboxFetchedFromBlock: action.fetchedFromBlock,
+        inboxBatchSize: state.inboxBatchSize * 2,
+        hasMoreMails: action.fetchedFromBlock !== 0,
+      };
     case 'MAILS_OUTBOX_ERROR':
       return {
         ...state,
         isFetching: false,
         showLoader: false,
         error: action.error,
+        outboxFetchedFromBlock: action.fetchedFromBlock,
+        outboxBatchSize: state.outboxBatchSize * 2,
+        hasMoreMails: action.fetchedFromBlock !== 0,
       };
     case 'NEW_INBOX_MAIL':
       return {

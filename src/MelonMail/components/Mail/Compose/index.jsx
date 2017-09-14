@@ -84,6 +84,10 @@ class Compose extends Component {
     }
   }
 
+  componentDidMount() {
+    if (this.state.to !== '') this.checkRecipient();
+  }
+
   handleInputChange(event, clean) {
     const target = event.target;
     const value = clean ? target.value.toLowerCase().trim() : target.value;
@@ -193,8 +197,7 @@ class Compose extends Component {
               receiverData,
             }, threadId);
           })
-          .then((res) => {
-            console.log(res);
+          .then(() => {
             this.props.closeCompose();
           })
           .catch((err) => {
@@ -264,7 +267,7 @@ class Compose extends Component {
               {
                 this.state.files.files.map((item, i) => (
                   <a className="ui label" key={item.name}>
-                    <i className={`file outline icon ${item.name.split('.').pop()}`} />
+                    <i className={`file outline icon ${item.name.split('.').pop().toLowerCase()}`} />
                     {item.name}
                     &nbsp;-&nbsp;
                     {(item.size / 1024).toFixed(2)}kB
