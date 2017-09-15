@@ -115,7 +115,7 @@ class Auth extends Component {
             <div className="ui right labeled input">
               <input ref={(input) => { this.username = input; }} type="text" />
               <div className="ui label">
-                @melonmail.eth
+                @{this.props.config.defaultDomain}
               </div>
             </div>
             <p className="form-error">{this.props.user.registerError}</p>
@@ -187,6 +187,9 @@ Auth.propTypes = {
     registerError: PropTypes.string,
     stage: PropTypes.string,
     balance: PropTypes.number,
+  }).isRequired,
+  config: PropTypes.shape({
+    defaultDomain: PropTypes.string.isRequired,
   }).isRequired,
   registerUser: PropTypes.func.isRequired,
   checkRegistration: PropTypes.func.isRequired,
