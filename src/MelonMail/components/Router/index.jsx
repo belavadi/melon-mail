@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { changeAccount } from '../../actions/auth';
+import { logout, changeAccount } from '../../actions/auth';
 import { getBalance, initialAppSetup } from '../..//actions/utility';
 
 import Auth from '../Auth/';
@@ -24,6 +24,7 @@ class Router extends Component {
           &&
           web3.eth.accounts.length > 0
         ) {
+          this.props.logout();
           this.props.changeAccount(web3.eth.accounts[0]);
           this.props.getBalance();
         }
@@ -61,6 +62,7 @@ Router.propTypes = {
     path: PropTypes.string.isRequired,
   }).isRequired,
   path: PropTypes.string.isRequired,
+  logout: PropTypes.func.isRequired,
   changeAccount: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
   initialAppSetup: PropTypes.func.isRequired,
@@ -75,6 +77,7 @@ Router.defaultProps = {
 
 const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators({
+  logout,
   changeAccount,
   getBalance,
   initialAppSetup,

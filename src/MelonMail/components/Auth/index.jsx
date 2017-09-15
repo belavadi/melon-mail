@@ -23,7 +23,7 @@ class Auth extends Component {
     if (!this.props.user.isAuthenticated) {
       this.props.checkRegistration();
     }
-    if (window.web3 !== undefined && this.props.getBalance()) {
+    if (window.web3 !== undefined && !this.props.user.isAuthenticated) {
       this.props.getBalance();
     }
   }
