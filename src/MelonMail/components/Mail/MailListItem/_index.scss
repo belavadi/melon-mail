@@ -1,3 +1,5 @@
+@import '../../../style/vars';
+
 .mail-list-item {
   padding: 10px !important;
   cursor: pointer;
@@ -16,5 +18,9 @@
       text-overflow: ellipsis;
       overflow: hidden;
     }
+  }
+
+  &.new {
+    border-left: 5px solid $OceanBlue;
   }
 }

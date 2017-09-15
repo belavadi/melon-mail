@@ -10,7 +10,8 @@ import { formatDate } from '../../../services/helperService';
 const MailListItem = ({ args, getThread, mails, mail }) => (
   <List.Item
     className={`mail-list-item
-      ${mail.threadId === args.threadId ? 'active' : ''}`}
+      ${mail.threadId === args.threadId ? 'active' : ''}
+      ${args.new ? 'new' : ''}`}
     onClick={() => getThread(args.threadId, args.blockNumber)}
     role="button"
     tabIndex="-1"
