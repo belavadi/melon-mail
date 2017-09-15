@@ -84,13 +84,13 @@ export const checkRegistration = () => (dispatch) => {
     });
 };
 
-export const registerUser = username => (dispatch) => {
-  eth.checkUsername(username)
+export const registerUser = mailAddress => (dispatch) => {
+  eth.checkMailAddress(mailAddress)
     .then((events) => {
       console.log(events);
       eth.signString(eth.getAccount(), config.stringToSign)
         .then(signedString =>
-          eth._registerUser(username, signedString))
+          eth._registerUser(mailAddress, signedString))
         .then((data) => {
           dispatch(registerSuccess(data));
         })

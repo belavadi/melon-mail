@@ -28,7 +28,7 @@ export default (state = {
         privateKey: action.data.privateKey,
         publicKey: action.data.publicKey,
         startingBlock: action.data.startingBlock,
-        mailAddress: action.data.mail,
+        mailAddress: action.data.mailAddress,
         ethAddress: action.data.address,
       };
     case 'REGISTER_ERROR':

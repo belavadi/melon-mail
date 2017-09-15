@@ -41,7 +41,9 @@ class Auth extends Component {
 
   register(e) {
     e.preventDefault();
-    this.props.registerUser(this.username.value);
+    this.props.registerUser(
+      `${this.username.value.toLowerCase().replace(/\s/g, '')}@${this.props.config.defaultDomain}`,
+    );
   }
 
   renderRegistration() {
@@ -108,25 +110,28 @@ class Auth extends Component {
                 >
                   Kovan Faucet
                 </Button>
-                <Divider />
               </div>
             }
-
-            <div className="ui right labeled input">
-              <input ref={(input) => { this.username = input; }} type="text" />
-              <div className="ui label">
-                @{this.props.config.defaultDomain}
+            {
+              this.props.user.balance !== 0 &&
+              <div>
+                <div className="ui right labeled input">
+                  <input ref={(input) => { this.username = input; }} type="text" />
+                  <div className="ui label">
+                    @{this.props.config.defaultDomain}
+                  </div>
+                </div>
+                <p className="form-error">{this.props.user.registerError}</p>
+                <Button
+                  disabled={web3.eth.accounts.length === 0 || this.props.user.balance === 0}
+                  primary
+                  onClick={this.register}
+                  className="spread-button"
+                >
+                  Register
+                </Button>
               </div>
-            </div>
-            <p className="form-error">{this.props.user.registerError}</p>
-            <Button
-              disabled={web3.eth.accounts.length === 0 || this.props.user.balance === 0}
-              primary
-              onClick={this.register}
-              className="spread-button"
-            >
-              Register
-            </Button>
+            }
           </form>
         );
       case 'noConnection':
