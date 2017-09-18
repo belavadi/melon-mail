@@ -19,6 +19,26 @@ const ipfsNode = new IPFS({
   },
 });
 
+const updateNodeList = (nodes) => {
+  if (localStorage.getItem('customNodes') === null) return nodes;
+
+  const customNodes = JSON.parse(localStorage.getItem('customNodes'));
+  return null;
+};
+
+const getWebsocketAddress = addr =>
+  new Promise((resolve, reject) => {
+    console.log(addr);
+    const node = ipfsAPI(addr);
+
+    node.id((err, info) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(info);
+    });
+  });
+
 const replicate = (hash, type) => {
   console.log(`Replicating ${type} with hash: ${hash}`);
   let successful = 0;
@@ -112,4 +132,5 @@ export default {
   getFileStream,
   getFileContent,
   replicate,
+  getWebsocketAddress,
 };
