@@ -199,6 +199,7 @@ export const listenForMails = () => (dispatch, getState) => {
             blockNumber: mailEvent.blockNumber,
             ...mailEvent.args,
             ...JSON.parse(decrypt(keys, mailContent)),
+            new: mailType === 'inbox',
           };
 
           if (mailType === 'inbox') {

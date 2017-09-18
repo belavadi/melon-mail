@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Container, Button, Loader } from 'semantic-ui-react';
+import { Container, Button, Loader, Search } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 
@@ -32,6 +32,7 @@ class Compose extends Component {
     this.resetRecipient = this.resetRecipient.bind(this);
     this.removeFile = this.removeFile.bind(this);
     this.handleEditorChange = this.handleEditorChange.bind(this);
+    this.getRecipientSuggestions = this.getRecipientSuggestions.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
   }
 
@@ -88,6 +89,20 @@ class Compose extends Component {
     if (this.state.to !== '') this.checkRecipient();
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.to !== this.state.to) {
+      this.getRecipientSuggestions();
+    }
+  }
+
+  getRecipientSuggestions() {
+    this.setState({
+      contactSuggestions: this.props.user.contacts
+        .filter(c => c.indexOf(this.state.to) !== -1)
+        .map(c => ({ title: c })),
+    });
+  }
+
   handleInputChange(event, clean) {
     const target = event.target;
     const value = clean ? target.value.toLowerCase().trim() : target.value;
@@ -133,10 +148,10 @@ class Compose extends Component {
   }
 
   checkRecipient() {
-    this.setState({ recipientExists: 'loading' });
     eth._getPublicKey(this.state.to.toLowerCase().trim())
       .then(() => {
         this.setState({ recipientExists: 'true' });
+        this.props.changeComposeState('EDITING');
       })
       .catch(() => {
         this.setState({ recipientExists: 'false' });
@@ -230,34 +245,33 @@ class Compose extends Component {
           </div>
 
           <div className="inputs-wrapper">
-            <input
-              type="text"
+            <Search
               name="to"
               placeholder="To"
               value={this.state.to}
-              onChange={e => this.handleInputChange(e, true)}
-              onFocus={this.resetRecipient}
-              onBlur={this.checkRecipient}
+              icon={false}
+              showNoResults={false}
               className={
                 `${this.state.recipientExists === 'true' ? 'input-ok' : ''}
-                 ${this.state.recipientExists === 'false' ? 'input-error' : ''}`
-              }
+                 ${this.state.recipientExists === 'false' ? 'input-error' : ''}`}
+              results={this.state.contactSuggestions}
+              onBlur={() => setTimeout(() => this.checkRecipient(), 100)}
+              onFocus={this.resetRecipient}
+              onSearchChange={e => this.handleInputChange(e, true)}
+              onResultSelect={(e, data) => {
+                this.handleInputChange({ target: { name: 'to', value: data.result.title } });
+                setTimeout(() => this.checkRecipient(), 100);
+              }}
             />
-            <input
-              type="text"
-              name="subject"
-              placeholder="Subject"
-              value={this.state.subject}
-              onChange={this.handleInputChange}
-            />
-            {/*
-            <textarea
-              name="body"
-              placeholder="Your message..."
-              value={this.state.body}
-              onChange={this.handleInputChange}
-            />
-            */}
+            <div className="ui input">
+              <input
+                type="text"
+                name="subject"
+                placeholder="Subject"
+                value={this.state.subject}
+                onChange={this.handleInputChange}
+              />
+            </div>
             <Editor
               editorState={this.state.editorState}
               onChange={this.handleEditorChange}
@@ -349,6 +363,7 @@ Compose.propTypes = {
     ethAddress: PropTypes.string.isRequired,
     privateKey: PropTypes.string.isRequired,
     publicKey: PropTypes.string.isRequired,
+    contacts: PropTypes.array,
   }),
   closeCompose: PropTypes.func.isRequired,
   changeComposeState: PropTypes.func.isRequired,

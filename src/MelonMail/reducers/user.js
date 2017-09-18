@@ -11,6 +11,7 @@ export default (state = {
   ethAddress: '',
   startingBlock: 0,
   balance: 0,
+  contacts: [],
 }, action) => {
   switch (action.type) {
     case 'REGISTER_REQUEST':
@@ -28,7 +29,7 @@ export default (state = {
         privateKey: action.data.privateKey,
         publicKey: action.data.publicKey,
         startingBlock: action.data.startingBlock,
-        mailAddress: action.data.mail,
+        mailAddress: action.data.mailAddress,
         ethAddress: action.data.address,
       };
     case 'REGISTER_ERROR':
@@ -93,6 +94,11 @@ export default (state = {
       return {
         ...state,
         balance: action.balance,
+      };
+    case 'CONTACTS_SUCCESS':
+      return {
+        ...state,
+        contacts: action.contacts,
       };
     default:
       return state;

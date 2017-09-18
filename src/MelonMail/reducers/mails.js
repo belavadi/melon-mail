@@ -78,6 +78,14 @@ export default (state = {
         hasMoreMails: false,
         showLoader: false,
       };
+    case 'MAIL_SUCCESS':
+      return {
+        ...state,
+        inbox: state.inbox.map(mail => ({
+          ...mail,
+          new: action.threadId === mail.threadId ? false : mail.new,
+        })),
+      };
     default:
       return state;
   }

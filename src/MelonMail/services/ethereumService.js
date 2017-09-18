@@ -3,7 +3,6 @@ import uniqBy from 'lodash/uniqBy';
 import config from './config.json';
 import { generateKeys } from './cryptoService';
 
-const ADDRESS_DOMAIN = 'melonmail.eth';
 const networks = {
   mainnet: '1',
   morden: '2',
@@ -116,10 +115,8 @@ const getBlockNumber = () =>
     });
   });
 
-const checkUsername = (username) => {
-  const email = `${username}@melonmail.eth`;
-
-  return new Promise((resolve, reject) => {
+const checkMailAddress = email =>
+  new Promise((resolve, reject) => {
     mailContract.BroadcastPublicKey(
       {
         username: web3.fromAscii(email),
@@ -147,16 +144,14 @@ const checkUsername = (username) => {
         });
       });
   });
-};
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = (username, signedString) =>
+const _registerUser = (mailAddress, signedString) =>
   new Promise((resolve, reject) => {
-    const mail = `${username}@${ADDRESS_DOMAIN}`;
     const { privateKey, publicKey } = generateKeys(signedString);
 
-    mailContract.registerUser(mail, publicKey, (error) => {
+    mailContract.registerUser(mailAddress, publicKey, (error) => {
       if (error) {
         return reject({
           message: error,
@@ -168,7 +163,7 @@ const _registerUser = (username, signedString) =>
           resolve({
             publicKey,
             privateKey,
-            mail,
+            mailAddress,
             address: getAccount(),
             startingBlock,
           });
@@ -177,7 +172,7 @@ const _registerUser = (username, signedString) =>
           resolve({
             publicKey,
             privateKey,
-            mail,
+            mailAddress,
             address: getAccount(),
             startingBlock: 0,
           });
@@ -330,6 +325,42 @@ const signIn = () => new Promise((resolve, reject) => {
     });
 });
 
+const fetchAllEvents = (folder) => {
+  const filter = folder === 'inbox' ? { to: getAccount() } : { from: getAccount() };
+  return new Promise((resolve, reject) => {
+    mailContract.SendEmail(
+      filter,
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      })
+      .get((error, events) => {
+        if (error) {
+          return reject({
+            message: error,
+          });
+        }
+        const filteredEvents = uniqBy(events, folder === 'inbox' ? 'args.from' : 'args.to');
+        return resolve(filteredEvents);
+      });
+  });
+};
+
+const getAddressInfo = address =>
+  new Promise((resolve) => {
+    mailContract.BroadcastPublicKey(
+      {
+        addr: address,
+      },
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      },
+    ).get((error, events) => {
+      resolve(events);
+    });
+  });
+
 export default {
   getWeb3Status,
   getAccount,
@@ -339,9 +370,11 @@ export default {
   _getPublicKey,
   _sendEmail,
   checkRegistration,
-  checkUsername,
+  checkMailAddress,
   signIn,
   getMails,
   getThread,
   getBalance,
+  fetchAllEvents,
+  getAddressInfo,
 };

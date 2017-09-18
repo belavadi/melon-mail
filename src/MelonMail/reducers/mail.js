@@ -27,7 +27,6 @@ export default (state = {
         error: action.error,
       };
     case 'ATTACHMENT_REQUEST':
-      console.log({ ...state.thread[action.mailIndex] }, action.mailIndex);
       return {
         ...state,
         thread: [
@@ -63,7 +62,6 @@ export default (state = {
         ],
       };
     case 'ATTACHMENT_ERROR':
-      console.log({ ...state.thread[action.mailIndex] }, action.mailIndex);
       return {
         ...state,
         thread: [
