@@ -41,9 +41,7 @@ class Auth extends Component {
 
   register(e) {
     e.preventDefault();
-    this.props.registerUser(
-      `${this.username.value.toLowerCase().replace(/\s/g, '')}@${this.props.config.defaultDomain}`,
-    );
+    this.props.registerUser(`${this.username.value.toLowerCase().replace(/\s/g, '')}@${this.props.config.defaultDomain}`);
   }
 
   renderRegistration() {

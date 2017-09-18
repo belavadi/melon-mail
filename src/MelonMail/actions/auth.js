@@ -1,3 +1,5 @@
+import uniq from 'lodash/uniq';
+
 import eth from '../services/ethereumService';
 import config from '../services/config.json';
 
@@ -53,6 +55,11 @@ export const logout = () => ({
   type: 'CLEAR_STORE',
 });
 
+export const contactsSuccess = contacts => ({
+  type: 'CONTACTS_SUCCESS',
+  contacts,
+});
+
 export const checkRegistration = () => (dispatch) => {
   eth.getWeb3Status()
     .then(() => eth.checkRegistration())
@@ -101,5 +108,27 @@ export const registerUser = mailAddress => (dispatch) => {
     })
     .catch((error) => {
       dispatch(registerError(error.message));
+    });
+};
+
+export const fetchContacts = () => (dispatch) => {
+  // const start = Date.now();
+  eth.fetchAllEvents('inbox')
+    .then((inboxEvents) => {
+      eth.fetchAllEvents('outbox')
+        .then((outboxEvents) => {
+          const allEvents = uniq([
+            ...inboxEvents.map(event => event.args.from),
+            ...outboxEvents.map(event => event.args.to),
+          ]);
+          const fetchAddresses = allEvents.map(address => eth.getAddressInfo(address));
+          Promise.all(fetchAddresses)
+            .then((addresses) => {
+              const contacts = addresses.map(events => web3.toAscii(events[0].args.username));
+              // console.log(`Fetched contacts in ${(Date.now() - start) / 1000}s`);
+              // console.log(contacts);
+              dispatch(contactsSuccess(contacts));
+            });
+        });
     });
 };

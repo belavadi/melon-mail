@@ -325,6 +325,42 @@ const signIn = () => new Promise((resolve, reject) => {
     });
 });
 
+const fetchAllEvents = (folder) => {
+  const filter = folder === 'inbox' ? { to: getAccount() } : { from: getAccount() };
+  return new Promise((resolve, reject) => {
+    mailContract.SendEmail(
+      filter,
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      })
+      .get((error, events) => {
+        if (error) {
+          return reject({
+            message: error,
+          });
+        }
+        const filteredEvents = uniqBy(events, folder === 'inbox' ? 'args.from' : 'args.to');
+        return resolve(filteredEvents);
+      });
+  });
+};
+
+const getAddressInfo = address =>
+  new Promise((resolve) => {
+    mailContract.BroadcastPublicKey(
+      {
+        addr: address,
+      },
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      },
+    ).get((error, events) => {
+      resolve(events);
+    });
+  });
+
 export default {
   getWeb3Status,
   getAccount,
@@ -339,4 +375,6 @@ export default {
   getMails,
   getThread,
   getBalance,
+  fetchAllEvents,
+  getAddressInfo,
 };
