@@ -15,9 +15,8 @@ class Menu extends Component {
     super();
 
     this.state = {
-      showIp: false,
-      hostError: '',
-      portError: '',
+      showIp: true,
+      error: '',
       protocol: 'http://',
       nodes: JSON.parse(localStorage.getItem('customNodes')) || [],
       status: '',
@@ -32,39 +31,66 @@ class Menu extends Component {
     const gatewayPort = this.gatewayPort.inputRef.value;
     const wsPort = this.wsPort.inputRef.value;
     const id = this.nodeID.inputRef.value;
+    const protocol = this.state.protocol;
 
     const hostNameRegExp = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/;
     const ipAddressRegExp = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
     const portRegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
     if (this.state.showIp && !ipAddressRegExp.test(host)) {
-      this.setState({ status: 'INVALID_IP_ADDRESS' });
+      this.setState({ status: 'ERROR', error: 'Invalid IP address.' });
       return;
     }
 
     if (!this.state.showIp && !hostNameRegExp.test(host)) {
-      this.setState({ status: 'INVALID_HOSTNAME' });
+      this.setState({ status: 'ERROR', error: 'Invalid hostname.' });
       return;
     }
 
     if (!portRegExp.test(wsPort) || !portRegExp.test(gatewayPort)) {
-      this.setState({ status: 'INVALID_PORT' });
+      this.setState({ status: 'ERROR', error: 'Invalid port.' });
       return;
     }
 
-    const status = ipfs.addCustomNode({
-      protocol: this.state.protocol,
-      host,
-      wsPort,
-      gatewayPort,
-      id,
-      connectionType: this.state.showIp ? 'ip4' : 'dns4',
-    });
-    this.setState({ status });
-    if (status === 'OK') {
-      this.setState({ nodes: JSON.parse(localStorage.getItem('customNodes')) || [] });
-      document.getElementById('custom-node-form').reset();
-    }
+
+    this.setState({ status: 'TESTING_WEBSOCKET' });
+
+    const wsTest = new WebSocket(`${protocol === 'http://' ? 'ws://' : 'wss://'}${host}:${wsPort}`);
+
+    wsTest.onmessage = () => {
+      wsTest.close();
+      this.setState({ status: 'TESTING_GATEWAY' });
+
+      const url = `${protocol}${host}:${gatewayPort}/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/quick-start`;
+      fetch(url, { method: 'get' })
+        .then((res) => {
+          console.log(res);
+          const status = ipfs.addCustomNode({
+            protocol,
+            host,
+            wsPort,
+            gatewayPort,
+            id,
+            connectionType: this.state.showIp ? 'ip4' : 'dns4',
+          });
+          if (status === 'OK') {
+            document.getElementById('custom-node-form').reset();
+            this.setState({
+              status: '',
+              nodes: JSON.parse(localStorage.getItem('customNodes')) || [],
+              showIp: true,
+            });
+          } else {
+            this.setState({ status: 'ERROR', error: status });
+          }
+        })
+        .catch(() => {
+          this.setState({ status: 'ERROR', error: 'Error connection to gateway.' });
+        });
+    };
+    wsTest.onerror = () => {
+      this.setState({ status: 'ERROR', error: 'Error connection to websocket.' });
+    };
   }
 
   removeNode(node) {
@@ -77,8 +103,7 @@ class Menu extends Component {
       <Dropdown text={this.props.mailAddress}>
         <Dropdown.Menu>
           <Dropdown.Item>
-            <Icon name="settings" fitted />
-            <Modal trigger={<span>Custom IPFS Nodes</span>}>
+            <Modal trigger={<span><Icon name="settings" fitted /> Custom IPFS Nodes</span>}>
               <Modal.Header>Add custom IPFS nodes</Modal.Header>
               {
                 this.state.nodes.length > 0 &&
@@ -184,12 +209,19 @@ class Menu extends Component {
                   </Form.Group>
                 </Form>
                 { this.state.status }
+                {
+                  this.state.status === 'ERROR' &&
+                  <span>
+                    : {this.state.error}
+                  </span>
+                }
                 <Button
                   onClick={this.handleFormSubmit}
                   positive
                   icon="add"
                   content="Add"
                   labelPosition="right"
+                  disabled={this.state.status !== '' && this.state.status !== 'ERROR'}
                 />
               </Modal.Actions>
             </Modal>
