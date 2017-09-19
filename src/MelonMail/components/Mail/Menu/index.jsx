@@ -67,6 +67,11 @@ class Menu extends Component {
     }
   }
 
+  removeNode(node) {
+    ipfs.removeCustomNode(node);
+    this.setState({ nodes: JSON.parse(localStorage.getItem('customNodes')) || [] });
+  }
+
   render() {
     return (
       <Dropdown text={this.props.mailAddress}>
@@ -75,15 +80,15 @@ class Menu extends Component {
             <Icon name="settings" fitted />
             <Modal trigger={<span>Custom IPFS Nodes</span>}>
               <Modal.Header>Add custom IPFS nodes</Modal.Header>
-              <Modal.Content>
-                {
-                  this.state.nodes.length > 0 &&
+              {
+                this.state.nodes.length > 0 &&
+                <Modal.Content>
                   <div className="node-list">
                     <List verticalAlign="middle">
                       {
                         this.state.nodes.map(node => (
                           <List.Item className="node-list-item" key={Math.random() * Date.now()}>
-                            <Icon name="remove" />
+                            <Icon name="remove" onClick={() => this.removeNode(node)} />
                             <List.Content>
                               <List.Header>
                                 {`${node.protocol}${node.host}:${node.gatewayPort}`}
@@ -97,7 +102,9 @@ class Menu extends Component {
                       }
                     </List>
                   </div>
-                }
+                </Modal.Content>
+              }
+              <Modal.Actions>
                 <Form onSubmit={this.handleFormSubmit} id="custom-node-form">
                   <Form.Group>
                     <Form.Field>
@@ -176,15 +183,14 @@ class Menu extends Component {
                     </Form.Field>
                   </Form.Group>
                 </Form>
-              </Modal.Content>
-              <Modal.Actions>
                 { this.state.status }
                 <Button
                   onClick={this.handleFormSubmit}
                   positive
-                >
-                  Save
-                </Button>
+                  icon="add"
+                  content="Add"
+                  labelPosition="right"
+                />
               </Modal.Actions>
             </Modal>
           </Dropdown.Item>

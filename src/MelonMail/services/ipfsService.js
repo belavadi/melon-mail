@@ -133,11 +133,22 @@ const addCustomNode = (node) => {
     findIndex(nodes, { id: node.id }) !== -1) return 'DUPLICATE_NODE';
   nodes.push(node);
   localStorage.setItem('customNodes', JSON.stringify(nodes));
-  ipfsNode.bootstrap.add(getMultiaddressString(node), (err, info) => {
+  ipfsNode.swarm.connect(getMultiaddressString(node), (err, info) => {
     console.log(err);
     console.log(info);
   });
   return 'OK';
+};
+
+const removeCustomNode = (node) => {
+  const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
+  nodes.splice(findIndex(nodes, { host: node.host }), 1);
+  console.log(nodes);
+  localStorage.setItem('customNodes', JSON.stringify(nodes));
+  ipfsNode.swarm.disconnect(getMultiaddressString(node), (err, info) => {
+    console.log(err);
+    console.log(info);
+  });
 };
 
 export default {
@@ -150,4 +161,5 @@ export default {
   getFileContent,
   replicate,
   addCustomNode,
+  removeCustomNode,
 };
