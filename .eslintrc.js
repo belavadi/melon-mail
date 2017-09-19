@@ -17,6 +17,7 @@ module.exports = {
     'no-console': 0,
     'new-cap': 0,
     'eol-last': 1,
+    'jsx-a11y/label-has-for': 0,
 },
   globals: {
     window: true,

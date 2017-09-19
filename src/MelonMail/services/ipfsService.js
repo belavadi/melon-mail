@@ -1,15 +1,24 @@
 const IPFS = require('ipfs');
-const ipfsAPI = require('ipfs-api');
 const concat = require('concat-stream');
+
+const getMultiaddressString = node =>
+  `/${node.connectionType}/${node.host}/tcp/${node.wsPort}/ws/ipfs/${node.id}`;
+
+const getGatewayAddressString = node =>
+  `${node.protocol}${node.host}:${node.gatewayPort}`;
+
+const getUserRepNodes = () => (
+  localStorage.getItem('customNodes') !== null ?
+    [...JSON.parse(localStorage.getItem('customNodes'))] : []
+);
 
 const ipfsBootstrapNodesList = [
   '/ip4/127.0.0.1/tcp/9999/ws/ipfs/QmWc6qiH7rp7i8J2RcKvWgaw9daTW5LipfaBWbNkSuLTuU',
-  '/ip4/46.101.79.241/tcp/9999/ws/ipfs/QmNxpsbNJzvXpUbv9Kp9YnNAdgSzNz8DGWay8ie7pyLy5q',
+  ...getUserRepNodes().map(getMultiaddressString),
 ];
 
-const ipfsNodesList = [
-  ['/ip4/127.0.0.1/tcp/5001'],
-  ['ipfs.decenter.com', '443', { protocol: 'https' }],
+const defaultRepNodes = [
+  'http://127.0.0.1:8080',
 ];
 
 const ipfsNode = new IPFS({
@@ -19,42 +28,35 @@ const ipfsNode = new IPFS({
   },
 });
 
-const updateNodeList = (nodes) => {
-  if (localStorage.getItem('customNodes') === null) return nodes;
-
-  const customNodes = JSON.parse(localStorage.getItem('customNodes'));
-  return null;
-};
-
-const getWebsocketAddress = addr =>
-  new Promise((resolve, reject) => {
-    console.log(addr);
-    const node = ipfsAPI(addr);
-
-    node.id((err, info) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(info);
-    });
-  });
-
 const replicate = (hash, type) => {
   console.log(`Replicating ${type} with hash: ${hash}`);
+  console.log(ipfsNode.bootstrap.list((err, info) => {
+    console.log(err);
+    console.log(info);
+  }));
   let successful = 0;
-  const replicationPromises = ipfsNodesList.map(node =>
+  const replicationNodes = [
+    ...defaultRepNodes,
+    ...getUserRepNodes().map(getGatewayAddressString),
+  ];
+  console.log(replicationNodes);
+  const replicationPromises = replicationNodes.map(node =>
     new Promise((resolve) => {
-      const api = ipfsAPI(...node);
-      return (type === 'file' ? api.files.get(hash) : api.object.get(hash))
+      const url = `${node}${type === 'file' ?
+        '/api/v0/get?arg=' : '/api/v0/object/get?arg='}${hash}`;
+      return fetch(url, { method: 'get' })
         .then(() => {
           successful += 1;
           resolve();
         })
-        .catch(() => resolve());
+        .catch((error) => {
+          console.log(error);
+          resolve();
+        });
     }),
   );
   Promise.all(replicationPromises)
-    .then(() => console.log(`Successfully replicated ${type} with hash: ${hash} on ${successful}/${ipfsNodesList.length} nodes`));
+    .then(() => console.log(`Successfully replicated ${type} with hash: ${hash} on ${successful}/${replicationNodes.length} nodes`));
 };
 
 const uploadData = data =>
@@ -123,6 +125,16 @@ const getFileContent = hash =>
       .catch(err => reject(err));
   });
 
+const addCustomNode = (node) => {
+  const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
+  nodes.push(node);
+  localStorage.setItem('customNodes', JSON.stringify(nodes));
+  ipfsNode.bootstrap.add(getMultiaddressString(node), (err, info) => {
+    console.log(err);
+    console.log(info);
+  });
+};
+
 export default {
   uploadData,
   newThread,
@@ -132,5 +144,5 @@ export default {
   getFileStream,
   getFileContent,
   replicate,
-  getWebsocketAddress,
+  addCustomNode,
 };

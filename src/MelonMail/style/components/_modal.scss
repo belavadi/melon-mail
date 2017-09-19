@@ -1,16 +1,15 @@
 .modals .modal {
-  .node-list-item{
-    padding: 15px 0;
-    border-bottom: 1px solid #e3e3e3;
+  .node-list {
+    margin-bottom: 30px;
+    .node-list-item{
+      padding: 15px 0;
+      border-bottom: 1px solid #e3e3e3;
+    }
   }
   .node-list-item:first-child {
     padding-top: 0;
   }
   .node-list-item:last-child {
     padding-bottom: 15px;
-  }
-
-  .button.save-button{
-    margin-top: 15px;
   }
 }

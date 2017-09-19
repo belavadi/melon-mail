@@ -28,7 +28,9 @@ class Menu extends Component {
     e.preventDefault();
 
     const host = this.host.inputRef.value;
-    const port = this.port.inputRef.value;
+    const gatewayPort = this.gatewayPort.inputRef.value;
+    const wsPort = this.wsPort.inputRef.value;
+    const id = this.nodeID.inputRef.value;
 
     const hostNameRegExp = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/;
     const ipAddressRegExp = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
@@ -44,30 +46,20 @@ class Menu extends Component {
       return;
     }
 
-    if (!portRegExp.test(port)) {
+    if (!portRegExp.test(wsPort) || !portRegExp.test(gatewayPort)) {
       console.log('INVALID PORT');
       return;
     }
 
-    const connectionItem = this.state.showIp ? [`/ip4/${host}/tcp/${port}`]
-      : [host, port, { protocol: this.state.protocol.split(':').unshift() }];
-
-    ipfs.getWebsocketAddress(connectionItem)
-      .then((data) => {
-        console.log(data);
-        const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
-        nodes.push({
-          protocol: this.state.protocol,
-          host,
-          port,
-          connectionType: this.state.showIp ? 'ip4' : 'dns4',
-        });
-        localStorage.setItem('customNodes', JSON.stringify(nodes));
-        this.setState({
-          nodes,
-        });
-      })
-      .catch(err => console.log(err));
+    ipfs.addCustomNode({
+      protocol: this.state.protocol,
+      host,
+      wsPort,
+      gatewayPort,
+      id,
+      connectionType: this.state.showIp ? 'ip4' : 'dns4',
+    });
+    this.setState({ nodes: JSON.parse(localStorage.getItem('customNodes')) || [] });
   }
 
   render() {
@@ -79,78 +71,117 @@ class Menu extends Component {
             <Modal trigger={<span>Custom IPFS Nodes</span>}>
               <Modal.Header>Add custom IPFS nodes</Modal.Header>
               <Modal.Content>
+                {
+                  this.state.nodes.length > 0 &&
+                  <div className="node-list">
+                    <List verticalAlign="middle">
+                      {
+                        this.state.nodes.map(node => (
+                          <List.Item className="node-list-item" key={Math.random() * Date.now()}>
+                            <Icon name="remove" />
+                            <List.Content>
+                              <List.Header>
+                                {`${node.protocol}${node.host}:${node.gatewayPort}`}
+                              </List.Header>
+                              <List.Description>
+                                {`/${node.connectionType}/${node.host}/tcp/${node.wsPort}/ws/ipfs/${node.id}`}
+                              </List.Description>
+                            </List.Content>
+                          </List.Item>
+                        ))
+                      }
+                    </List>
+                  </div>
+                }
                 <Form onSubmit={this.handleFormSubmit}>
-                  <List animated verticalAlign="middle">
-                    {
-                      this.state.nodes.map((node, i) => (
-                        <List.Item className="node-list-item" key={Math.random() * Date.now()}>
-                          {`${node.protocol}${node.host}:${node.port}`}
-                        </List.Item>
-                      ))
-                    }
-                  </List>
-                  <Form.Field>
-                    <Checkbox
-                      radio
-                      label="Domain"
-                      name="showIp"
-                      checked={!this.state.showIp}
-                      onChange={(e, { name }) => this.setState({ [name]: false })}
-                    />
-                  </Form.Field>
-                  <Form.Field>
-                    <Checkbox
-                      radio
-                      label="IP Address"
-                      name="showIp"
-                      checked={this.state.showIp}
-                      onChange={(e, { name }) => this.setState({ [name]: true })}
-                    />
-                  </Form.Field>
-                  <Form.Field>
-                    {
-                      !this.state.showIp &&
-                      <Input
-                        ref={(input) => { this.host = input; }}
-                        label={<Dropdown
-                          defaultValue="http://"
-                          onChange={(e, data) => this.setState({ protocol: data.value })}
-                          options={options}
-                        />}
-                        type="text"
-                        placeholder="Custom IPFS Node domain"
+
+
+                  <Form.Group>
+                    <Form.Field>
+                      <Checkbox
+                        radio
+                        label="DNS"
+                        name="showIp"
+                        checked={!this.state.showIp}
+                        onChange={(e, { name }) => this.setState({ [name]: false })}
                       />
-                    }
-                    {
-                      this.state.showIp &&
-                      <Input
-                        ref={(input) => { this.host = input; }}
-                        label={<Dropdown
-                          defaultValue="http://"
-                          onChange={(e, data) => this.setState({ protocol: data.value })}
-                          options={options}
-                        />}
-                        type="text"
-                        placeholder="Custom IPFS Node IP"
+                      &nbsp; &nbsp;
+                      <Checkbox
+                        radio
+                        label="IP Address"
+                        name="showIp"
+                        checked={this.state.showIp}
+                        onChange={(e, { name }) => this.setState({ [name]: true })}
                       />
-                    }
-                  </Form.Field>
-                  <Form.Field inline>
-                    <Input
-                      ref={(input) => { this.port = input; }}
-                      type="text"
-                      placeholder="Port"
-                    />
-                  </Form.Field>
-                  <Button
-                    onClick={this.handleFormSubmit}
-                    className="save-button"
-                    primary
-                  >
-                    Save
-                  </Button>
+                    </Form.Field>
+                  </Form.Group>
+
+                  <Form.Group widths="equal">
+                    <Form.Field>
+                      {
+                        !this.state.showIp &&
+                        <Input
+                          ref={(input) => { this.host = input; }}
+                          label={<Dropdown
+                            defaultValue="http://"
+                            onChange={(e, data) => this.setState({ protocol: data.value })}
+                            options={options}
+                          />}
+                          type="text"
+                          placeholder="Server address"
+                        />
+                      }
+                      {
+                        this.state.showIp &&
+                        <Input
+                          ref={(input) => { this.host = input; }}
+                          label={<Dropdown
+                            defaultValue="http://"
+                            onChange={(e, data) => this.setState({ protocol: data.value })}
+                            options={options}
+                          />}
+                          type="text"
+                          placeholder="Server IP address"
+                        />
+                      }
+                    </Form.Field>
+                  </Form.Group>
+
+                  <Form.Group widths="equal">
+                    <Form.Field width="3">
+                      <label>Gateway port</label>
+                      <Input
+                        width="4"
+                        ref={(input) => { this.gatewayPort = input; }}
+                        placeholder="8080"
+                      />
+                    </Form.Field>
+                    <Form.Field width="3">
+                      <label>Swarm WS port</label>
+                      <Input
+                        width="4"
+                        ref={(input) => { this.wsPort = input; }}
+                        placeholder="9999"
+                      />
+                    </Form.Field>
+                    <Form.Field width="10">
+                      <label>Node ID</label>
+                      <Input
+                        ref={(input) => { this.nodeID = input; }}
+                        placeholder="Qm ..."
+                      />
+                    </Form.Field>
+                  </Form.Group>
                 </Form>
               </Modal.Content>
+              <Modal.Actions>
+                <Button
+                  onClick={this.handleFormSubmit}
+                  positive
+                >
+                  Save
+                </Button>
+              </Modal.Actions>
             </Modal>
           </Dropdown.Item>
         </Dropdown.Menu>
