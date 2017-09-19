@@ -105,31 +105,7 @@ class Menu extends Component {
           <Dropdown.Item>
             <Modal trigger={<span><Icon name="settings" fitted /> Custom IPFS Nodes</span>}>
               <Modal.Header>Add custom IPFS nodes</Modal.Header>
-              {
-                this.state.nodes.length > 0 &&
-                <Modal.Content>
-                  <div className="node-list">
-                    <List verticalAlign="middle">
-                      {
-                        this.state.nodes.map(node => (
-                          <List.Item className="node-list-item" key={Math.random() * Date.now()}>
-                            <Icon name="remove" onClick={() => this.removeNode(node)} />
-                            <List.Content>
-                              <List.Header>
-                                {`${node.protocol}${node.host}:${node.gatewayPort}`}
-                              </List.Header>
-                              <List.Description>
-                                {`/${node.connectionType}/${node.host}/tcp/${node.wsPort}/ws/ipfs/${node.id}`}
-                              </List.Description>
-                            </List.Content>
-                          </List.Item>
-                        ))
-                      }
-                    </List>
-                  </div>
-                </Modal.Content>
-              }
-              <Modal.Actions>
+              <Modal.Content>
                 <Form onSubmit={this.handleFormSubmit} id="custom-node-form">
                   <Form.Group>
                     <Form.Field>
@@ -223,7 +199,57 @@ class Menu extends Component {
                   labelPosition="right"
                   disabled={this.state.status !== '' && this.state.status !== 'ERROR'}
                 />
-              </Modal.Actions>
+                <div className="help-wrapper">
+                  <h2>Help</h2>
+                  You can add a custom IPFS node. It will be used to bootstrap the node
+                  in the browser and backup the mails you send.
+                  <ul>
+                    <li>
+                      Make sure your node is <a
+                        href="https://github.com/ipfs/js-ipfs/tree/master/examples/exchange-files-in-browser#2-make-your-daemons-listen-on-websockets"
+                      >listening on a WebSocket</a> first.
+                    </li>
+                    <li>
+                      <b>Swarm WebSocket port</b> is the port you set in your config
+                      (9999 in the guide above).
+                    </li>
+                    <li>
+                      <b>Gateway port</b> is the port used by the IPFS gateway, AKA the public API
+                      (usually 8080).
+                    </li>
+                    <li>
+                      <b>Node ID</b> can be found by running <code>ipfs id</code>.
+                    </li>
+                  </ul>
+                  Note: if the mail service is using https, your nodes must be
+                  using https (and wss) too. Currently the simplest way to do this is by
+                  proxying traffic to your IPFS node through nginx or Apache.
+                </div>
+              </Modal.Content>
+              {
+                this.state.nodes.length > 0 &&
+                <Modal.Actions>
+                  <div className="node-list">
+                    <List divided>
+                      {
+                        this.state.nodes.map(node => (
+                          <List.Item className="node-list-item" key={Math.random() * Date.now()}>
+                            <Icon name="remove" onClick={() => this.removeNode(node)} />
+                            <List.Content>
+                              <List.Header>
+                                {`${node.protocol}${node.host}:${node.gatewayPort}`}
+                              </List.Header>
+                              <List.Description>
+                                {`/${node.connectionType}/${node.host}/tcp/${node.wsPort}/ws/ipfs/${node.id}`}
+                              </List.Description>
+                            </List.Content>
+                          </List.Item>
+                        ))
+                      }
+                    </List>
+                  </div>
+                </Modal.Actions>
+              }
             </Modal>
           </Dropdown.Item>
         </Dropdown.Menu>
