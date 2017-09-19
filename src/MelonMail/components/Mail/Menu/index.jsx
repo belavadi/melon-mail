@@ -20,6 +20,7 @@ class Menu extends Component {
       portError: '',
       protocol: 'http://',
       nodes: JSON.parse(localStorage.getItem('customNodes')) || [],
+      status: '',
     };
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
   }
@@ -37,21 +38,21 @@ class Menu extends Component {
     const portRegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
     if (this.state.showIp && !ipAddressRegExp.test(host)) {
-      console.log('INVALID IP ADDRESS');
+      this.setState({ status: 'INVALID_IP_ADDRESS' });
       return;
     }
 
     if (!this.state.showIp && !hostNameRegExp.test(host)) {
-      console.log('INVALID HOSTNAME');
+      this.setState({ status: 'INVALID_HOSTNAME' });
       return;
     }
 
     if (!portRegExp.test(wsPort) || !portRegExp.test(gatewayPort)) {
-      console.log('INVALID PORT');
+      this.setState({ status: 'INVALID_PORT' });
       return;
     }
 
-    ipfs.addCustomNode({
+    const status = ipfs.addCustomNode({
       protocol: this.state.protocol,
       host,
       wsPort,
@@ -59,7 +60,11 @@ class Menu extends Component {
       id,
       connectionType: this.state.showIp ? 'ip4' : 'dns4',
     });
-    this.setState({ nodes: JSON.parse(localStorage.getItem('customNodes')) || [] });
+    this.setState({ status });
+    if (status === 'OK') {
+      this.setState({ nodes: JSON.parse(localStorage.getItem('customNodes')) || [] });
+      document.getElementById('custom-node-form').reset();
+    }
   }
 
   render() {
@@ -93,9 +98,7 @@ class Menu extends Component {
                     </List>
                   </div>
                 }
-                <Form onSubmit={this.handleFormSubmit}>
-
-
+                <Form onSubmit={this.handleFormSubmit} id="custom-node-form">
                   <Form.Group>
                     <Form.Field>
                       <Checkbox
@@ -175,6 +178,7 @@ class Menu extends Component {
                 </Form>
               </Modal.Content>
               <Modal.Actions>
+                { this.state.status }
                 <Button
                   onClick={this.handleFormSubmit}
                   positive

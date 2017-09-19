@@ -1,3 +1,5 @@
+import findIndex from 'lodash/findIndex';
+
 const IPFS = require('ipfs');
 const concat = require('concat-stream');
 
@@ -127,12 +129,15 @@ const getFileContent = hash =>
 
 const addCustomNode = (node) => {
   const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
+  if (findIndex(nodes, { host: node.host }) !== -1 ||
+    findIndex(nodes, { id: node.id }) !== -1) return 'DUPLICATE_NODE';
   nodes.push(node);
   localStorage.setItem('customNodes', JSON.stringify(nodes));
   ipfsNode.bootstrap.add(getMultiaddressString(node), (err, info) => {
     console.log(err);
     console.log(info);
   });
+  return 'OK';
 };
 
 export default {
