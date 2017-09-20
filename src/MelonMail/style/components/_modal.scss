@@ -1,6 +1,6 @@
 .modals .modal {
-  .node-list-item {
-    padding: 10px 0;
+  .ui.radio {
+    margin-right: 20px;
   }
 
   .ui.button {
@@ -9,6 +9,10 @@
 
   .list {
     text-align: left;
+  }
+
+  .node-list-item {
+    padding: 10px 0;
   }
 
   .help-wrapper {

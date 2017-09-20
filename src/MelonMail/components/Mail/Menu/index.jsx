@@ -6,8 +6,8 @@ import { List, Button, Dropdown, Modal, Icon, Form, Checkbox, Input } from 'sema
 import ipfs from '../../../services/ipfsService';
 
 const options = [
-  { key: 'http://', text: 'http://', value: 'http://' },
-  { key: 'https://', text: 'https://', value: 'https://' },
+  { key: 'http://', text: 'http/ws', value: 'http://' },
+  { key: 'https://', text: 'https/wss', value: 'https://' },
 ];
 
 class Menu extends Component {
@@ -111,18 +111,17 @@ class Menu extends Component {
                     <Form.Field>
                       <Checkbox
                         radio
-                        label="DNS"
-                        name="showIp"
-                        checked={!this.state.showIp}
-                        onChange={(e, { name }) => this.setState({ [name]: false })}
-                      />
-                      &nbsp; &nbsp;
-                      <Checkbox
-                        radio
                         label="IP Address"
                         name="showIp"
                         checked={this.state.showIp}
                         onChange={(e, { name }) => this.setState({ [name]: true })}
+                      />
+                      <Checkbox
+                        radio
+                        label="DNS"
+                        name="showIp"
+                        checked={!this.state.showIp}
+                        onChange={(e, { name }) => this.setState({ [name]: false })}
                       />
                     </Form.Field>
                   </Form.Group>
@@ -134,7 +133,7 @@ class Menu extends Component {
                         <Input
                           ref={(input) => { this.host = input; }}
                           label={<Dropdown
-                            defaultValue="http://"
+                            defaultValue="https://"
                             onChange={(e, data) => this.setState({ protocol: data.value })}
                             options={options}
                           />}
