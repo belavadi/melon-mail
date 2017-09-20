@@ -24,6 +24,7 @@ class Compose extends Component {
       },
       recipientExists: 'undetermined',
       editorState: EditorState.createEmpty(),
+      selectedBlockType: '',
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -114,8 +115,15 @@ class Compose extends Component {
   }
 
   handleEditorChange(editorState) {
+    const selection = editorState.getSelection();
+    const selectedBlockType = editorState
+      .getCurrentContent()
+      .getBlockForKey(selection.getStartKey())
+      .getType();
+
     this.setState({
       editorState,
+      selectedBlockType,
     });
   }
 
@@ -128,6 +136,18 @@ class Compose extends Component {
     }
 
     return 'not-handled';
+  }
+
+  handleEditorActions(action, type) {
+    if (type === 'block') {
+      this.handleEditorChange(
+        RichUtils.toggleBlockType(this.state.editorState, action),
+      );
+    } else {
+      this.handleEditorChange(
+        RichUtils.toggleInlineStyle(this.state.editorState, action),
+      );
+    }
   }
 
   removeFile(index) {
@@ -294,6 +314,53 @@ class Compose extends Component {
                   </a>
                 ))
               }
+            </div>
+            <div className="editor-actions">
+              <Button.Group basic compact size="tiny">
+                <Button
+                  icon="bold"
+                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('BOLD'); }}
+                  active={this.state.editorState.getCurrentInlineStyle().has('BOLD')}
+                />
+                <Button
+                  icon="italic"
+                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('ITALIC'); }}
+                  active={this.state.editorState.getCurrentInlineStyle().has('ITALIC')}
+                />
+                <Button
+                  icon="underline"
+                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('UNDERLINE'); }}
+                  active={this.state.editorState.getCurrentInlineStyle().has('UNDERLINE')}
+                />
+              </Button.Group>
+
+              <Button.Group basic compact size="tiny">
+                <Button
+                  icon="header"
+                  content="1"
+                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('header-one', 'block'); }}
+                  active={this.state.selectedBlockType === 'header-one'}
+                />
+                <Button
+                  icon="header"
+                  content="2"
+                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('header-two', 'block'); }}
+                  active={this.state.selectedBlockType === 'header-two'}
+                />
+              </Button.Group>
+
+              <Button.Group basic compact size="tiny">
+                <Button
+                  icon="list ul"
+                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('unordered-list-item', 'block'); }}
+                  active={this.state.selectedBlockType === 'unordered-list-item'}
+                />
+                <Button
+                  icon="list ol"
+                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('ordered-list-item', 'block'); }}
+                  active={this.state.selectedBlockType === 'ordered-list-item'}
+                />
+              </Button.Group>
             </div>
           </div>
 

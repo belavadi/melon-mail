@@ -21,15 +21,7 @@
       .mail-body {
         margin: 20px auto;
 
-        > * {
-          margin: 5px 0;
-        }
-
-        blockquote {
-          margin-left: 20px;
-          padding: 10px;
-          border-left: 3px #eee solid;
-        }
+        @import '../../../style/components/emailContent';
       }
       .attachments-wrapper {
         .attachment {

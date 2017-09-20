@@ -106,15 +106,7 @@
           flex-direction: column;
         }
 
-        div[data-block="true"] {
-          margin: 5px 0;
-        }
-
-        blockquote {
-          margin-left: 20px;
-          padding: 10px;
-          border-left: 3px #eee solid;
-        }
+        @import '../../../style/components/emailContent';
       }
 
 
@@ -129,9 +121,19 @@
     }
 
     .files-preview{
-      padding: 5px;
+      padding: 3px;
       .label {
-        margin: 2px;
+        margin: 3px;
+      }
+    }
+
+    .editor-actions {
+      margin: 0 3px 6px;
+      .buttons {
+        margin: 0 3px;
+        button {
+          border: 0;
+        }
       }
     }
 
