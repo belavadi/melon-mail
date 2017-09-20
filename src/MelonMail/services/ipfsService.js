@@ -127,6 +127,24 @@ const getFileContent = hash =>
       .catch(err => reject(err));
   });
 
+const uploadToIpfs = data =>
+  new Promise((resolve, reject) => {
+    uploadData(data)
+      .then((mailLink) => {
+        const mailObject = mailLink.length ? mailLink[0] : mailLink;
+
+        newThread(mailObject)
+          .then((threadLink) => {
+            const multihash = threadLink.toJSON().multihash;
+            return resolve({
+              mailHash: mailObject.hash,
+              threadHash: multihash,
+            });
+          });
+      })
+      .catch(err => reject(err));
+  });
+
 const addCustomNode = (node) => {
   const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
   if (findIndex(nodes, { host: node.host }) !== -1 ||
@@ -162,4 +180,5 @@ export default {
   replicate,
   addCustomNode,
   removeCustomNode,
+  uploadToIpfs,
 };

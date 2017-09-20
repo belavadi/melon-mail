@@ -1,7 +1,9 @@
 import uniq from 'lodash/uniq';
 
+import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import config from '../services/config.json';
+import { welcomeEmail } from '../services/helperService';
 
 export const changeAccount = account => ({
   type: 'ACCOUNT_CHANGE',
@@ -95,18 +97,22 @@ export const registerUser = mailAddress => (dispatch) => {
   eth.checkMailAddress(mailAddress)
     .then((events) => {
       console.log(events);
-      eth.signString(eth.getAccount(), config.stringToSign)
-        .then(signedString =>
-          eth._registerUser(mailAddress, signedString))
+      return eth.signString(eth.getAccount(), config.stringToSign);
+    })
+    .then((signedString) => {
+      ipfs.uploadToIpfs(welcomeEmail(eth.getAccount(), mailAddress, signedString))
+        .then(({ mailHash, threadHash }) =>
+          eth._registerUser(mailAddress, signedString, mailHash, threadHash))
         .then((data) => {
           dispatch(registerSuccess(data));
         })
         .catch((error) => {
           console.log(error);
-          dispatch(authError('Error occured while registering.'));
+          return dispatch(registerError(error.message));
         });
     })
     .catch((error) => {
+      console.log(error);
       dispatch(registerError(error.message));
     });
 };

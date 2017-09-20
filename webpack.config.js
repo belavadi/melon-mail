@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const config = {
   entry: [
@@ -17,7 +18,7 @@ const config = {
   output: {
     path: path.join(__dirname, './public/web/dist'),
     filename: 'bundle.js',
-    publicPath: 'http://127.0.0.1:3300/static/',
+    publicPath: '/',
   },
   resolve: {
     extensions: ['.jsx', '.js', '.scss', '.eot', '.svg', '.ttf', '.woff', '.woff2', '.png', '.jpg'],
@@ -92,6 +93,11 @@ const config = {
     ],
   },
   plugins: [
+    new HtmlWebpackPlugin({
+      inject: 'body',
+      template: path.join(__dirname, 'src/index.html'),
+      filename: 'index.html',
+    }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NamedModulesPlugin(),
   ],

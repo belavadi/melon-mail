@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const config = {
@@ -84,6 +85,7 @@ const config = {
   },
   plugins: [
     new UglifyJsPlugin(),
+    new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new ExtractTextPlugin(
       {
@@ -91,6 +93,11 @@ const config = {
         allChunks: true,
       },
     ),
+    new HtmlWebpackPlugin({
+      inject: true,
+      template: 'src/index.html',
+      filename: '../../index.html',
+    }),
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('production'),
