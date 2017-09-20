@@ -60,6 +60,24 @@ const getFileContent = hash =>
       .catch(err => reject(err));
   });
 
+const uploadToIpfs = data =>
+  new Promise((resolve, reject) => {
+    uploadData(data)
+      .then((mailLink) => {
+        const mailObject = mailLink.length ? mailLink[0] : mailLink;
+
+        newThread(mailObject)
+          .then((threadLink) => {
+            const multihash = threadLink.toJSON().multihash;
+            return resolve({
+              mailHash: mailObject.hash,
+              threadHash: multihash,
+            });
+          });
+      })
+      .catch(err => reject(err));
+  });
+
 export default {
   uploadData,
   newThread,
@@ -68,4 +86,5 @@ export default {
   getFile,
   getFileStream,
   getFileContent,
+  uploadToIpfs,
 };

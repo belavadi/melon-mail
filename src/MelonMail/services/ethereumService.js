@@ -147,11 +147,11 @@ const checkMailAddress = email =>
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = (mailAddress, signedString) =>
+const _registerUser = (mailAddress, signedString, mailHash, threadHash) =>
   new Promise((resolve, reject) => {
     const { privateKey, publicKey } = generateKeys(signedString);
-
-    mailContract.registerUser(mailAddress, publicKey, (error) => {
+    console.log(mailAddress, signedString, mailHash, threadHash);
+    mailContract.registerUser(mailAddress, publicKey, mailHash, threadHash, (error) => {
       if (error) {
         return reject({
           message: error,

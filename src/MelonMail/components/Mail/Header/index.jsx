@@ -14,11 +14,9 @@ const Header = ({ children, isAuthenticated, mailAddress, logout }) => (
         <span>{mailAddress}</span>
         &nbsp;&nbsp;&nbsp;
         <span role="link" tabIndex="-1" onClick={logout}>Logout</span>
-      </div>
-    }
-  </header>
-);
+      </div>}  </header>
 
+);
 Header.propTypes = {
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
