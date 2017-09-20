@@ -103,6 +103,9 @@ export const registerUser = mailAddress => (dispatch) => {
       ipfs.uploadToIpfs(welcomeEmail(eth.getAccount(), mailAddress, signedString))
         .then(({ mailHash, threadHash }) =>
           eth._registerUser(mailAddress, signedString, mailHash, threadHash))
+        .then((data) => {
+          dispatch(registerSuccess(data));
+        })
         .catch((error) => {
           console.log(error);
           return dispatch(registerError(error.message));
