@@ -7991,6 +7991,10 @@ text-table@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
 
+tg-modal@^0.8.0-alpha.1:
+  version "0.8.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/tg-modal/-/tg-modal-0.8.0-alpha.1.tgz#80d0d56e2d0a5a8f4d93b6fa809b82b6692156c6"
+
 through2@^2.0.0, through2@^2.0.2, through2@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.3.tgz#0004569b37c7c74ba39c43f3ced78d1ad94140be"
