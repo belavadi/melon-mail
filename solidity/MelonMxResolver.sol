@@ -214,7 +214,7 @@ contract Resolver {
     }
 
     /**
-     * Sets MX record data associated with an ENS node and key.
+     * Sets MX record data associated with an ENS node.
      * May only be called by the owner of that node in the ENS registry.
      * @param node The node to update.
      * @param mx Address of MX contract.
@@ -225,7 +225,7 @@ contract Resolver {
     }
 
     /**
-     * Returns address of MX contract from MX record associated with an ENS node and key.
+     * Returns address of MX contract from MX record associated with an ENS node.
      * Can be called by anyone.
      * @param node The ENS node to query.
      */
