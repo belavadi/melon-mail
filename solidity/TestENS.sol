@@ -7,7 +7,7 @@ pragma solidity ^0.4.0;
  * Owner of any other node is 0x0. 
  */
 
-contract AbstractENS {
+contract TestENS {
     function owner(bytes32 node) constant returns(address) {
         if (node == sha3("test")) {
             return 0xca35b7d915458ef540ade6068dfe2f44e8fa733c;
