@@ -122,11 +122,15 @@ const getFileStream = hash => ipfsNode.files.cat(hash);
 
 const getFileContent = hash =>
   new Promise((resolve, reject) => {
+    const ipfsTimeout = setTimeout(() => {
+      reject({ error: 'Couldn\'t fetch email. (TIMEOUT)' });
+    }, 15000);
     ipfsNode.files.cat(hash)
-      .then(file => file.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data)))))
+      .then((file) => {
+        clearTimeout(ipfsTimeout);
+        file.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
+      })
       .catch(err => reject(err));
-
-    setTimeout(() => { reject('timeout'); }, 5000);
   });
 
 const uploadToIpfs = data =>
