@@ -322,17 +322,26 @@ class Compose extends Component {
               <Button.Group basic compact size="tiny">
                 <Button
                   icon="bold"
-                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('BOLD'); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    this.handleEditorActions('BOLD');
+                  }}
                   active={this.state.editorState.getCurrentInlineStyle().has('BOLD')}
                 />
                 <Button
                   icon="italic"
-                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('ITALIC'); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    this.handleEditorActions('ITALIC');
+                  }}
                   active={this.state.editorState.getCurrentInlineStyle().has('ITALIC')}
                 />
                 <Button
                   icon="underline"
-                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('UNDERLINE'); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    this.handleEditorActions('UNDERLINE');
+                  }}
                   active={this.state.editorState.getCurrentInlineStyle().has('UNDERLINE')}
                 />
               </Button.Group>
@@ -341,13 +350,19 @@ class Compose extends Component {
                 <Button
                   icon="header"
                   content="1"
-                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('header-one', 'block'); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    this.handleEditorActions('header-one', 'block');
+                  }}
                   active={this.state.selectedBlockType === 'header-one'}
                 />
                 <Button
                   icon="header"
                   content="2"
-                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('header-two', 'block'); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    this.handleEditorActions('header-two', 'block');
+                  }}
                   active={this.state.selectedBlockType === 'header-two'}
                 />
               </Button.Group>
@@ -355,12 +370,18 @@ class Compose extends Component {
               <Button.Group basic compact size="tiny">
                 <Button
                   icon="list ul"
-                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('unordered-list-item', 'block'); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    this.handleEditorActions('unordered-list-item', 'block');
+                  }}
                   active={this.state.selectedBlockType === 'unordered-list-item'}
                 />
                 <Button
                   icon="list ol"
-                  onMouseDown={(e) => { e.preventDefault(); this.handleEditorActions('ordered-list-item', 'block'); }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    this.handleEditorActions('ordered-list-item', 'block');
+                  }}
                   active={this.state.selectedBlockType === 'ordered-list-item'}
                 />
               </Button.Group>
@@ -407,7 +428,8 @@ class Compose extends Component {
                 loading={false}
                 disabled={
                   (this.props.compose.error !== '') ||
-                  this.state.recipientExists !== 'true'
+                  this.state.recipientExists !== 'true' ||
+                  this.props.compose.isSending
                 }
               />
             </div>
