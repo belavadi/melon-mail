@@ -85,7 +85,7 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
             dispatch(changeSendState('Sending mail...'));
             return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, threadId);
           })
-          .then((data) => {
+          .then(() => {
             dispatch(sendSuccess());
           });
       }
@@ -95,7 +95,7 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
           dispatch(changeSendState('Sending mail...'));
           return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, sha3(multihash));
         })
-        .then((data) => {
+        .then(() => {
           dispatch(sendSuccess());
         });
     });
@@ -157,7 +157,6 @@ export const getMails = folder => (dispatch, getState) => {
 
       return Promise.all(ipfsFetchPromises)
         .then((mails) => {
-          console.log(mails);
           const decryptedMails = mails.map((mail, index) => {
             if (typeof mail !== 'string' || mail === 'timeout') return {};
             try {
