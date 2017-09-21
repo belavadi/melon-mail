@@ -152,11 +152,14 @@ export const getMails = folder => (dispatch, getState) => {
   eth.getMails(folder, fetchToBlock, blocksInBatch)
     .then((res) => {
       const { mailEvents, fromBlock } = res;
-      const ipfsFetchPromises = mailEvents.map(mail => ipfs.getFileContent(mail.args.mailHash));
+      const ipfsFetchPromises = mailEvents.map(mail =>
+        ipfs.getFileContent(mail.args.mailHash).catch(e => Promise.resolve(e)));
 
       return Promise.all(ipfsFetchPromises)
         .then((mails) => {
+          console.log(mails);
           const decryptedMails = mails.map((mail, index) => {
+            if (typeof mail !== 'string' || mail === 'timeout') return {};
             try {
               const mailToDecrypt = JSON.parse(mail);
               const mailBody = folder === 'inbox' ? mailToDecrypt.receiverData : mailToDecrypt.senderData;
