@@ -8,6 +8,7 @@ import { stateToHTML } from 'draft-js-export-html';
 
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
+import { contactsSuccess } from '../../../actions/auth';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
 import eth from '../../../services/ethereumService';
 
@@ -100,6 +101,7 @@ class Compose extends Component {
     this.setState({
       contactSuggestions: this.props.user.contacts
         .filter(c => c.indexOf(this.state.to) !== -1)
+        .sort((a, b) => a.indexOf(this.state.to) - b.indexOf(this.state.to))
         .map(c => ({ title: c })),
     });
   }
@@ -196,6 +198,13 @@ class Compose extends Component {
 
     eth._getPublicKey(this.state.to)
       .then((data) => {
+        if (this.props.user.contacts.indexOf(this.state.to) === -1) {
+          this.props.contactsSuccess([
+            this.state.to,
+            ...this.props.user.contacts,
+          ]);
+        }
+
         const keysForSender = {
           privateKey: this.props.user.privateKey,
           publicKey: this.props.user.publicKey,
@@ -444,6 +453,7 @@ Compose.propTypes = {
   sendError: PropTypes.func.isRequired,
   sendRequest: PropTypes.func.isRequired,
   changeSendState: PropTypes.func.isRequired,
+  contactsSuccess: PropTypes.func.isRequired,
 };
 
 Compose.defaultProps = {
@@ -457,6 +467,7 @@ const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators({
   ...composeActions,
   sendMail,
+  contactsSuccess,
 }, dispatch);
 
 export default connect(
