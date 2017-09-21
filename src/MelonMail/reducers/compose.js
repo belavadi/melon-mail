@@ -1,7 +1,9 @@
 export default (state = {
   isOpen: false,
   isMaximized: false,
-  sendingState: 'EDITING',
+  isSending: false,
+  sendingState: 'Editing...',
+  error: '',
 }, action) => {
   switch (action.type) {
     case 'COMPOSE_BOX_OPEN':
@@ -10,7 +12,7 @@ export default (state = {
         isOpen: true,
         isMaximized: true,
         special: action.special,
-        sendingState: 'EDITING',
+        sendingState: 'Editing...',
       };
     case 'COMPOSE_BOX_CLOSE':
       return {
@@ -27,10 +29,25 @@ export default (state = {
         ...state,
         isMaximized: false,
       };
-    case 'COMPOSE_BOX_CHANGE_STATE':
+    case 'SEND_REQUEST':
+      return {
+        ...state,
+        isSending: action.isSending,
+      };
+    case 'SEND_STATE_CHANGE':
       return {
         ...state,
         sendingState: action.sendingState,
+      };
+    case 'SEND_SUCCESS':
+      return {
+        ...state,
+        isSending: action.isSending,
+      };
+    case 'SEND_ERROR':
+      return {
+        ...state,
+        error: action.message,
       };
     default:
       return state;

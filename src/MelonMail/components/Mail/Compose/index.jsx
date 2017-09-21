@@ -164,26 +164,26 @@ class Compose extends Component {
 
   resetRecipient() {
     this.setState({ recipientExists: 'undetermined' });
-    this.props.changeComposeState('EDITING');
   }
 
   checkRecipient() {
     eth._getPublicKey(this.state.to.toLowerCase().trim())
       .then(() => {
         this.setState({ recipientExists: 'true' });
-        this.props.changeComposeState('EDITING');
       })
       .catch(() => {
         this.setState({ recipientExists: 'false' });
-        this.props.changeComposeState('RECIPIENT_NOT_FOUND');
       });
   }
 
   handleSend() {
     const files = this.state.files.files;
-
-    if (this.state.to === '') return;
-
+    const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
+    console.log(fileTooLarge);
+    if (fileTooLarge.length > 0) {
+      this.props.sendError('Files too large (10mb limit).');
+      return;
+    }
     const mail = {
       from: this.props.user.mailAddress,
       to: this.state.to,
@@ -192,7 +192,7 @@ class Compose extends Component {
       time: new Date().toString(),
     };
 
-    this.props.changeComposeState('FETCHING_RECIPIENT_KEYS');
+    this.props.sendRequest('Fetching public key...');
 
     eth._getPublicKey(this.state.to)
       .then((data) => {
@@ -205,14 +205,15 @@ class Compose extends Component {
           publicKey: data.publicKey,
         };
 
-        this.props.changeComposeState('ENCRYPTING_ATTACHMENTS');
+        if (files.length > 0) this.props.changeSendState('Encrypting attachments...');
+
         const attachments = [
           encryptAttachments(files, keysForSender),
           encryptAttachments(files, keysForReceiver),
         ];
         return Promise.all(attachments)
           .then(([senderAttachments, receiverAttachments]) => {
-            this.props.changeComposeState('ENCRYPTING_MAIL');
+            this.props.changeSendState('Encrypting mail...');
             const senderData = encrypt(keysForSender, JSON.stringify({
               ...mail,
               attachments: senderAttachments,
@@ -242,7 +243,7 @@ class Compose extends Component {
       .catch((err) => {
         console.log(`Error in state: ${this.props.compose.sendingState}!`);
         console.log(err);
-        this.props.changeComposeState('ERROR');
+        this.props.sendError('Couldn\'t fetch public key.');
       });
   }
 
@@ -301,7 +302,9 @@ class Compose extends Component {
               {
                 this.state.files.files.map((item, i) => (
                   <a className="ui label" key={item.name}>
-                    <i className={`file outline icon ${item.name.split('.').pop().toLowerCase()}`} />
+                    <i
+                      className={`file outline icon ${item.name.split('.').pop().toLowerCase()}`}
+                    />
                     {item.name}
                     &nbsp;-&nbsp;
                     {(item.size / 1024).toFixed(2)}kB
@@ -368,13 +371,16 @@ class Compose extends Component {
             <span className="status-wrapper">
               <Loader
                 inline
-                active={
-                  this.props.compose.sendingState !== 'EDITING' &&
-                  this.props.compose.sendingState !== 'ERROR' &&
-                  this.props.compose.sendingState !== 'RECIPIENT_NOT_FOUND'
-                }
+                active={this.props.compose.isSending}
               />
-              {this.props.compose.sendingState}
+              {
+                this.props.compose.error === '' &&
+                this.props.compose.sendingState
+              }
+              {
+                this.props.compose.error !== '' &&
+                this.props.compose.error
+              }
             </span>
             <div className="actions-wrapper">
               <div className="ui input">
@@ -400,8 +406,7 @@ class Compose extends Component {
                 icon="send"
                 loading={false}
                 disabled={
-                  (this.props.compose.sendingState !== 'EDITING' &&
-                  this.props.compose.sendingState !== 'ERROR') ||
+                  (this.props.compose.error !== '') ||
                   this.state.recipientExists !== 'true'
                 }
               />
@@ -420,6 +425,8 @@ Compose.propTypes = {
       indexInThread: PropTypes.number,
     }),
     sendingState: PropTypes.string.isRequired,
+    isSending: PropTypes.bool.isRequired,
+    error: PropTypes.string.isRequired,
   }).isRequired,
   mail: PropTypes.shape({
     thread: PropTypes.array,
@@ -433,8 +440,10 @@ Compose.propTypes = {
     contacts: PropTypes.array,
   }),
   closeCompose: PropTypes.func.isRequired,
-  changeComposeState: PropTypes.func.isRequired,
   sendMail: PropTypes.func.isRequired,
+  sendError: PropTypes.func.isRequired,
+  sendRequest: PropTypes.func.isRequired,
+  changeSendState: PropTypes.func.isRequired,
 };
 
 Compose.defaultProps = {

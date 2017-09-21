@@ -15,7 +15,24 @@ export const maximizeCompose = () => ({
   type: 'COMPOSE_BOX_SHOW',
 });
 
-export const changeComposeState = sendingState => ({
-  type: 'COMPOSE_BOX_CHANGE_STATE',
+export const sendRequest = sendingState => ({
+  type: 'SEND_REQUEST',
+  isSending: true,
   sendingState,
+});
+
+export const changeSendState = sendingState => ({
+  type: 'SEND_STATE_CHANGE',
+  sendingState,
+});
+
+export const sendSuccess = () => ({
+  type: 'SEND_SUCCESS',
+  isSending: false,
+});
+
+export const sendError = message => ({
+  type: 'SEND_ERROR',
+  isSending: false,
+  message,
 });

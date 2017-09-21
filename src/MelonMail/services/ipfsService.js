@@ -58,6 +58,8 @@ const getFileContent = hash =>
     ipfsNode.files.cat(hash)
       .then(file => file.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data)))))
       .catch(err => reject(err));
+
+    setTimeout(() => { reject('timeout'); }, 5000);
   });
 
 const uploadToIpfs = data =>

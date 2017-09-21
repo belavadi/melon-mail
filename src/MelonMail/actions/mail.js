@@ -4,7 +4,7 @@ import uniqBy from 'lodash/uniqBy';
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import { decrypt } from '../services/cryptoService';
-import { changeComposeState } from './compose';
+import { changeSendState, sendSuccess } from './compose';
 
 export const mailRequest = () => ({
   type: 'MAIL_REQUEST',
@@ -73,26 +73,30 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
 };
 
 export const sendMail = (mail, threadId) => (dispatch, getState) => {
-  dispatch(changeComposeState('UPLOADING_MAIL'));
+  dispatch(changeSendState('Uploading mail to IPFS...'));
   return ipfs.uploadData(mail)
     .then((mailLink) => {
       const mailObject = mailLink.length ? mailLink[0] : mailLink;
       if (threadId) {
         const threadHash = getState().mail.threadHash;
-        dispatch(changeComposeState('UPDATING_THREAD'));
         return ipfs.replyToThread(mailObject, threadHash)
           .then((threadLink) => {
             const multihash = threadLink.toJSON().multihash;
-            dispatch(changeComposeState('SENDING'));
+            dispatch(changeSendState('Sending mail...'));
             return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, threadId);
+          })
+          .then((data) => {
+            dispatch(sendSuccess());
           });
       }
-      dispatch(changeComposeState('CREATING_THREAD'));
       return ipfs.newThread(mailObject)
         .then((threadLink) => {
           const multihash = threadLink.toJSON().multihash;
-          dispatch(changeComposeState('SENDING'));
+          dispatch(changeSendState('Sending mail...'));
           return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, sha3(multihash));
+        })
+        .then((data) => {
+          dispatch(sendSuccess());
         });
     });
 };
