@@ -3,11 +3,9 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import * as authActions from '../../../actions/auth';
-
 import Menu from '../Menu/';
 
-const Header = ({ children, isAuthenticated, logout }) =>
+const Header = ({ children, isAuthenticated }) =>
   (
     <header className="dashboard-header">
       {children}
@@ -15,8 +13,6 @@ const Header = ({ children, isAuthenticated, logout }) =>
         isAuthenticated &&
         <div className="logout">
           <Menu />
-          &nbsp;&nbsp;&nbsp;
-          <span role="link" tabIndex="-1" onClick={logout}>Logout</span>
         </div>
       }
     </header>
@@ -28,7 +24,6 @@ Header.propTypes = {
     PropTypes.node,
   ]),
   isAuthenticated: PropTypes.bool,
-  logout: PropTypes.func.isRequired,
 };
 
 Header.defaultProps = {
@@ -38,7 +33,7 @@ Header.defaultProps = {
 };
 
 const mapStateToProps = state => state.user;
-const mapDispatchToProps = dispatch => bindActionCreators({ ...authActions }, dispatch);
+const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
 
 export default connect(
   mapStateToProps,

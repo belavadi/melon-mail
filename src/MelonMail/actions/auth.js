@@ -130,7 +130,9 @@ export const fetchContacts = () => (dispatch) => {
           const fetchAddresses = allEvents.map(address => eth.getAddressInfo(address));
           Promise.all(fetchAddresses)
             .then((addresses) => {
-              const contacts = addresses.map(events => web3.toAscii(events[0].args.username));
+              const contacts =
+                addresses.map(events => events.length > 0 &&
+                  web3.toAscii(events[0].args.username));
               // console.log(`Fetched contacts in ${(Date.now() - start) / 1000}s`);
               // console.log(contacts);
               dispatch(contactsSuccess(contacts));
