@@ -1,24 +1,18 @@
 const webpack = require('webpack');
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
 
 const config = {
   entry: [
-    'react-hot-loader/patch',
-    'webpack/hot/only-dev-server',
-    'webpack-dev-server/client?http://127.0.0.1:3300',
-    './src/',
-    './src/index.jsx',
+    './src/MelonMail',
   ],
-  devServer: {
-    contentBase: path.join(__dirname, './dist/'),
-    hot: true,
-    headers: { 'Access-Control-Allow-Origin': '*' },
-  },
   output: {
-    path: path.join(__dirname, './dist'),
+    path: path.join(__dirname, './dist/'),
     filename: 'bundle.js',
     publicPath: '/',
+    libraryTarget: 'commonjs2',
   },
   resolve: {
     extensions: ['.jsx', '.js', '.scss', '.eot', '.svg', '.ttf', '.woff', '.woff2', '.png', '.jpg'],
@@ -31,28 +25,26 @@ const config = {
         use: [
           {
             loader: 'babel-loader',
-            query:
+            options:
               {
-                presets: ['es2015', 'react'],
+                presets: ['es2015', 'react', 'babel-preset-es2015'],
+                plugins: [
+                  'transform-object-rest-spread',
+                ],
               },
           },
-          {
-            loader: 'eslint-loader',
-            options: {
-              failOnWarning: false,
-              failOnError: false,
-            },
-          },
         ],
-
       },
       {
         test: /\.scss$/,
-        use: [
-          'style-loader',
-          'css-loader',
-          'sass-loader',
-        ],
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: [
+            'css-loader',
+            'resolve-url-loader',
+            'sass-loader',
+          ],
+        }),
       },
       {
         test: /\.(png|jpg|gif|jpeg)$/,
@@ -93,14 +85,24 @@ const config = {
     ],
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      inject: 'body',
-      template: path.join(__dirname, 'src/index.html'),
-      filename: 'index.html',
+    new UglifyJsPlugin(),
+    new ExtractTextPlugin(
+      {
+        filename: 'style.css',
+        allChunks: true,
+      },
+    ),
+    new webpack.optimize.AggressiveMergingPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: JSON.stringify('production'),
+      },
     }),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NamedModulesPlugin(),
   ],
+  externals: {
+    react: 'commonjs react',
+    'react-dom': 'react-dom',
+  },
 };
 
 module.exports = config;

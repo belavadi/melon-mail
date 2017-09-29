@@ -5169,6 +5169,26 @@ math-expression-evaluator@^1.2.14:
   version "1.2.17"
   resolved "https://registry.yarnpkg.com/math-expression-evaluator/-/math-expression-evaluator-1.2.17.tgz#de819fdbcd84dccd8fae59c6aeb79615b9d266ac"
 
+matko-pkg-test@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/matko-pkg-test/-/matko-pkg-test-1.0.10.tgz#a6b2295ed5f21b2a9de06e2fafbf27a93f726ec7"
+  dependencies:
+    extract-text-webpack-plugin "^3.0.0"
+    html-webpack-plugin "^2.30.1"
+    prop-types "^15.5.10"
+    react "^15.6.1"
+    react-addons-transition-group "^15.6.0"
+    react-dom "^15.6.1"
+    react-hot-loader "^3.0.0-beta.7"
+    react-modal "^1.9.7"
+    react-redux "^5.0.6"
+    redux "^3.7.2"
+    redux-thunk "^2.2.0"
+    resolve-url-loader "^2.1.0"
+    semantic-ui-react "^0.71.5"
+    uglifyjs-webpack-plugin "^1.0.0-beta.2"
+    webpack "^3.5.6"
+
 md5.js@^1.3.4:
   version "1.3.4"
   resolved "https://registry.yarnpkg.com/md5.js/-/md5.js-1.3.4.tgz#e9bdbde94a20a5ac18b04340fc5764d5b09d901d"
@@ -7990,10 +8010,6 @@ term-size@^1.2.0:
 text-table@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
-
-tg-modal@^0.8.0-alpha.1:
-  version "0.8.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/tg-modal/-/tg-modal-0.8.0-alpha.1.tgz#80d0d56e2d0a5a8f4d93b6fa809b82b6692156c6"
 
 through2@^2.0.0, through2@^2.0.2, through2@^2.0.3:
   version "2.0.3"
