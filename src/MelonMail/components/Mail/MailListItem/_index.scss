@@ -1,26 +1,39 @@
 @import '../../../style/vars';
 
 .mail-list-item {
-  padding: 10px !important;
+  padding: 40px 20px !important;
   cursor: pointer;
-  .title {
-    font-size: 1.4rem;
-    font-weight: bold;
-  }
-  .meta {
-    > * {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      display: block;
+  border-bottom: 1px solid $borderColor;
+
+  .info {
+    .from, .to {
+      font-size: 1.4rem;
     }
-    .header {
+    .mail-title {
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
+      margin: 10px 0;
+    }
+    .time {
+      float: right;
+      opacity: .6;
+    }
+    .content {
+      margin-top: 10px;
+      max-height: 48px;
+      overflow: hidden;
+      opacity: .6;
+      white-space: pre-wrap;
+      line-height: 16px;
     }
   }
 
   &.new {
     border-left: 5px solid $OceanBlue;
+  }
+
+  &.active {
+    background-color: white;
   }
 }

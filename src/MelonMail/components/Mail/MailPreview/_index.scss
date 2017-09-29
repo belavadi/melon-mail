@@ -4,6 +4,7 @@
   min-width: 400px;
   overflow: auto;
   height: 100%;
+  padding: 40px 50px;
 
   .loader-wrapper {
     height: 60px;
@@ -11,18 +12,33 @@
   }
 
   .thread-wrapper {
-    padding: 10px;
-    max-width: 1000px;
-    margin: auto;
     .mail-wrapper {
-      .mail-actions {
-        float: right;
+      .title-wrapper {
+        padding: 10px 0;
+        border-bottom: 1px solid $borderColor;
+        h1 {
+          display: inline-block;
+          font-size: 2em;
+        }
+        span {
+          float: right;
+          color: #B9B9B9;
+        }
       }
+
+      .meta {
+        padding: 10px 0;
+        color: #B9B9B9;
+        span {
+          color: $textColor;
+        }
+      }
+
       .mail-body {
         margin: 20px auto;
-
         @import '../../../style/components/emailContent';
       }
+
       .attachments-wrapper {
         .attachment {
           .download, .loader {
@@ -32,6 +48,10 @@
             vertical-align: bottom;
           }
         }
+      }
+
+      .mail-actions {
+
       }
     }
   }

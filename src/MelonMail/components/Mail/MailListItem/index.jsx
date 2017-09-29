@@ -2,13 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { List } from 'semantic-ui-react';
 
 import * as mailActions from '../../../actions/mail';
-import { formatDate } from '../../../services/helperService';
+import { humanizeDate } from '../../../services/helperService';
 
 const MailListItem = ({ args, getThread, mails, mail }) => (
-  <List.Item
+  <div
     className={`mail-list-item
       ${mail.threadId === args.threadId ? 'active' : ''}
       ${args.new ? 'new' : ''}`}
@@ -16,18 +15,27 @@ const MailListItem = ({ args, getThread, mails, mail }) => (
     role="button"
     tabIndex="-1"
   >
-    <List.Header>
-      {args.subject}
-    </List.Header>
-    <div className="meta">
+    <div className="info">
+      <div className="time">{humanizeDate(Date.parse(args.time))}</div>
       {
         mails.folder === 'inbox' ?
-          <span>{args.from}</span> :
-          <span>{args.to}</span>
+          <div className="from">{args.from}</div> :
+          <div className="to">{args.to}</div>
       }
-      <span className="date">{formatDate(Date.parse(args.time))}</span>
+      <div className="mail-title">
+        {args.subject}
+      </div>
+      <div className="content">
+        {
+          args.body
+            .replace(/&nbsp;/g, '')
+            .replace(/<(?:.|\n)*?>/gm, '\n')
+            .replace(/\n{2,}/g, '\n')
+            .trim()
+        }
+      </div>
     </div>
-  </List.Item>
+  </div>
 );
 
 MailListItem.propTypes = {

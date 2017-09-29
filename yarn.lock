@@ -3603,6 +3603,10 @@ https-browserify@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/https-browserify/-/https-browserify-0.0.1.tgz#3f91365cabe60b77ed0ebba24b454e3e09d95a82"
 
+human-time@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/human-time/-/human-time-0.0.1.tgz#280d0336379199306b2e1518e3d5f6381cb8507d"
+
 iconv-lite@^0.4.17, iconv-lite@~0.4.13:
   version "0.4.19"
   resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.19.tgz#f7468f60135f5e5dad3399c0a81be9a1603a082b"
@@ -7990,10 +7994,6 @@ term-size@^1.2.0:
 text-table@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
-
-tg-modal@^0.8.0-alpha.1:
-  version "0.8.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/tg-modal/-/tg-modal-0.8.0-alpha.1.tgz#80d0d56e2d0a5a8f4d93b6fa809b82b6692156c6"
 
 through2@^2.0.0, through2@^2.0.2, through2@^2.0.3:
   version "2.0.3"

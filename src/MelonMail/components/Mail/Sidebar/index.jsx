@@ -10,7 +10,7 @@ import * as mailActions from '../../../actions/mail';
 const Sidebar = ({ openCompose, changeMailsFolder, mails }) => (
   <div className="sidebar">
     <div className="compose-button-wrapper">
-      <Button primary basic compact content="Compose" icon="plus" onClick={() => openCompose()} />
+      <Button compact content="Compose" icon="plus" onClick={() => openCompose()} />
     </div>
     <div className="nav-wrapper">
       <a

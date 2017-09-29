@@ -1,14 +1,15 @@
 @import '../../../style/vars';
 
 .dashboard-header {
-  height: 60px;
-  background-color: $primaryColor;
-  color: white;
+  height: 80px;
+  background-color: #F5F5F5;
+  color: #464646;
+  border-bottom: 1px solid $borderColor;
 
   .logout {
     float: right;
     height: 100%;
-    line-height: 60px;
+    line-height: 80px;
     padding: 0 20px;
 
     span:last-child {

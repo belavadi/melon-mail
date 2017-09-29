@@ -1,5 +1,7 @@
 import { generateKeys, encrypt } from './cryptoService';
 
+const human = require('human-time');
+
 export const executeWhenReady = (f) => {
   if (document.readyState === 'complete') {
     f();
@@ -13,6 +15,12 @@ export const formatDate = (inputDate) => {
 
   return `${date.getDate()}. ${date.getMonth() + 1}. ${date.getFullYear()}. 
     ${`0${date.getHours()}`.slice(-2)}:${`0${date.getMinutes()}`.slice(-2)}`;
+};
+
+export const humanizeDate = (inputDate) => {
+  const date = new Date(inputDate);
+  return (Date.now() - date > 7 * 24 * 60 * 60 * 1000) ?
+    formatDate(inputDate).slice(0, -12) : human(date);
 };
 
 export const welcomeEmail = (to, username, signedString) => {
