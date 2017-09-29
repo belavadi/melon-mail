@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-
 import { logout, changeAccount, fetchContacts } from '../../actions/auth';
-import { getBalance, initialAppSetup } from '../..//actions/utility';
+import { getBalance, initialAppSetup } from '../../actions/utility';
 
 import Auth from '../Auth/';
 import App from '../Mail/App/';

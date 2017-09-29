@@ -21,9 +21,7 @@ contract Resolver {
     event ABIChanged(bytes32 indexed node, uint256 indexed contentType);
     event PubkeyChanged(bytes32 indexed node, bytes32 x, bytes32 y);
     event TextChanged(bytes32 indexed node, string indexed indexedKey, string key);
-    event AddedMxRecord(bytes32 indexed node, string account, address owner);
-    event ChangedMxRecord(bytes32 indexed node, string account, address previousOwner, address newOwner);
-    event DeletedMxRecord(bytes32 indexed node, string account, address owner, address deletedBy);
+    event MxRecordChanged(bytes32 indexed node, address mx);
 
     struct PublicKey {
         bytes32 x;
@@ -35,7 +33,7 @@ contract Resolver {
         bytes32 content;
         string name;
         PublicKey pubkey;
-        mapping (bytes32=>address) mx;
+        address mx;
         mapping(string=>string) text;
         mapping(uint256=>bytes) abis;
     }
@@ -45,18 +43,6 @@ contract Resolver {
 
     modifier only_owner(bytes32 node) {
         if (ens.owner(node) != msg.sender) throw;
-        _;
-    }
-    
-    // modifier checks if msg.sender owns mx record/account
-    modifier only_mx_owner(bytes32 node, string account) {
-        if (records[node].mx[sha3(account)] != msg.sender) throw;
-        _;
-    }
-    
-    // modifier checks if msg.sender owns mx record/account or if msg.sender is admin
-    modifier mxOwner_or_admin(bytes32 node, string account) {
-        if (records[node].mx[sha3(account)] != msg.sender || ens.owner(node) != msg.sender) throw;
         _;
     }
 
@@ -226,64 +212,24 @@ contract Resolver {
         records[node].text[key] = value;
         TextChanged(node, key, key);
     }
-    
+
     /**
-     * Checks if MX record exists. (For front-end  and testing purposes, optional function)
+     * Sets MX record data associated with an ENS node.
+     * May only be called by the owner of that node in the ENS registry.
+     * @param node The node to update.
+     * @param mx Address of MX contract.
+     */
+    function setMxRecord(bytes32 node, address mx) only_owner(node) {
+        records[node].mx = mx;
+        MxRecordChanged(node, mx);
+    }
+
+    /**
+     * Returns address of MX contract from MX record associated with an ENS node.
      * Can be called by anyone.
-     * @param node The node you want to check for account.
-     * @param account Name you want to check.
+     * @param node The ENS node to query.
      */
-    function checkMxRecord(bytes32 node, string account) constant returns (bool) {
-        if (records[node].mx[sha3(account)] == 0x0) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * Adds MX record.
-     * Anyone can call this function.
-     * @param node Node to which to add MX record.
-     * @param account Name of wanted account.
-     */
-    function addMxRecord(bytes32 node, string account) {
-        if (records[node].mx[sha3(account)] == 0x0) { // checks if account does not exists
-            records[node].mx[sha3(account)] = msg.sender;
-            AddedMxRecord(node, account, msg.sender);
-        }
-    }
-
-    /**
-     * Returns owners address for provided MX record.
-     * Can be called by anyone.
-     * @param node Node on which account is located.
-     * @param account Name of wanted account.
-     */
-    function MX(bytes32 node, string account) constant returns (address) {
-        return records[node].mx[sha3(account)];
-    }
-
-    /**
-     * Changes owner of MX record.
-     * Can be called by mx record owner.
-     * @param node Node on which account is located.
-     * @param account Name of the wanted account name.
-     * @param new_owner Address of new owner.
-     */
-    function transferMxRecord(bytes32 node, string account, address new_owner) only_mx_owner(node, account) {
-        records[node].mx[sha3(account)] = new_owner;
-        ChangedMxRecord(node, account, msg.sender, new_owner);
-    }
-    
-    /**
-     * Deletes MX record.
-     * Can be called by admin or mx record owner.
-     * @param node Node on which account is located.
-     * @param account Name of account you want to delete.
-     */
-    function deleteMxRecord(bytes32 node, string account) mxOwner_or_admin(node, account) {
-        DeletedMxRecord(node, account, records[node].mx[sha3(account)], msg.sender);
-        delete records[node].mx[sha3(account)];
+    function MX(bytes32 node) constant returns (address) {
+        return records[node].mx;
     }
 }

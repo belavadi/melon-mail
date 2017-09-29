@@ -19,27 +19,43 @@ contract mortal {
 }
 
 contract Email is mortal {
-    mapping (bytes32 => address) usernameToAddress;
+    mapping (bytes32 => address) usernameHashToAddress;
+    mapping (address => string) addressToEncryptedUsername;
 
-    event BroadcastPublicKey(bytes32 indexed username, address indexed addr, string publicKey);
-    event SendEmail(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
-
-    function registerUser(bytes32 username, string publicKey, string welcomeMailHash, string welcomeMailThreadHash) returns (bool) {
-        if(usernameToAddress[username] != 0) {
-            revert();
+    event BroadcastPublicKey(bytes32 indexed usernameHash, address indexed addr, string publicKey);
+    
+    event InternalEmail(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
+    
+    event SendExternalEmail(address indexed from, address recieversRegistar, bytes32 recieversNode, string mailHash, string threadHash, bytes32 indexed threadId);
+    event ReceiveExternalEmail(address indexed to, address sendersRegistar, bytes32 sendersNode, string mailHash, string threadHash, bytes32 indexed threadId);
+    
+    function registerUser(bytes32 username, string encryptedUsername, string publicKey, string welcomeMailHash, string welcomeMailThreadHash) returns (bool) {
+        if(usernameHashToAddress[sha3(username)] != 0x0) {
+            return false;
         }
 
-        usernameToAddress[username] = msg.sender;
+        usernameHashToAddress[sha3(username)] = msg.sender;
+        addressToEncryptedUsername[msg.sender] = encryptedUsername;
 
-        BroadcastPublicKey(username, msg.sender, publicKey);
-        SendEmail(msg.sender, msg.sender, welcomeMailHash, welcomeMailThreadHash, 0);
+        BroadcastPublicKey(sha3(username), msg.sender, publicKey);
+        InternalEmail(msg.sender, msg.sender, welcomeMailHash, welcomeMailThreadHash, 0);
 
         return true;
     }
+    
+    function getEncryptedUsername(address userAddress) returns (string) {
+        return addressToEncryptedUsername[userAddress];
+    }
 
-    function sendEmail(address to, string mailHash, string threadHash, bytes32 threadId) returns (bool result) {
-        SendEmail(msg.sender, to, mailHash, threadHash, threadId);
-
-        return true;
+    function internalEmail(address to, string mailHash, string threadHash, bytes32 threadId) {
+        InternalEmail(msg.sender, to, mailHash, threadHash, threadId);
+    }
+    
+    function sendExternalEmail(address from, address registar, bytes32 node, string mailHash, string threadHash, bytes32 threadId) {
+        SendExternalEmail(from, registar, node, mailHash, threadHash, threadId);
+    }
+    
+    function receiveExternalEmail(address to, address registar, bytes32 node, string mailHash, string threadHash, bytes32 threadId) {
+        ReceiveExternalEmail(to, registar, node, mailHash, threadHash, threadId);
     }
 }

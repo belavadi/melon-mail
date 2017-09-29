@@ -1,11 +1,12 @@
 {
-  "name": "tundra-owl",
-  "version": "0.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "@decenter/melon-mail",
+  "version": "1.0.0",
+  "description": "Decentralized ethereum based email system",
+  "main": "dist/bundle.js",
   "scripts": {
     "start": "webpack-dev-server --host 127.0.0.1 --port 3300",
     "prod": "webpack --config ./webpack.production.js",
+    "package": "webpack --config ./webpack.package.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Decenter",
@@ -63,5 +64,13 @@
     "style-loader": "^0.18.2",
     "url-loader": "^0.5.9",
     "webpack-dev-server": "^2.7.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DecenterApps/MelonMail.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DecenterApps/MelonMail/issues"
+  },
+  "homepage": "https://github.com/DecenterApps/MelonMail#readme"
 }
