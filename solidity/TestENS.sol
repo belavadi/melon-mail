@@ -1,10 +1,10 @@
 pragma solidity ^0.4.0;
 
 /**
- * This is contract for testing ens resolvers without need to deploy registars.
+ * This is contract for testing ens resolvers without need to deploy registry and registar.
  * Just use 0x9c22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658 as node.
  * Owner of that node is 0xca35b7d915458ef540ade6068dfe2f44e8fa733c, but you can change that to any other ethereum address.
- * Owner of any other node is 0x0. 
+ * Owner of any other node is 0x0.
  */
 
 contract TestENS {

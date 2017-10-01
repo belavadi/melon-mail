@@ -1,5 +1,7 @@
 pragma solidity ^0.4.16;
 
+import './AbstractEmail.sol';
+
 contract mortal {
     address public administrator;
 
@@ -23,12 +25,12 @@ contract Email is mortal {
     mapping (address => string) addressToEncryptedUsername;
 
     event BroadcastPublicKey(bytes32 indexed usernameHash, address indexed addr, string publicKey);
-    
+
     event InternalEmail(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
-    
-    event SendExternalEmail(address indexed from, address recieversRegistar, bytes32 recieversNode, string mailHash, string threadHash, bytes32 indexed threadId);
-    event ReceiveExternalEmail(address indexed to, address sendersRegistar, bytes32 sendersNode, string mailHash, string threadHash, bytes32 indexed threadId);
-    
+
+    event SendExternalEmail(address indexed from, string mailHash, string threadHash, bytes32 indexed threadId);
+    event ReceiveExternalEmail(address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
+
     function registerUser(bytes32 username, string encryptedUsername, string publicKey, string welcomeMailHash, string welcomeMailThreadHash) returns (bool) {
         if(usernameHashToAddress[sha3(username)] != 0x0) {
             return false;
@@ -42,7 +44,7 @@ contract Email is mortal {
 
         return true;
     }
-    
+
     function getEncryptedUsername(address userAddress) returns (string) {
         return addressToEncryptedUsername[userAddress];
     }
@@ -50,12 +52,15 @@ contract Email is mortal {
     function internalEmail(address to, string mailHash, string threadHash, bytes32 threadId) {
         InternalEmail(msg.sender, to, mailHash, threadHash, threadId);
     }
-    
-    function sendExternalEmail(address from, address registar, bytes32 node, string mailHash, string threadHash, bytes32 threadId) {
-        SendExternalEmail(from, registar, node, mailHash, threadHash, threadId);
+
+    function sendExternalEmail(AbstractEmail contractAddress, address from, address to, string mailHash, string threadHash, bytes32 threadId) {
+        AbstractEmail externalEmail = contractAddress;
+
+        SendExternalEmail(from, mailHash, threadHash, threadId);
+        externalEmail.receiveExternalEmail(to, mailHash, threadHash, threadId);
     }
-    
-    function receiveExternalEmail(address to, address registar, bytes32 node, string mailHash, string threadHash, bytes32 threadId) {
-        ReceiveExternalEmail(to, registar, node, mailHash, threadHash, threadId);
+
+    function receiveExternalEmail(address to, string mailHash, string threadHash, bytes32 threadId) {
+        ReceiveExternalEmail(to, mailHash, threadHash, threadId);
     }
 }
