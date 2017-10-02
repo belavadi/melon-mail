@@ -6,8 +6,9 @@ import eth from '../services/ethereumService';
 import { decrypt } from '../services/cryptoService';
 import { changeSendState, sendSuccess } from './compose';
 
-export const mailRequest = () => ({
+export const mailRequest = threadId => ({
   type: 'MAIL_REQUEST',
+  threadId,
 });
 
 export const mailSuccess = (thread, threadHash, threadId) => ({
@@ -23,7 +24,7 @@ export const mailError = error => ({
 });
 
 export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
-  dispatch(mailRequest());
+  dispatch(mailRequest(threadId));
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,

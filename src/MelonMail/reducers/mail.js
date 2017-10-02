@@ -11,6 +11,7 @@ export default (state = {
         ...state,
         isFetching: true,
         thread: [],
+        threadId: action.threadId,
       };
     case 'MAIL_SUCCESS':
       return {
