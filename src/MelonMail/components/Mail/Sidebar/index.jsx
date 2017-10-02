@@ -24,7 +24,7 @@ const Sidebar = ({ openCompose, changeMailsFolder, mails }) => (
         tabIndex="0"
         onClick={() => changeMailsFolder('outbox')}
         className={`outbox ${mails.folder === 'outbox' ? 'active' : ''}`}
-      ><span>Outbox</span></a>
+      ><span>Sent</span></a>
     </div>
   </div>
 );

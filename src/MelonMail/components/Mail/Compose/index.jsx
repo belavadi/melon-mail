@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Container, Button, Loader, Search } from 'semantic-ui-react';
+import { Button, Loader, Search } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 
@@ -259,191 +259,184 @@ class Compose extends Component {
   render() {
     return (
       <div className="compose-wrapper">
-        <Container>
-          <div className="compose-header">
-            New email
-            <span className="header-actions">
-              <Button
-                compact
-                basic
-                inverted
-                color="red"
-                icon="close"
-                onClick={this.props.closeCompose}
-              />
-            </span>
+        <div className="inputs-wrapper">
+          <Search
+            name="to"
+            placeholder="To"
+            value={this.state.to}
+            icon={false}
+            showNoResults={false}
+            className={
+              `${this.state.recipientExists === 'true' ? 'input-ok' : ''}
+               ${this.state.recipientExists === 'false' ? 'input-error' : ''}`}
+            results={this.state.contactSuggestions}
+            onBlur={() => setTimeout(() => this.checkRecipient(), 100)}
+            onFocus={this.resetRecipient}
+            onSearchChange={e => this.handleInputChange(e, true)}
+            onResultSelect={(e, data) => {
+              this.handleInputChange({ target: { name: 'to', value: data.result.title } });
+              setTimeout(() => this.checkRecipient(), 100);
+            }}
+          />
+          <div className="ui input">
+            <input
+              type="text"
+              name="subject"
+              placeholder="Subject"
+              value={this.state.subject}
+              onChange={this.handleInputChange}
+            />
           </div>
+          <Editor
+            editorState={this.state.editorState}
+            onChange={this.handleEditorChange}
+            handleKeyCommand={this.handleKeyCommand}
+          />
+          <div className="files-preview">
+            {
+              this.state.files.files.map((item, i) => (
+                <a className="ui label" key={item.name}>
+                  <i
+                    className={`file outline icon ${item.name.split('.').pop().toLowerCase()}`}
+                  />
+                  {item.name}
+                  &nbsp;-&nbsp;
+                  {(item.size / 1024).toFixed(2)}kB
+                  <i
+                    role="button"
+                    tabIndex="-1"
+                    className="delete icon"
+                    onClick={() => this.removeFile(i)}
+                  />
+                </a>
+              ))
+            }
+          </div>
+          <div className="editor-actions">
+            <Button.Group basic compact size="tiny">
+              <Button
+                icon="bold"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  this.handleEditorActions('BOLD');
+                }}
+                active={this.state.editorState.getCurrentInlineStyle().has('BOLD')}
+              />
+              <Button
+                icon="italic"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  this.handleEditorActions('ITALIC');
+                }}
+                active={this.state.editorState.getCurrentInlineStyle().has('ITALIC')}
+              />
+              <Button
+                icon="underline"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  this.handleEditorActions('UNDERLINE');
+                }}
+                active={this.state.editorState.getCurrentInlineStyle().has('UNDERLINE')}
+              />
+            </Button.Group>
 
-          <div className="inputs-wrapper">
-            <Search
-              name="to"
-              placeholder="To"
-              value={this.state.to}
-              icon={false}
-              showNoResults={false}
-              className={
-                `${this.state.recipientExists === 'true' ? 'input-ok' : ''}
-                 ${this.state.recipientExists === 'false' ? 'input-error' : ''}`}
-              results={this.state.contactSuggestions}
-              onBlur={() => setTimeout(() => this.checkRecipient(), 100)}
-              onFocus={this.resetRecipient}
-              onSearchChange={e => this.handleInputChange(e, true)}
-              onResultSelect={(e, data) => {
-                this.handleInputChange({ target: { name: 'to', value: data.result.title } });
-                setTimeout(() => this.checkRecipient(), 100);
+            <Button.Group basic compact size="tiny">
+              <Button
+                icon="header"
+                content="1"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  this.handleEditorActions('header-one', 'block');
+                }}
+                active={this.state.selectedBlockType === 'header-one'}
+              />
+              <Button
+                icon="header"
+                content="2"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  this.handleEditorActions('header-two', 'block');
+                }}
+                active={this.state.selectedBlockType === 'header-two'}
+              />
+            </Button.Group>
+
+            <Button.Group basic compact size="tiny">
+              <Button
+                icon="list ul"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  this.handleEditorActions('unordered-list-item', 'block');
+                }}
+                active={this.state.selectedBlockType === 'unordered-list-item'}
+              />
+              <Button
+                icon="list ol"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  this.handleEditorActions('ordered-list-item', 'block');
+                }}
+                active={this.state.selectedBlockType === 'ordered-list-item'}
+              />
+            </Button.Group>
+          </div>
+        </div>
+
+        <div className="compose-footer">
+          <div className="actions-wrapper">
+            <Button
+              onClick={this.handleSend}
+              primary
+              size="big"
+              content="Send"
+              icon="send"
+              loading={false}
+              disabled={
+                (this.props.compose.error !== '') ||
+                this.state.recipientExists !== 'true' ||
+                this.props.compose.isSending
+              }
+            />
+
+            <label htmlFor="attachments" className="attachment-button" />
+            <input
+              type="file"
+              multiple
+              id="attachments"
+              value={this.state.files.value}
+              onChange={(e) => {
+                this.setState({
+                  files: {
+                    ...e.target,
+                    files: [...e.target.files],
+                  },
+                });
               }}
             />
-            <div className="ui input">
-              <input
-                type="text"
-                name="subject"
-                placeholder="Subject"
-                value={this.state.subject}
-                onChange={this.handleInputChange}
-              />
-            </div>
-            <Editor
-              editorState={this.state.editorState}
-              onChange={this.handleEditorChange}
-              handleKeyCommand={this.handleKeyCommand}
+
+            <Button
+              basic
+              icon="trash"
+              className="trash-button"
+              size="big"
+              onClick={this.props.closeCompose}
             />
-            <div className="files-preview">
-              {
-                this.state.files.files.map((item, i) => (
-                  <a className="ui label" key={item.name}>
-                    <i
-                      className={`file outline icon ${item.name.split('.').pop().toLowerCase()}`}
-                    />
-                    {item.name}
-                    &nbsp;-&nbsp;
-                    {(item.size / 1024).toFixed(2)}kB
-                    <i
-                      role="button"
-                      tabIndex="-1"
-                      className="delete icon"
-                      onClick={() => this.removeFile(i)}
-                    />
-                  </a>
-                ))
-              }
-            </div>
-            <div className="editor-actions">
-              <Button.Group basic compact size="tiny">
-                <Button
-                  icon="bold"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    this.handleEditorActions('BOLD');
-                  }}
-                  active={this.state.editorState.getCurrentInlineStyle().has('BOLD')}
-                />
-                <Button
-                  icon="italic"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    this.handleEditorActions('ITALIC');
-                  }}
-                  active={this.state.editorState.getCurrentInlineStyle().has('ITALIC')}
-                />
-                <Button
-                  icon="underline"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    this.handleEditorActions('UNDERLINE');
-                  }}
-                  active={this.state.editorState.getCurrentInlineStyle().has('UNDERLINE')}
-                />
-              </Button.Group>
-
-              <Button.Group basic compact size="tiny">
-                <Button
-                  icon="header"
-                  content="1"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    this.handleEditorActions('header-one', 'block');
-                  }}
-                  active={this.state.selectedBlockType === 'header-one'}
-                />
-                <Button
-                  icon="header"
-                  content="2"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    this.handleEditorActions('header-two', 'block');
-                  }}
-                  active={this.state.selectedBlockType === 'header-two'}
-                />
-              </Button.Group>
-
-              <Button.Group basic compact size="tiny">
-                <Button
-                  icon="list ul"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    this.handleEditorActions('unordered-list-item', 'block');
-                  }}
-                  active={this.state.selectedBlockType === 'unordered-list-item'}
-                />
-                <Button
-                  icon="list ol"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    this.handleEditorActions('ordered-list-item', 'block');
-                  }}
-                  active={this.state.selectedBlockType === 'ordered-list-item'}
-                />
-              </Button.Group>
-            </div>
           </div>
-
-          <div className="compose-footer">
-            <span className="status-wrapper">
-              <Loader
-                inline
-                active={this.props.compose.isSending}
-              />
-              {
-                this.props.compose.error === '' &&
-                this.props.compose.sendingState
-              }
-              {
-                this.props.compose.error !== '' &&
-                this.props.compose.error
-              }
-            </span>
-            <div className="actions-wrapper">
-              <div className="ui input">
-                <input
-                  type="file"
-                  multiple
-                  value={this.state.files.value}
-                  onChange={(e) => {
-                    this.setState({
-                      files: {
-                        ...e.target,
-                        files: [...e.target.files],
-                      },
-                    });
-                  }}
-                />
-              </div>
-              <Button
-                onClick={this.handleSend}
-                basic
-                color="green"
-                content="Send"
-                icon="send"
-                loading={false}
-                disabled={
-                  (this.props.compose.error !== '') ||
-                  this.state.recipientExists !== 'true' ||
-                  this.props.compose.isSending
-                }
-              />
-            </div>
-          </div>
-        </Container>
+          <span className="status-wrapper">
+            <Loader
+              inline
+              active={this.props.compose.isSending}
+            />
+            {
+              this.props.compose.error === '' &&
+              this.props.compose.sendingState
+            }
+            {
+              this.props.compose.error !== '' &&
+              this.props.compose.error
+            }
+          </span>
+        </div>
       </div>
     );
   }

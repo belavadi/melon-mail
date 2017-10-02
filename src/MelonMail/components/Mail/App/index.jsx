@@ -7,7 +7,6 @@ import Header from '../Header';
 import Sidebar from '../Sidebar';
 import MailList from '../MailList';
 import MailPreview from '../MailPreview';
-import Compose from '../Compose';
 
 import * as routerActions from '../../../actions/router';
 
@@ -38,10 +37,6 @@ class App extends Component {
           <Sidebar />
           <MailList />
           <MailPreview />
-          {
-            this.props.compose.isOpen &&
-            <Compose />
-          }
         </div>
       </div>
     );
@@ -53,10 +48,6 @@ App.propTypes = {
     isAuthenticated: PropTypes.bool.isRequired,
   }).isRequired,
   push: PropTypes.func.isRequired,
-  compose: PropTypes.shape({
-    isOpen: PropTypes.bool.isRequired,
-    isMaximized: PropTypes.bool.isRequired,
-  }).isRequired,
 };
 
 const mapStateToProps = state => state;

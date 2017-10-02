@@ -7,6 +7,7 @@ import { Button, Loader } from 'semantic-ui-react';
 import * as composeActions from '../../../actions/compose';
 import { downloadAttachment } from '../../../actions/mail';
 import { formatDate } from '../../../services/helperService';
+import Compose from '../Compose';
 
 class MailPreview extends Component {
   constructor(props) {
@@ -119,9 +120,14 @@ class MailPreview extends Component {
           !this.props.mail.isFetching &&
           !this.props.mail.thread.length > 0 &&
           !this.props.mail.error &&
+          !this.props.compose.isOpen &&
           <div className="empty-wrapper">
             <h1>No email selected</h1>
           </div>
+        }
+        {
+          this.props.compose.isOpen &&
+          <Compose />
         }
       </div>
     );
@@ -139,6 +145,9 @@ MailPreview.propTypes = {
   downloadAttachment: PropTypes.func.isRequired,
   user: PropTypes.shape({
     mailAddress: PropTypes.string.isRequired,
+  }).isRequired,
+  compose: PropTypes.shape({
+    isOpen: PropTypes.bool.isRequired,
   }).isRequired,
 };
 

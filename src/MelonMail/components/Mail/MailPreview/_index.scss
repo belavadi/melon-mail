@@ -4,7 +4,7 @@
   min-width: 400px;
   overflow: auto;
   height: 100%;
-  padding: 40px 50px;
+  padding: 40px 60px;
 
   .loader-wrapper {
     height: 60px;
@@ -14,28 +14,36 @@
   .thread-wrapper {
     .mail-wrapper {
       .title-wrapper {
-        padding: 10px 0;
+        padding: 0 0 14px;
         border-bottom: 1px solid $borderColor;
+        margin-bottom: 14px;
+
         h1 {
           display: inline-block;
-          font-size: 2em;
+          font-size: 36px;
+          font-weight: 300;
         }
         span {
           float: right;
           color: #B9B9B9;
+          line-height: 50px;
+          font-size: 16px;
         }
       }
 
       .meta {
         padding: 10px 0;
-        color: #B9B9B9;
+        color: #C1C1C1;
         span {
           color: $textColor;
+          margin: 0 5px;
         }
       }
 
       .mail-body {
         margin: 20px auto;
+        font-size: 18px;
+        color: #4E4E4E;
         @import '../../../style/components/emailContent';
       }
 

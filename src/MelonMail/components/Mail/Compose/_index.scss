@@ -1,167 +1,148 @@
 @import '../../../style/vars';
 
 .compose-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  max-height: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.8);
+  background-color: white;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 
-
-  .superFancyBlockquote {
-    margin-left: 20px;
-    padding-left: 10px;
-    border-left: 3px #eee solid;
-  }
-
-
-  .container {
-    max-height: 100%;
-    height: 600px;
-    background-color: white;
+  .inputs-wrapper {
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 5px 2px rgba(0,0,0,.1);
-
-    .compose-header {
-      height: 40px;
-      background-color: $primaryColor;
-      line-height: 40px;
-      padding: 0 10px;
-      color: white;
-
-      .header-actions {
-        float: right;
-        * {
-          box-shadow: none !important;
-        }
-        :last-child {
-          margin-right: 0;
-        }
-      }
-    }
-    .inputs-wrapper {
-      flex-grow: 1;
+    .ui.search > .ui.input {
       display: flex;
-      flex-direction: column;
-      .ui.search > .ui.input {
-        display: flex;
-      }
+    }
 
-      input,
-      .ui.search > .ui.input > input {
-        border: 0;
-        border-radius: 0;
-        outline: 0;
-        height: 40px;
-        min-height: 40px;
-        padding: 0 10px;
-        border-bottom: 1px solid #bbb;
-        color: $textColor;
-        box-shadow: 0 0 1px 1px rgba(white, 0);
-        transition: all .2s;
-        &:focus {
-          border-color: #999 !important;
-          box-shadow: none !important;
+    input,
+    .ui.search > .ui.input > input {
+      border: 0;
+      border-radius: 0;
+      outline: 0;
+      height: 50px;
+      min-height: 50px;
+      padding: 0;
+      border-bottom: 1px solid $borderColor;
+      color: $textColor;
+      box-shadow: 0 0 1px 1px rgba(white, 0);
+      transition: all .2s;
+      font-size: 16px;
+      margin-top: 10px;
+      &:focus {
+        border-color: #999 !important;
+        box-shadow: none !important;
+      }
+    }
+    .ui.search {
+      &.input-error > .ui.input > input {
+        z-index: 1;
+        box-shadow: 0 0 1px 1px rgba($error, .5);
+        border-color: rgba($error, .5);
+      }
+      &.input-ok  > .ui.input > input {
+        animation: input-ok 2s;
+        z-index: 1;
+      }
+      @keyframes input-ok {
+        0% {
+          box-shadow: 0 0 1px 1px rgba($ok, .5);
+          border-color: rgba($ok, .5);
+        }
+        100% {
+          box-shadow: 0 0 1px 1px rgba($ok, 0);
         }
       }
-      .ui.search {
-        &.input-error > .ui.input > input {
-          z-index: 1;
-          box-shadow: 0 0 1px 1px rgba($error, .5);
-          border-color: rgba($error, .5);
-        }
-        &.input-ok  > .ui.input > input {
-          animation: input-ok 2s;
-          z-index: 1;
-        }
-        @keyframes input-ok {
-          0% {
-            box-shadow: 0 0 1px 1px rgba($ok, .5);
-            border-color: rgba($ok, .5);
-          }
-          100% {
-            box-shadow: 0 0 1px 1px rgba($ok, 0);
-          }
-        }
-      }
-      .results {
-        margin: 0;
-        border-top-right-radius: 0;
-        border-top-left-radius: 0;
-      }
-      .DraftEditor-root {
-        padding: 10px;
-        overflow: auto;
+    }
+    .results {
+      margin: 0;
+      border-top-right-radius: 0;
+      border-top-left-radius: 0;
+    }
+    .DraftEditor-root {
+      padding: 20px 0;
+      overflow: auto;
+      font-size: 18px;
+      color: #4E4E4E;
 
-        &,
-        .DraftEditor-editorContainer,
-        .DraftEditor-editorContainer .public-DraftEditor-content {
-          flex-grow: 1;
-          display: flex;
-          flex-direction: column;
-        }
-
-        @import '../../../style/components/emailContent';
-      }
-
-
-      textarea {
+      &,
+      .DraftEditor-editorContainer,
+      .DraftEditor-editorContainer .public-DraftEditor-content {
         flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      @import '../../../style/components/emailContent';
+    }
+
+
+    textarea {
+      flex-grow: 1;
+      border: 0;
+      outline: 0;
+      padding: 10px;
+      resize: none;
+      color: $textColor;
+    }
+  }
+
+  .files-preview{
+    padding: 3px;
+    .label {
+      margin: 3px;
+    }
+  }
+
+  .editor-actions {
+    margin: 0 3px 6px;
+    .buttons {
+      margin: 0 3px;
+      button {
         border: 0;
-        outline: 0;
-        padding: 10px;
-        resize: none;
-        color: $textColor;
       }
     }
+  }
 
-    .files-preview{
-      padding: 3px;
-      .label {
-        margin: 3px;
-      }
+  .compose-footer {
+    height: 60px;
+    background-color: white;
+    line-height: 60px;
+    padding: 20px 0;
+
+    .loader {
+      margin-right: 10px;
     }
 
-    .editor-actions {
-      margin: 0 3px 6px;
-      .buttons {
-        margin: 0 3px;
-        button {
-          border: 0;
-        }
-      }
+    .status-wrapper {
+      float: right;
+      line-height: 40px;
     }
 
-    .compose-footer {
-      height: 60px;
-      padding: 0 10px;
-      background-color: white;
-      line-height: 60px;
-      border-top: 1px solid #bbb;
+    .actions-wrapper {
+      display: inline-block;
 
-      .loader {
-        margin-right: 10px;
+      * {
+        vertical-align: top;
       }
 
-      .status-wrapper {
-
+      input[type=file] {
+        display: none;
       }
-
-      .actions-wrapper {
-        float: right;
-
-        input[type=file] {
-          margin-right: 10px;
-        }
-
-        :last-child {
-          margin-right: 0;
-        }
+      .attachment-button {
+        display: inline-block;
+        height: 50px;
+        width: 50px;
+        background: url('./assets/icon-attachment.svg');
+        background-size: 20px;
+        background-position: 50%;
+        background-repeat: no-repeat;
+        margin-left: 10px;
+      }
+      .trash-button {
+        height: 50px;
+        width: 50px;
+        box-shadow: none !important;
       }
     }
   }
