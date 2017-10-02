@@ -45,8 +45,8 @@ contract Email is mortal {
         return true;
     }
 
-    function getEncryptedUsername(address userAddress) returns (string) {
-        return addressToEncryptedUsername[userAddress];
+    function getEncryptedUsername() returns (string) {
+        return addressToEncryptedUsername[msg.sender];
     }
 
     function internalEmail(address to, string mailHash, string threadHash, bytes32 threadId) {
