@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Button, Loader, Icon } from 'semantic-ui-react';
+import { Button, Loader } from 'semantic-ui-react';
 
 import * as composeActions from '../../../actions/compose';
 import { downloadAttachment } from '../../../actions/mail';

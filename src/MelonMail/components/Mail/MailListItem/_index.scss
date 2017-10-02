@@ -4,28 +4,60 @@
   padding: 40px 20px !important;
   cursor: pointer;
   border-bottom: 1px solid $borderColor;
+  display: flex;
 
-  .info {
-    .from, .to {
-      font-size: 1.4rem;
+  .meta {
+    width: 40px;
+    min-width: 40px;
+
+    .attachment-badge {
+      background: url('./assets/icon-attachment');
+      display: inline-block;
+      height: 20px;
+      width: 20px;
     }
+
+    .new-badge {
+      background-color: $accentColor;
+      border-radius: 50%;
+      display: inline-block;
+      height: 14px;
+      width: 14px;
+      margin: 3px;
+    }
+  }
+  .info {
+    flex-grow: 1;
+
     .mail-title {
+      font-size: 24px;
+      margin: 0 0 10px;
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
+      line-height: 24px;
+    }
+    .from, .to {
+      font-size: 16px;
       margin: 10px 0;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      opacity: .85;
     }
     .time {
       float: right;
-      opacity: .6;
+      opacity: .5;
     }
     .content {
       margin-top: 10px;
-      max-height: 48px;
+      max-height: 64px;
       overflow: hidden;
-      opacity: .6;
       white-space: pre-wrap;
-      line-height: 16px;
+      line-height: 22px;
+      font-size: 15px;
+      font-weight: 300;
+      opacity: .85;
     }
   }
 

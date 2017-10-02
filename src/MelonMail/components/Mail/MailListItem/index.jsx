@@ -9,22 +9,31 @@ import { humanizeDate } from '../../../services/helperService';
 const MailListItem = ({ args, getThread, mails, mail }) => (
   <div
     className={`mail-list-item
-      ${mail.threadId === args.threadId ? 'active' : ''}
-      ${args.new ? 'new' : ''}`}
+      ${mail.threadId === args.threadId ? 'active' : ''}`}
     onClick={() => getThread(args.threadId, args.blockNumber)}
     role="button"
     tabIndex="-1"
   >
+    <div className="meta">
+      {
+        args.attachments.length > 0 &&
+        <span className="attachment-badge" />
+      }
+      {
+        args.new &&
+        <span className="new-badge" />
+      }
+    </div>
     <div className="info">
       <div className="time">{humanizeDate(Date.parse(args.time))}</div>
+      <div className="mail-title">
+        {args.subject}
+      </div>
       {
         mails.folder === 'inbox' ?
           <div className="from">{args.from}</div> :
           <div className="to">{args.to}</div>
       }
-      <div className="mail-title">
-        {args.subject}
-      </div>
       <div className="content">
         {
           args.body

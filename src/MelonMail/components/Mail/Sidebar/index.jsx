@@ -10,21 +10,21 @@ import * as mailActions from '../../../actions/mail';
 const Sidebar = ({ openCompose, changeMailsFolder, mails }) => (
   <div className="sidebar">
     <div className="compose-button-wrapper">
-      <Button compact content="Compose" icon="plus" onClick={() => openCompose()} />
+      <Button compact content="Compose" onClick={() => openCompose()} />
     </div>
     <div className="nav-wrapper">
       <a
         role="link"
         tabIndex="0"
         onClick={() => changeMailsFolder('inbox')}
-        className={mails.folder === 'inbox' ? 'active' : ''}
-      >Inbox</a>
+        className={`inbox ${mails.folder === 'inbox' ? 'active' : ''}`}
+      ><span>Inbox</span></a>
       <a
         role="link"
         tabIndex="0"
         onClick={() => changeMailsFolder('outbox')}
-        className={mails.folder === 'outbox' ? 'active' : ''}
-      >Outbox</a>
+        className={`outbox ${mails.folder === 'outbox' ? 'active' : ''}`}
+      ><span>Outbox</span></a>
     </div>
   </div>
 );
