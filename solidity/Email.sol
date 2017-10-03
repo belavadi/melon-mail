@@ -2,25 +2,7 @@ pragma solidity ^0.4.16;
 
 import './AbstractEmail.sol';
 
-contract mortal {
-    address public administrator;
-
-    function mortal() {
-        administrator = msg.sender;
-    }
-
-    function withdraw() {
-        if (msg.sender == administrator) {
-            while(!administrator.send(this.balance)){}
-        }
-    }
-
-    function kill() {
-        selfdestruct(administrator);
-    }
-}
-
-contract Email is mortal {
+contract Email {
     mapping (bytes32 => address) usernameHashToAddress;
     mapping (address => string) addressToEncryptedUsername;
 
