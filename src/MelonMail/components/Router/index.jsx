@@ -23,6 +23,8 @@ class Router extends Component {
           &&
           web3.eth.accounts.length > 0
         ) {
+          console.log('###########DASDSA');
+          console.log(window.web3);
           this.props.logout();
           this.props.changeAccount(web3.eth.accounts[0]);
           this.props.getBalance();
@@ -30,7 +32,6 @@ class Router extends Component {
         }
       }, 100);
     }
-
 
     this.props.initialAppSetup({
       useLocalStorage: this.props.useLocalStorage,

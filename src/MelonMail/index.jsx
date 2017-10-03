@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
+import Web3 from 'web3';
+import { executeWhenReady } from './services/helperService';
 import store from './store';
 
 import Router from './components/Router/';
 
 import './style.scss';
-
 
 class MelonMail extends Component {
   constructor() {
@@ -17,11 +18,13 @@ class MelonMail extends Component {
   }
 
   componentWillMount() {
-    window.onload = () => {
+    executeWhenReady(() => {
+      console.log(this.state.loaded);
+      window.web3 = new Web3(web3.currentProvider);
       this.setState({
         loaded: true,
       });
-    };
+    });
   }
 
   render() {
@@ -30,7 +33,7 @@ class MelonMail extends Component {
         <div>Loading...</div>
       );
     }
-
+    console.info(web3);
     return (
       <Provider store={store}>
         <Router
