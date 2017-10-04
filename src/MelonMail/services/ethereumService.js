@@ -151,7 +151,7 @@ const checkMailAddress = email =>
   new Promise((resolve, reject) => {
     const options = {
       filter: {
-        username: web3.utils.fromAscii(email),
+        usernameHash: web3.utils.sha3(email),
       },
       fromBlock: 0,
       toBlock: 'latest',
