@@ -204,7 +204,7 @@ class Compose extends Component {
     }
 
     console.log('EXPORT CONTRACT');
-    exportContacts(mailHash);
+    // exportContacts(mailHash);
   }
 
   handleSend() {
