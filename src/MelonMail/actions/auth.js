@@ -134,7 +134,7 @@ export const fetchContacts = () => (dispatch) => {
             .then((addresses) => {
               const contacts =
                 addresses.map(events => events.length > 0 &&
-                  web3.toAscii(events[0].returnValues.username));
+                  web3.utils.toAscii(events[0].returnValues.username));
               // console.log(`Fetched contacts in ${(Date.now() - start) / 1000}s`);
               // console.log(contacts);
               dispatch(contactsSuccess(contacts));

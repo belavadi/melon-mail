@@ -10,7 +10,7 @@ contract Email {
     
     event UpdateContacts(bytes32 indexed usernameHash, string threadHash);
 
-    function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey, string welcomeMailHash, string welcomeMailThreadHash) returns (bool) {
+    function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) returns (bool) {
         if(usernameHashToAddress[usernameHash] != 0x0) {
             return false;
         }
@@ -19,8 +19,6 @@ contract Email {
         addressToEncryptedUsername[msg.sender] = encryptedUsername;
 
         BroadcastPublicKey(usernameHash, msg.sender, publicKey);
-        SendEmail(msg.sender, msg.sender, welcomeMailHash, welcomeMailThreadHash, 0);
-
         return true;
     }
 
