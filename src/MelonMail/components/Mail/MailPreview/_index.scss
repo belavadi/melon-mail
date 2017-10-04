@@ -13,6 +13,7 @@
 
   .thread-wrapper {
     .mail-wrapper {
+      padding-bottom: 40px;
       .title-wrapper {
         padding: 0 0 14px;
         border-bottom: 1px solid $borderColor;
@@ -41,34 +42,78 @@
       }
 
       .mail-body {
-        margin: 20px auto;
+        margin: 40px auto;
         font-size: 18px;
         color: #4E4E4E;
+        line-height: 28px;
         @import '../../../style/components/emailContent';
       }
 
       .attachments-wrapper {
         .attachment {
-          .download, .loader {
-            margin: 0 0 0 .75em;
-            line-height: 14px;
-            height: 12px;
-            vertical-align: bottom;
+          display: block;
+          background-color: #F6F6F6;
+          border: 1px solid $borderColor;
+          border-radius: 4px;
+          padding: 17px 20px;
+          height: 80px;
+          margin-bottom: 10px;
+
+          &:before {
+            display: inline-block;
+            height: 45px;
+            width: 45px;
+            background-color: #EC644B;
+            border-radius: 4px;
+            content: attr(data-extension);
+            float: left;
+            margin-right: 20px;
+            color: #F6F6F6;
+            line-height: 45px;
+            text-align: center;
+            font-size: 15px;
           }
+
+          .attachment-title {
+            display: block;
+            color: #4E4E4E;
+            font-size: 16px;
+            line-height: 23px;
+          }
+          .attachment-size {
+            display: block;
+            color: #9F9F9F;
+            font-size: 15px;
+            font-weight: 300;
+            line-height: 22px;
+          }
+
+          .attachment-download-wrapper {
+            float: right;
+            .download {
+              display: inline-block;
+              height: 45px;
+              width: 45px;
+              background: url('./assets/icon-download.svg');
+              background-size: 27px;
+              background-repeat: no-repeat;
+              background-position: 50%;
+            }
+            .loader {
+              margin: 7px;
+            }
+          }
+
         }
       }
 
       .mail-actions {
-
+        margin-top: 40px;
       }
     }
   }
 
-  .error-wrapper {
-    text-align: center;
-    padding: 50px 0;
-  }
-
+  .error-wrapper,
   .empty-wrapper {
     text-align: center;
     padding: 50px 0;

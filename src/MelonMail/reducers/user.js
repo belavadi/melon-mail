@@ -29,7 +29,6 @@ export default (state = {
         privateKey: action.data.privateKey,
         publicKey: action.data.publicKey,
         startingBlock: action.data.startingBlock,
-        mailAddress: action.data.mailAddress,
         ethAddress: action.data.address,
       };
     case 'REGISTER_ERROR':
@@ -45,6 +44,7 @@ export default (state = {
         isAuthenticated: true,
         privateKey: action.data.privateKey,
         publicKey: action.data.publicKey,
+        mailAddress: action.data.mail,
         authError: '',
       };
     case 'USER_NOT_REGISTERED':

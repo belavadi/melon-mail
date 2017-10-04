@@ -11,9 +11,18 @@ export default (state = {
         ...state,
         isOpen: true,
         isMaximized: true,
+        special: null,
+        sendingState: 'Editing...',
+      };
+    case 'COMPOSE_BOX_OPEN_SPECIAL':
+      return {
+        ...state,
+        isOpen: true,
+        isMaximized: true,
         special: action.special,
         sendingState: 'Editing...',
       };
+    case 'MAIL_REQUEST':
     case 'COMPOSE_BOX_CLOSE':
       return {
         ...state,

@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { logout, changeAccount, fetchContacts } from '../../actions/auth';
 import { getBalance, initialAppSetup } from '../../actions/utility';
+import eth from '../../services/ethereumService';
 
 import Auth from '../Auth/';
 import App from '../Mail/App/';
@@ -18,19 +19,20 @@ class Router extends Component {
   componentWillMount() {
     if (window.web3 !== undefined) {
       setInterval(() => {
-        if (
-          this.props.user.activeAccount !== web3.eth.accounts[0]
-          &&
-          web3.eth.accounts.length > 0
-        ) {
-          console.log('###########DASDSA');
-          console.log(window.web3);
-          this.props.logout();
-          this.props.changeAccount(web3.eth.accounts[0]);
-          this.props.getBalance();
-          this.props.fetchContacts();
-        }
-      }, 100);
+        eth.getAccount()
+          .then((account) => {
+            if (this.props.user.activeAccount !== account && account) {
+              this.props.logout();
+              this.props.changeAccount(account);
+              this.props.getBalance();
+              // DEPRECATED
+              // this.props.fetchContacts();
+            }
+          })
+          .catch((err) => {
+            console.log('Log in to metamask.');
+          });
+      }, 500);
     }
 
     this.props.initialAppSetup({
@@ -65,7 +67,6 @@ Router.propTypes = {
   path: PropTypes.string.isRequired,
   logout: PropTypes.func.isRequired,
   changeAccount: PropTypes.func.isRequired,
-  fetchContacts: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
   initialAppSetup: PropTypes.func.isRequired,
 

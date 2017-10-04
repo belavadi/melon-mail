@@ -1,18 +1,13 @@
 @import '../../../style/vars';
 
 .compose-wrapper {
-  max-height: 100%;
-  height: 100%;
+  min-height: 600px;
   background-color: white;
-  display: flex;
-  flex-direction: column;
 
   .inputs-wrapper {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+    .ui.input,
     .ui.search > .ui.input {
-      display: flex;
+      display: block;
     }
 
     input,
@@ -29,6 +24,8 @@
       transition: all .2s;
       font-size: 16px;
       margin-top: 10px;
+      display: block;
+      width: 100%;
       &:focus {
         border-color: #999 !important;
         box-shadow: none !important;
@@ -40,19 +37,19 @@
         box-shadow: 0 0 1px 1px rgba($error, .5);
         border-color: rgba($error, .5);
       }
-      &.input-ok  > .ui.input > input {
-        animation: input-ok 2s;
-        z-index: 1;
-      }
-      @keyframes input-ok {
-        0% {
-          box-shadow: 0 0 1px 1px rgba($ok, .5);
-          border-color: rgba($ok, .5);
-        }
-        100% {
-          box-shadow: 0 0 1px 1px rgba($ok, 0);
-        }
-      }
+      //&.input-ok  > .ui.input > input {
+      //  animation: input-ok 2s;
+      //  z-index: 1;
+      //}
+      //@keyframes input-ok {
+      //  0% {
+      //    box-shadow: 0 0 1px 1px rgba($ok, .5);
+      //    border-color: rgba($ok, .5);
+      //  }
+      //  100% {
+      //    box-shadow: 0 0 1px 1px rgba($ok, 0);
+      //  }
+      //}
     }
     .results {
       margin: 0;
@@ -64,6 +61,8 @@
       overflow: auto;
       font-size: 18px;
       color: #4E4E4E;
+      min-height: 300px;
+      line-height: 28px;
 
       &,
       .DraftEditor-editorContainer,
@@ -88,16 +87,14 @@
   }
 
   .files-preview{
-    padding: 3px;
     .label {
-      margin: 3px;
+      margin: 0 5px 5px 0;
     }
   }
 
   .editor-actions {
-    margin: 0 3px 6px;
     .buttons {
-      margin: 0 3px;
+      margin-right: 5px;
       button {
         border: 0;
       }
