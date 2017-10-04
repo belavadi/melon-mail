@@ -54,30 +54,33 @@ class MailPreview extends Component {
                     {
                       mail.attachments.map((item, attachmentIndex) => (
                         <a
-                          className="ui label attachment"
+                          className="attachment"
                           key={item.name}
                           role="button"
                           tabIndex="-1"
                           onClick={() => {
                             this.props.downloadAttachment(item, mailIndex, attachmentIndex);
                           }}
+                          data-extension={item.name.split('.').pop().toUpperCase().substr(0, 4)}
                         >
-                          <i className={`file outline icon ${item.name.split('.').pop().toLowerCase()}`} />
-                          {`
-                          ${item.name}
-                           -
-                          ${(item.size / 1024).toFixed(2)}kB
-                          `}
-                          {
-                            !item.downloading &&
-                            <i role="button" tabIndex="-1" className="download icon" />
-                          }
-                          <Loader
-                            inline
-                            indeterminate
-                            size="mini"
-                            active={item.downloading}
-                          />
+                          <span className="attachment-download-wrapper">
+                            {
+                              !item.downloading &&
+                              <span className="download" />
+                            }
+                            <Loader
+                              inline
+                              indeterminate
+                              size="medium"
+                              active={item.downloading}
+                            />
+                          </span>
+                          <span className="attachment-title">
+                            {item.name}
+                          </span>
+                          <span className="attachment-size">
+                            {(item.size / 1024).toFixed(2)}kB
+                          </span>
                         </a>
                       ))
                     }

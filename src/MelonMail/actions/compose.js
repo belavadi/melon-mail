@@ -1,5 +1,5 @@
 export const openCompose = special => ({
-  type: 'COMPOSE_BOX_OPEN',
+  type: special ? 'COMPOSE_BOX_OPEN_SPECIAL' : 'COMPOSE_BOX_OPEN',
   special,
 });
 

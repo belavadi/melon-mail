@@ -17,7 +17,7 @@ export default (state = {
       return {
         ...state,
         isFetching: false,
-        thread: action.thread.reverse(),
+        thread: action.thread,
         threadId: action.threadId,
         threadHash: action.threadHash,
       };
@@ -80,6 +80,13 @@ export default (state = {
           },
           ...state.thread.slice(action.mailIndex + 1),
         ],
+      };
+    case 'COMPOSE_BOX_OPEN':
+      return {
+        ...state,
+        thread: [],
+        threadId: null,
+        threadHash: null,
       };
     default:
       return state;
