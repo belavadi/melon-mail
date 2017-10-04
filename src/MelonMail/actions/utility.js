@@ -28,16 +28,39 @@ export const initialAppSetup = config => ({
   config,
 });
 
-export const exportContacts = currUserHash => (dispatch, getState) => {
-  console.log('In exportContacts action!!!');
+export const saveContacts = (contactName, mailHash) => (dispatch, getState) => {
+  const contactsItem = localStorage.getItem(mailHash);
+
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,
   };
 
-  const storedContacts = localStorage.getItem(currUserHash);
+  if (contactsItem) {
+    const contactObject = JSON.parse(decrypt(keys, contactsItem));
+
+    if (contactObject.contacts.indexOf(contactName) === -1) {
+      contactObject.contacts.push(contactName);
+      localStorage.setItem(mailHash, encrypt(keys, JSON.stringify(contactObject)));
+    }
+  } else {
+    localStorage.setItem(mailHash, encrypt(keys, JSON.stringify({ contacts: [contactName] })));
+  }
+};
+
+export const exportContacts = currUserHash => (dispatch, getState) => {
+  console.log('In EXPORT CONTACTS action!!!');
+  const keys = {
+    publicKey: getState().user.publicKey,
+    privateKey: getState().user.privateKey,
+  };
+
+  const storedContacts = decrypt(keys, localStorage.getItem(currUserHash));
+  console.log(storedContacts);
+
   // check the latest event and see if we already have a contacts obj.
   eth.getContactsForUser().then((event) => {
+    console.log('EVENT: ', event);
     if (!event) {
       const newContact = storedContacts;
       // encrypt the contacts
@@ -54,8 +77,7 @@ export const exportContacts = currUserHash => (dispatch, getState) => {
         });
     }
 
-    // probably not the right way to get the hash (fix when testing)
-    const ipfsHash = event.args[0].valueOf();
+    const ipfsHash = event.returnValues.threadHash;
 
     ipfs.getFileContent(ipfsHash)
       .then((ipfsContent) => {

@@ -425,21 +425,19 @@ const getAddressInfo = address =>
 
 const updateContactsEvent = (hashName, ipfsHash) =>
   new Promise((resolve, reject) => {
-    const account = getAccount();
-    mailContract.updateContacts.sendTransaction(hashName, ipfsHash, { from: account },
-      (err, resp) => {
+    mailContract.methods.updateContacts(hashName, ipfsHash)
+      .send((err, resp) => {
         if (err) {
           reject(err);
         }
 
-        console.log('Event sent!!!! ', resp);
-        resolve(resp);
+        return resolve(resp);
       });
   });
 
 const getContactsForUser = userHash =>
-  new Promise((resolve) => {
-    mailContract.UpdateContacts(
+  new Promise((resolve, reject) => {
+    mailContract.getPastEvents('UpdateContacts',
       {
         usernameHash: userHash,
       },
@@ -447,14 +445,17 @@ const getContactsForUser = userHash =>
         fromBlock: 0,
         toBlock: 'latest',
       },
-    ).get((error, events) => {
-      console.log('In events listener event', error, events);
+    ).then((events) => {
+      console.log('In events listener event', events);
       if (events.length > 0) {
         resolve(events.pop());
       } else {
         resolve(null);
       }
-    });
+    })
+      .catch((err) => {
+        reject(err);
+      });
   });
 
 export default {

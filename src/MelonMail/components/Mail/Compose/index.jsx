@@ -10,7 +10,7 @@ import sha3 from 'solidity-sha3';
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
 import { contactsSuccess } from '../../../actions/auth';
-import { updateContacts, exportContacts } from '../../../actions/utility';
+import { updateContacts, exportContacts, saveContacts } from '../../../actions/utility';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
 import eth from '../../../services/ethereumService';
 
@@ -181,30 +181,19 @@ class Compose extends Component {
   }
 
   saveContact() {
-    const contactName = this.state.to;
+    // removes the null chars from the end of the string
+    const contactName = this.state.to.replace(/\0/g, '');
+    const currMail = this.props.user.mailAddress.replace(/\0/g, '');
 
     // don't save our own email in contacts list
-    if (this.props.user.mailAddress === contactName) {
+    if (currMail === contactName) {
       return;
     }
 
     const mailHash = sha3(this.props.user.mailAddress);
 
-    const contactsItem = localStorage.getItem(mailHash);
-
-    if (contactsItem) {
-      const contactObject = JSON.parse(contactsItem);
-
-      if (contactObject.contacts.indexOf(contactName) === -1) {
-        contactObject.contacts.push(contactName);
-        localStorage.setItem(mailHash, JSON.stringify(contactObject));
-      }
-    } else {
-      localStorage.setItem(mailHash, JSON.stringify({ contacts: [contactName] }));
-    }
-
-    console.log('EXPORT CONTRACT');
-    // exportContacts(mailHash);
+    this.props.saveContacts(contactName, mailHash);
+    // this.props.exportContacts(mailHash);
   }
 
   handleSend() {
@@ -500,6 +489,8 @@ Compose.propTypes = {
   sendRequest: PropTypes.func.isRequired,
   changeSendState: PropTypes.func.isRequired,
   contactsSuccess: PropTypes.func.isRequired,
+  // exportContacts: PropTypes.func.isRequired,
+  saveContacts: PropTypes.func.isRequired,
 };
 
 Compose.defaultProps = {
@@ -515,6 +506,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   sendMail,
   contactsSuccess,
   updateContacts,
+  saveContacts,
+  exportContacts,
 }, dispatch);
 
 export default connect(
