@@ -29,7 +29,7 @@ class Router extends Component {
               // this.props.fetchContacts();
             }
           })
-          .catch((err) => {
+          .catch(() => {
             console.log('Log in to metamask.');
           });
       }, 500);

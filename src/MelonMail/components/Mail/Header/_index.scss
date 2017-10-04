@@ -6,14 +6,32 @@
   color: #464646;
   border-bottom: 1px solid $borderColor;
 
+  .logo {
+    display: inline-block;
+    height: 80px;
+    width: 280px;
+    background: url('./assets/logo.svg');
+    background-size: 154px 34px;
+    background-position: 50%;
+    background-repeat: no-repeat;
+  }
+
   .logout {
     float: right;
     height: 100%;
     line-height: 80px;
     padding: 0 20px;
+    margin-right: 40px;
+    font-size: 17px;
+    color: #4E4E4E;
 
     span:last-child {
       cursor: pointer;
     }
+  }
+
+  .ui.dropdown .menu {
+    left: auto;
+    right: 0;
   }
 }

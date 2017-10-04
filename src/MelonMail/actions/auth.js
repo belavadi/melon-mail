@@ -1,9 +1,9 @@
 import uniq from 'lodash/uniq';
 
-import ipfs from '../services/ipfsService';
+// import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import config from '../services/config.json';
-import { welcomeEmail } from '../services/helperService';
+// import { welcomeEmail } from '../services/helperService';
 
 export const changeAccount = account => ({
   type: 'ACCOUNT_CHANGE',

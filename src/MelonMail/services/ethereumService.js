@@ -194,7 +194,7 @@ const _registerUser = (mailAddress, signedString) =>
           encrypt({ privateKey, publicKey }, mailAddress),
           publicKey,
         )
-          .send((error, result) => {
+          .send((error) => {
             if (error) {
               return reject({
                 message: error,
@@ -244,6 +244,8 @@ const _getPublicKey = email =>
           });
         }
 
+        console.log(events[0]);
+
         return resolve({
           address: events[0].returnValues.addr,
           publicKey: events[0].returnValues.publicKey,
@@ -273,6 +275,9 @@ const listenForMails = callback =>
             },
             fromBlock: startingBlock,
             toBlock: 'latest',
+          }, (event) => {
+            console.log(event);
+            callback(event, 'inbox');
           })
             .on('data', (event) => {
               callback(event, 'inbox');
@@ -285,6 +290,8 @@ const listenForMails = callback =>
             },
             fromBlock: startingBlock,
             toBlock: 'latest',
+          }, (event) => {
+            callback(event, 'outbox');
           })
             .on('data', (event) => {
               console.log('Mail event: Received an email', event);

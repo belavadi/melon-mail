@@ -8,6 +8,7 @@ import Menu from '../Menu/';
 const Header = ({ children, isAuthenticated }) =>
   (
     <header className="dashboard-header">
+      <span className="logo" />
       {children}
       {
         isAuthenticated &&
