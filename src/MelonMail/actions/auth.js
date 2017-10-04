@@ -94,27 +94,29 @@ export const checkRegistration = () => (dispatch) => {
 };
 
 export const registerUser = mailAddress => (dispatch) => {
-  eth.checkMailAddress(mailAddress)
-    .then((events) => {
-      console.log(events);
-      return eth.signString(eth.getAccount(), config.stringToSign);
-    })
-    .then((signedString) => {
-      ipfs.uploadToIpfs(welcomeEmail(eth.getAccount(), mailAddress, signedString))
-        .then(({ mailHash, threadHash }) =>
-          eth._registerUser(mailAddress, signedString, mailHash, threadHash))
-        .then((data) => {
-          dispatch(registerSuccess(data));
+  eth.getAccount()
+    .then(account =>
+      eth.checkMailAddress(mailAddress)
+        .then((events) => {
+          console.log(events);
+          return eth.signString(account, config.stringToSign);
+        })
+        .then((signedString) => {
+          ipfs.uploadToIpfs(welcomeEmail(account, mailAddress, signedString))
+            .then(({ mailHash, threadHash }) =>
+              eth._registerUser(mailAddress, signedString, mailHash, threadHash))
+            .then((data) => {
+              dispatch(registerSuccess(data));
+            })
+            .catch((error) => {
+              console.log(error);
+              return dispatch(registerError(error.message));
+            });
         })
         .catch((error) => {
           console.log(error);
-          return dispatch(registerError(error.message));
-        });
-    })
-    .catch((error) => {
-      console.log(error);
-      dispatch(registerError(error.message));
-    });
+          dispatch(registerError(error.message));
+        }));
 };
 
 export const fetchContacts = () => (dispatch) => {
@@ -124,15 +126,15 @@ export const fetchContacts = () => (dispatch) => {
       eth.fetchAllEvents('outbox')
         .then((outboxEvents) => {
           const allEvents = uniq([
-            ...inboxEvents.map(event => event.args.from),
-            ...outboxEvents.map(event => event.args.to),
+            ...inboxEvents.map(event => event.returnValues.from),
+            ...outboxEvents.map(event => event.returnValues.to),
           ]);
           const fetchAddresses = allEvents.map(address => eth.getAddressInfo(address));
           Promise.all(fetchAddresses)
             .then((addresses) => {
               const contacts =
                 addresses.map(events => events.length > 0 &&
-                  web3.toAscii(events[0].args.username));
+                  web3.toAscii(events[0].returnValues.username));
               // console.log(`Fetched contacts in ${(Date.now() - start) / 1000}s`);
               // console.log(contacts);
               dispatch(contactsSuccess(contacts));

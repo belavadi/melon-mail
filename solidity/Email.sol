@@ -1,32 +1,35 @@
 pragma solidity ^0.4.16;
 
 contract Email {
-    mapping (bytes32 => address) usernameToAddress;
+    mapping (bytes32 => address) public usernameHashToAddress;
+    mapping (address => string) public addressToEncryptedUsername;
 
-    event BroadcastPublicKey(bytes32 indexed username, address indexed addr, string publicKey);
+    event BroadcastPublicKey(bytes32 indexed usernameHash, address indexed addr, string publicKey);
+
     event SendEmail(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
-    event UpdateContacts(address indexed usernameHash, string contactsHash);
-
-    function registerUser(bytes32 username, string publicKey, string welcomeMailHash, string welcomeMailThreadHash) returns (bool) {
-        if(usernameToAddress[username] != 0) {
-            revert();
+    
+    function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey, string welcomeMailHash, string welcomeMailThreadHash) returns (bool) {
+        if(usernameHashToAddress[usernameHash] != 0x0) {
+            return false;
         }
 
-        usernameToAddress[username] = msg.sender;
+        usernameHashToAddress[usernameHash] = msg.sender;
+        addressToEncryptedUsername[msg.sender] = encryptedUsername;
 
-        BroadcastPublicKey(username, msg.sender, publicKey);
+        BroadcastPublicKey(usernameHash, msg.sender, publicKey);
         SendEmail(msg.sender, msg.sender, welcomeMailHash, welcomeMailThreadHash, 0);
 
         return true;
     }
 
-    function sendEmail(address to, string mailHash, string threadHash, bytes32 threadId) returns (bool result) {
+    function internalEmail(address to, string mailHash, string threadHash, bytes32 threadId) {
         SendEmail(msg.sender, to, mailHash, threadHash, threadId);
-
-        return true;
     }
 
-    function updateContacts(address usernameHash, string contactsHash) {
-        UpdateContacts(usernameHash, contactsHash);
+    function externalEmail(Email contractAddress, address from, address to, string mailHash, string threadHash, bytes32 threadId) {
+        Email mailContract = contractAddress;
+
+        SendEmail(msg.sender, to, mailHash, threadHash, threadId);
+        mailContract.internalEmail(to, mailHash, threadHash, threadId);
     }
 }
