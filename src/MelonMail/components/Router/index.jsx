@@ -25,7 +25,8 @@ class Router extends Component {
               this.props.logout();
               this.props.changeAccount(account);
               this.props.getBalance();
-              this.props.fetchContacts();
+              // DEPRECATED
+              // this.props.fetchContacts();
             }
           })
           .catch((err) => {
@@ -66,7 +67,6 @@ Router.propTypes = {
   path: PropTypes.string.isRequired,
   logout: PropTypes.func.isRequired,
   changeAccount: PropTypes.func.isRequired,
-  fetchContacts: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
   initialAppSetup: PropTypes.func.isRequired,
 

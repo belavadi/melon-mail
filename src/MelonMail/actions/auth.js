@@ -67,7 +67,7 @@ export const checkRegistration = () => (dispatch) => {
     .then(() => eth.checkRegistration())
     .then((data) => {
       dispatch(userIsRegistered(data));
-      return eth.signIn();
+      return eth.signIn(data.mail);
     })
     .then((result) => {
       if (result.status) {
@@ -101,17 +101,10 @@ export const registerUser = mailAddress => (dispatch) => {
           console.log(events);
           return eth.signString(account, config.stringToSign);
         })
-        .then((signedString) => {
-          ipfs.uploadToIpfs(welcomeEmail(account, mailAddress, signedString))
-            .then(({ mailHash, threadHash }) =>
-              eth._registerUser(mailAddress, signedString, mailHash, threadHash))
-            .then((data) => {
-              dispatch(registerSuccess(data));
-            })
-            .catch((error) => {
-              console.log(error);
-              return dispatch(registerError(error.message));
-            });
+        .then(signedString =>
+          eth._registerUser(mailAddress, signedString))
+        .then((data) => {
+          dispatch(registerSuccess(data));
         })
         .catch((error) => {
           console.log(error);

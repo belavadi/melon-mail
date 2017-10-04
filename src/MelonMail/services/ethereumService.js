@@ -1,7 +1,7 @@
 import uniqBy from 'lodash/uniqBy';
 import Web3 from 'web3';
 import config from './config.json';
-import { generateKeys } from './cryptoService';
+import { generateKeys, encrypt, decrypt } from './cryptoService';
 import { executeWhenReady } from './helperService';
 
 let mailContract;
@@ -11,10 +11,10 @@ executeWhenReady(() => {
     window.web3 = new Web3(web3.currentProvider);
     web3.eth.getAccounts()
       .then((accounts) => {
-        console.log(mailContract);
         mailContract = new web3.eth.Contract(config.abi, config.contractAddress, {
           from: accounts[0],
         });
+        console.log(mailContract);
       });
   } catch (e) {
     console.log(e);
@@ -93,23 +93,30 @@ const checkRegistration = () =>
           fromBlock: 0,
           toBlock: 'latest',
         };
-        return mailContract.getPastEvents('BroadcastPublicKey', options);
-      })
-      .then((events) => {
-        if (!events.length) {
-          return reject({
-            error: false,
-            notRegistered: true,
-            message: 'User not registered.',
+        return mailContract.getPastEvents('BroadcastPublicKey', options)
+          .then((events) => {
+            if (!events.length) {
+              return reject({
+                error: false,
+                notRegistered: true,
+                message: 'User not registered.',
+              });
+            }
+            return mailContract.methods.addressToEncryptedUsername(accounts[0])
+              .call((err, data) => {
+                resolve({
+                  mail: data,
+                  address: events[0].returnValues.addr,
+                  startingBlock: events[0].blockNumber,
+                });
+              });
+          })
+          .catch((error) => {
+            reject({
+              error: true,
+              message: error,
+            });
           });
-        }
-        console.log(events);
-
-        return resolve({
-          mail: web3.utils.toAscii(events[0].returnValues.username),
-          address: events[0].returnValues.addr,
-          startingBlock: events[0].blockNumber,
-        });
       })
       .catch((error) => {
         reject({
@@ -171,7 +178,7 @@ const checkMailAddress = email =>
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = (mailAddress, signedString, mailHash, threadHash) =>
+const _registerUser = (mailAddress, signedString) =>
   new Promise((resolve, reject) => {
     const { privateKey, publicKey } = generateKeys(signedString);
 
@@ -183,7 +190,10 @@ const _registerUser = (mailAddress, signedString, mailHash, threadHash) =>
           });
         }
         return mailContract.methods.registerUser(
-          web3.utils.fromAscii(mailAddress), publicKey, mailHash, threadHash)
+          web3.utils.sha3(mailAddress),
+          encrypt({ privateKey, publicKey }, mailAddress),
+          publicKey,
+        )
           .send((error, result) => {
             if (error) {
               return reject({
@@ -341,7 +351,7 @@ const getThread = (threadId, afterBlock) =>
 
 const _sendEmail = (toAddress, mailHash, threadHash, threadId) =>
   new Promise((resolve, reject) => {
-    mailContract.methods.sendEmail(toAddress, mailHash, threadHash, threadId)
+    mailContract.methods.internalEmail(toAddress, mailHash, threadHash, threadId)
       .send((error, result) => {
         if (error) {
           return reject({
@@ -353,7 +363,7 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId) =>
       });
   });
 
-const signIn = () => new Promise((resolve, reject) => {
+const signIn = mail => new Promise((resolve, reject) => {
   web3.eth.getAccounts()
     .then((accounts) => {
       if (accounts.length === 0) {
@@ -368,6 +378,7 @@ const signIn = () => new Promise((resolve, reject) => {
             status: true,
             privateKey,
             publicKey,
+            mail: decrypt({ privateKey, publicKey }, mail),
           });
         })
         .catch((error) => {
