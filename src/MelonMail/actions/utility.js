@@ -28,8 +28,8 @@ export const initialAppSetup = config => ({
   config,
 });
 
-export const saveContacts = currUserHash => (dispatch, getState) => {
-  console.log('In saveContacts action!!!');
+export const exportContacts = currUserHash => (dispatch, getState) => {
+  console.log('In exportContacts action!!!');
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,

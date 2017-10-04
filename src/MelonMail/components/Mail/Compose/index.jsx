@@ -10,7 +10,7 @@ import sha3 from 'solidity-sha3';
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
 import { contactsSuccess } from '../../../actions/auth';
-import { updateContacts } from '../../../actions/utility';
+import { updateContacts, exportContacts } from '../../../actions/utility';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
 import eth from '../../../services/ethereumService';
 
@@ -195,13 +195,16 @@ class Compose extends Component {
     if (contactsItem) {
       const contactObject = JSON.parse(contactsItem);
 
-      if (contactObject.indexOf(contactName) === -1) {
+      if (contactObject.contacts.indexOf(contactName) === -1) {
         contactObject.contacts.push(contactName);
         localStorage.setItem(mailHash, JSON.stringify(contactObject));
       }
     } else {
       localStorage.setItem(mailHash, JSON.stringify({ contacts: [contactName] }));
     }
+
+    console.log('EXPORT CONTRACT');
+    exportContacts(mailHash);
   }
 
   handleSend() {
