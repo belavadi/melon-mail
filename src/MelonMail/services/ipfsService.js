@@ -15,12 +15,13 @@ const getUserRepNodes = () => (
 );
 
 const ipfsBootstrapNodesList = [
-  '/ip4/127.0.0.1/tcp/9999/ws/ipfs/QmWc6qiH7rp7i8J2RcKvWgaw9daTW5LipfaBWbNkSuLTuU',
   ...getUserRepNodes().map(getMultiaddressString),
 ];
 
 const defaultRepNodes = [
   'http://127.0.0.1:8080',
+  '/dns4/ipfs.decenter.com/tcp/4443/ws/ipfs/QmNxpsbNJzvXpUbv9Kp9YnNAdgSzNz8DGWay8ie7pyLy5q',
+
 ];
 
 const ipfsNode = new IPFS({

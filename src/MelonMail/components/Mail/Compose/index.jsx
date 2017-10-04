@@ -5,10 +5,12 @@ import PropTypes from 'prop-types';
 import { Button, Loader, Search } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
+import sha3 from 'solidity-sha3';
 
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
 import { contactsSuccess } from '../../../actions/auth';
+import { updateContacts } from '../../../actions/utility';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
 import eth from '../../../services/ethereumService';
 
@@ -178,6 +180,30 @@ class Compose extends Component {
       });
   }
 
+  saveContact() {
+    const contactName = this.state.to;
+
+    // don't save our own email in contacts list
+    if (this.props.user.mailAddress === contactName) {
+      return;
+    }
+
+    const mailHash = sha3(this.props.user.mailAddress);
+
+    const contactsItem = localStorage.getItem(mailHash);
+
+    if (contactsItem) {
+      const contactObject = JSON.parse(contactsItem);
+
+      if (contactObject.indexOf(contactName) === -1) {
+        contactObject.contacts.push(contactName);
+        localStorage.setItem(mailHash, JSON.stringify(contactObject));
+      }
+    } else {
+      localStorage.setItem(mailHash, JSON.stringify({ contacts: [contactName] }));
+    }
+  }
+
   handleSend() {
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
@@ -193,6 +219,8 @@ class Compose extends Component {
       body: stateToHTML(this.state.editorState.getCurrentContent()).toString(),
       time: new Date().toString(),
     };
+
+    this.saveContact();
 
     this.props.sendRequest('Fetching public key...');
 
@@ -483,6 +511,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   ...composeActions,
   sendMail,
   contactsSuccess,
+  updateContacts,
 }, dispatch);
 
 export default connect(

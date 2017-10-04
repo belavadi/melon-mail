@@ -73,6 +73,7 @@ const checkRegistration = () =>
       },
     )
       .get((error, events) => {
+        console.log(events);
         if (!events.length) {
           return reject({
             error: false,
@@ -361,6 +362,40 @@ const getAddressInfo = address =>
     });
   });
 
+const updateContactsEvent = (hashName, ipfsHash) =>
+  new Promise((resolve, reject) => {
+    const account = getAccount();
+    mailContract.updateContacts.sendTransaction(hashName, ipfsHash, { from: account },
+      (err, resp) => {
+        if (err) {
+          reject(err);
+        }
+
+        console.log('Event sent!!!! ', resp);
+        resolve(resp);
+      });
+  });
+
+const getContactsForUser = userHash =>
+  new Promise((resolve) => {
+    mailContract.UpdateContacts(
+      {
+        name: userHash,
+      },
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      },
+    ).get((error, events) => {
+      console.log('In events listener event', error, events);
+      if (events.length > 0) {
+        resolve(events.pop());
+      } else {
+        resolve(null);
+      }
+    });
+  });
+
 export default {
   getWeb3Status,
   getAccount,
@@ -377,4 +412,6 @@ export default {
   getBalance,
   fetchAllEvents,
   getAddressInfo,
+  updateContactsEvent,
+  getContactsForUser,
 };

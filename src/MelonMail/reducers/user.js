@@ -100,6 +100,11 @@ export default (state = {
         ...state,
         contacts: action.contacts,
       };
+    case 'CONTACTS_UPDATE':
+      return {
+        ...state,
+        contacts: action.contacts,
+      };
     default:
       return state;
   }
