@@ -8,6 +8,8 @@ contract Email {
 
     event SendEmail(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
     
+    event UpdateContacts(bytes32 indexed usernameHash, string threadHash);
+
     function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey, string welcomeMailHash, string welcomeMailThreadHash) returns (bool) {
         if(usernameHashToAddress[usernameHash] != 0x0) {
             return false;
@@ -31,5 +33,9 @@ contract Email {
 
         SendEmail(msg.sender, to, mailHash, threadHash, threadId);
         mailContract.internalEmail(to, mailHash, threadHash, threadId);
+    }
+
+    function updateContacts(bytes32 usernameHash, string threadHash) {
+        UpdateContacts(usernameHash, threadHash);
     }
 }

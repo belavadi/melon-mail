@@ -441,7 +441,7 @@ const getContactsForUser = userHash =>
   new Promise((resolve) => {
     mailContract.UpdateContacts(
       {
-        name: userHash,
+        usernameHash: userHash,
       },
       {
         fromBlock: 0,
