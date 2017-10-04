@@ -1,4 +1,5 @@
 import isEqual from 'lodash/isEqual';
+import sha3 from 'solidity-sha3';
 
 import eth from '../services/ethereumService';
 import ipfs from '../services/ipfsService';
@@ -48,61 +49,75 @@ export const saveContacts = (contactName, mailHash) => (dispatch, getState) => {
   }
 };
 
-export const exportContacts = currUserHash => (dispatch, getState) => {
-  console.log('In EXPORT CONTACTS action!!!');
+export const backupContacts = () => (dispatch, getState) => {
+  const currUserHash = sha3(getState().user.mailAddress);
+
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,
   };
 
-  const storedContacts = decrypt(keys, localStorage.getItem(currUserHash));
+  const contactsItem = localStorage.getItem(currUserHash);
+
+  if (!contactsItem) {
+    console.log('No contact to backup');
+    return;
+  }
+
+  const storedContacts = decrypt(keys, contactsItem);
   console.log(storedContacts);
 
   // check the latest event and see if we already have a contacts obj.
   eth.getContactsForUser().then((event) => {
-    console.log('EVENT: ', event);
     if (!event) {
       const newContact = storedContacts;
       // encrypt the contacts
       const encryptedData = encrypt(keys, JSON.stringify(newContact));
 
-      return ipfs.uploadData(encryptedData)
+      ipfs.uploadData(encryptedData)
         .then((contactLink) => {
-          console.log('LINK: ', contactLink);
           const ipfsHash = contactLink.length > 0 ? contactLink[0].hash : contactLink;
+
+          console.log('IPFS hash for the contacts: ', ipfsHash);
           eth.updateContactsEvent(currUserHash, ipfsHash)
             .then(() => {
               dispatch(contactsUpdated(newContact.contacts));
             });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      const ipfsHash = event.returnValues.threadHash;
+
+      ipfs.getFileContent(ipfsHash)
+        .then((ipfsContent) => {
+          const encryptedContacts = JSON.parse(ipfsContent);
+
+          const decryptedContacts = decrypt(keys, encryptedContacts);
+
+          // only write to ipfs if we have some new data
+          if (!isEqual(decryptedContacts, storedContacts)) {
+            const updatedContacts = encrypt(keys, storedContacts);
+
+            ipfs.uploadData(updatedContacts)
+              .then((contactLink) => {
+                const newIpfsHash = contactLink.length > 0 ? contactLink[0].hash : contactLink;
+
+                console.log('IPFS hash for the contacts: ', ipfsHash);
+
+                eth.updateContactsEvent(currUserHash, newIpfsHash)
+                  .then(() => {
+                    dispatch(contactsUpdated(decryptedContacts.contacts));
+                  });
+              });
+          } else {
+            console.log('All contacts already backuped!');
+          }
         });
     }
-
-    const ipfsHash = event.returnValues.threadHash;
-
-    ipfs.getFileContent(ipfsHash)
-      .then((ipfsContent) => {
-        const encryptedContacts = JSON.parse(ipfsContent);
-
-        const decryptedContacts = decrypt(keys, encryptedContacts);
-
-        if (!isEqual(decryptedContacts, storedContacts)) {
-          const updatedContacts = encrypt(keys, storedContacts);
-
-          return ipfs.uploadData(updatedContacts)
-            .then((contactLink) => {
-              console.log('LINK: ', contactLink);
-              const newIpfsHash = contactLink.length > 0 ? contactLink[0].hash : contactLink;
-
-              eth.updateContactsEvent(currUserHash, newIpfsHash)
-                .then(() => {
-                  dispatch(contactsUpdated(decryptedContacts.contacts));
-                });
-            });
-        }
-
-        return {};
-      });
-
-    return {};
-  });
+  })
+    .catch((err) => {
+      console.log(err);
+    });
 };

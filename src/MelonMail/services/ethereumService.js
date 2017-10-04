@@ -457,7 +457,6 @@ const getContactsForUser = userHash =>
         toBlock: 'latest',
       },
     ).then((events) => {
-      console.log('In events listener event', events);
       if (events.length > 0) {
         resolve(events.pop());
       } else {

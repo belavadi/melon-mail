@@ -10,7 +10,7 @@ import sha3 from 'solidity-sha3';
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
 import { contactsSuccess } from '../../../actions/auth';
-import { updateContacts, exportContacts, saveContacts } from '../../../actions/utility';
+import { updateContacts, saveContacts } from '../../../actions/utility';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
 import eth from '../../../services/ethereumService';
 
@@ -193,7 +193,6 @@ class Compose extends Component {
     const mailHash = sha3(this.props.user.mailAddress);
 
     this.props.saveContacts(contactName, mailHash);
-    // this.props.exportContacts(mailHash);
   }
 
   handleSend() {
@@ -489,7 +488,6 @@ Compose.propTypes = {
   sendRequest: PropTypes.func.isRequired,
   changeSendState: PropTypes.func.isRequired,
   contactsSuccess: PropTypes.func.isRequired,
-  // exportContacts: PropTypes.func.isRequired,
   saveContacts: PropTypes.func.isRequired,
 };
 
@@ -507,7 +505,6 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   contactsSuccess,
   updateContacts,
   saveContacts,
-  exportContacts,
 }, dispatch);
 
 export default connect(

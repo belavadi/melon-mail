@@ -5,12 +5,18 @@ import { bindActionCreators } from 'redux';
 import { Dropdown, Icon } from 'semantic-ui-react';
 import CustomNodeModal from '../CustomNodeModal';
 import * as authActions from '../../../actions/auth';
+import * as utilActions from '../../../actions/utility';
 
 
-const Menu = ({ mailAddress, logout }) => (
+const Menu = ({ mailAddress, logout, backupContacts }) => (
   <Dropdown text={mailAddress}>
     <Dropdown.Menu>
       <CustomNodeModal />
+      <Dropdown.Item onClick={backupContacts}>
+        <span role="link" tabIndex="-1">
+          <Icon name="cloud" /> Backup contacts
+        </span>
+      </Dropdown.Item>
       <Dropdown.Item onClick={logout}>
         <span role="link" tabIndex="-1">
           <Icon name="log out" /> Logout
@@ -23,6 +29,7 @@ const Menu = ({ mailAddress, logout }) => (
 Menu.propTypes = {
   mailAddress: PropTypes.string,
   logout: PropTypes.func.isRequired,
+  backupContacts: PropTypes.func.isRequired,
 };
 
 Menu.defaultProps = {
@@ -32,6 +39,7 @@ Menu.defaultProps = {
 const mapStateToProps = state => state.user;
 const mapDispatchToProps = dispatch => bindActionCreators({
   logout: authActions.logout,
+  backupContacts: utilActions.backupContacts,
 }, dispatch);
 
 export default connect(
