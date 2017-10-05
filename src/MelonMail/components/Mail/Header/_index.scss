@@ -14,6 +14,10 @@
     background-size: 154px 34px;
     background-position: 50%;
     background-repeat: no-repeat;
+
+    @media screen and (max-width: 1400px) {
+      width: 200px;
+    }
   }
 
   .logout {

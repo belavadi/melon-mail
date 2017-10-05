@@ -21,9 +21,10 @@ export const sendRequest = sendingState => ({
   sendingState,
 });
 
-export const changeSendState = sendingState => ({
+export const changeSendState = (sendingState, sendingStateNumber) => ({
   type: 'SEND_STATE_CHANGE',
   sendingState,
+  sendingStateNumber,
 });
 
 export const sendSuccess = () => ({

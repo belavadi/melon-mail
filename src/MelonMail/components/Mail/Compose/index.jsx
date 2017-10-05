@@ -233,7 +233,7 @@ class Compose extends Component {
           publicKey: data.publicKey,
         };
 
-        if (files.length > 0) this.props.changeSendState('Encrypting attachments...');
+        if (files.length > 0) this.props.changeSendState('Encrypting attachments...', 2);
 
         const attachments = [
           encryptAttachments(files, keysForSender),
@@ -241,7 +241,7 @@ class Compose extends Component {
         ];
         return Promise.all(attachments)
           .then(([senderAttachments, receiverAttachments]) => {
-            this.props.changeSendState('Encrypting mail...');
+            this.props.changeSendState('Encrypting mail...', 1);
             const senderData = encrypt(keysForSender, JSON.stringify({
               ...mail,
               attachments: senderAttachments,
@@ -271,7 +271,8 @@ class Compose extends Component {
       .catch((err) => {
         console.log(`Error in state: ${this.props.compose.sendingState}!`);
         console.log(err);
-        this.props.sendError('Couldn\'t fetch public key.');
+        // this.props.sendError('Couldn\'t fetch public key.');
+        this.props.sendError(err.message.toString());
       });
   }
 
@@ -409,9 +410,8 @@ class Compose extends Component {
               size="big"
               content="Send"
               icon="send"
-              loading={false}
+              loading={this.props.compose.isSending}
               disabled={
-                (this.props.compose.error !== '') ||
                 this.state.recipientExists !== 'true' ||
                 this.props.compose.isSending
               }
@@ -442,17 +442,9 @@ class Compose extends Component {
             />
           </div>
           <span className="status-wrapper">
-            <Loader
-              inline
-              active={this.props.compose.isSending}
-            />
-            {
-              this.props.compose.error === '' &&
-              this.props.compose.sendingState
-            }
             {
               this.props.compose.error !== '' &&
-              this.props.compose.error
+              <span className="error">{this.props.compose.error}</span>
             }
           </span>
         </div>

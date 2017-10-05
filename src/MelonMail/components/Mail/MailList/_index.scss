@@ -7,8 +7,12 @@
   overflow: auto;
   height: 100%;
   background-color: #F5F5F5;
+  @media screen and (max-width: 1400px) {
+    min-width: 350px;
+    max-width: 350px;
+  }
 
-  .loader-wrapper {
+    .loader-wrapper {
     position: relative;
     height: 50px;
     padding: 10px;

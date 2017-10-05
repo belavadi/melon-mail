@@ -7,7 +7,7 @@ import { Button } from 'semantic-ui-react';
 import * as composeActions from '../../../actions/compose';
 import * as mailActions from '../../../actions/mail';
 
-const Sidebar = ({ openCompose, changeMailsFolder, mails }) => (
+const Sidebar = ({ openCompose, changeMailsFolder, mails, compose }) => (
   <div className="sidebar">
     <div className="compose-button-wrapper">
       <Button compact content="Compose" onClick={() => openCompose()} />
@@ -26,6 +26,26 @@ const Sidebar = ({ openCompose, changeMailsFolder, mails }) => (
         className={`outbox ${mails.folder === 'outbox' ? 'active' : ''}`}
       ><span>Sent</span></a>
     </div>
+    <div className="status-wrapper">
+      {
+        compose.sendingStateNumber > 0 &&
+        <span className="status">{ compose.sendingState }</span>
+      }
+      {
+        compose.sendingStateNumber < 0 &&
+        <span className="status">{ compose.error }</span>
+      }
+      {
+        compose.sendingStateNumber > 0 &&
+        <span className="progress">{ (compose.sendingStateNumber * 100) / 4 }%</span>
+      }
+      {
+        compose.sendingStateNumber > 0 &&
+        <span className="progress-bar-wrapper">
+          <span className="progress-bar" style={{ width: `${(compose.sendingStateNumber * 100) / 4}%` }} />
+        </span>
+      }
+    </div>
   </div>
 );
 
@@ -34,6 +54,10 @@ Sidebar.propTypes = {
   changeMailsFolder: PropTypes.func.isRequired,
   mails: PropTypes.shape({
     folder: PropTypes.string.isRequired,
+  }).isRequired,
+  compose: PropTypes.shape({
+    sendingState: PropTypes.string.isRequired,
+    sendingStateNumber: PropTypes.number.isRequired,
   }).isRequired,
 };
 

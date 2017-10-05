@@ -114,6 +114,9 @@
     .status-wrapper {
       float: right;
       line-height: 40px;
+      .error {
+        color: $error;
+      }
     }
 
     .actions-wrapper {

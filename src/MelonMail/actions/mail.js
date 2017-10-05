@@ -78,7 +78,7 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
 };
 
 export const sendMail = (mail, threadId) => (dispatch, getState) => {
-  dispatch(changeSendState('Uploading mail to IPFS...'));
+  dispatch(changeSendState('Uploading...', 3));
   return ipfs.uploadData(mail)
     .then((mailLink) => {
       const mailObject = mailLink.length ? mailLink[0] : mailLink;
@@ -87,7 +87,7 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
         return ipfs.replyToThread(mailObject, threadHash)
           .then((threadLink) => {
             const multihash = threadLink.toJSON().multihash;
-            dispatch(changeSendState('Sending mail...'));
+            dispatch(changeSendState('Sending mail...', 4));
             return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, threadId);
           })
           .then(() => {
@@ -97,7 +97,7 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
       return ipfs.newThread(mailObject)
         .then((threadLink) => {
           const multihash = threadLink.toJSON().multihash;
-          dispatch(changeSendState('Sending mail...'));
+          dispatch(changeSendState('Sending mail...', 4));
           return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, sha3(multihash));
         })
         .then(() => {
