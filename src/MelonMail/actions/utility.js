@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import union from 'lodash/union';
 import sha3 from 'solidity-sha3';
 
 import eth from '../services/ethereumService';
@@ -52,6 +52,7 @@ export const saveContacts = (contactName, mailHash) => (dispatch, getState) => {
 export const backupContacts = () => (dispatch, getState) => {
   const currUserHash = sha3(getState().user.mailAddress);
 
+  console.log(currUserHash, getState().user.mailAddress);
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,
@@ -72,7 +73,7 @@ export const backupContacts = () => (dispatch, getState) => {
     if (!event) {
       const newContact = storedContacts;
       // encrypt the contacts
-      const encryptedData = encrypt(keys, JSON.stringify(newContact));
+      const encryptedData = encrypt(keys, newContact);
 
       ipfs.uploadData(encryptedData)
         .then((contactLink) => {
@@ -99,9 +100,18 @@ export const backupContacts = () => (dispatch, getState) => {
 
           const decryptedContacts = decrypt(keys, encryptedContacts);
 
-          // only write to ipfs if we have some new data
-          if (!isEqual(decryptedContacts, storedContacts)) {
-            const updatedContacts = encrypt(keys, storedContacts);
+          console.log('Contacts from ipfs: ', decryptedContacts);
+
+          const joinedContacts = union(JSON.parse(storedContacts).contacts,
+            JSON.parse(decryptedContacts).contacts);
+
+          console.log(joinedContacts, JSON.parse(decryptedContacts).contacts);
+
+          // only write to ipfs if we have some new data and add it to the list of contacts
+          if (joinedContacts.toString() !== JSON.parse(decryptedContacts).contacts.toString()) {
+            console.log(joinedContacts);
+
+            const updatedContacts = encrypt(keys, JSON.stringify({ contacts: joinedContacts }));
 
             ipfs.uploadData(updatedContacts)
               .then((contactLink) => {

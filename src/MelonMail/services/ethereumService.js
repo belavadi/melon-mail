@@ -455,15 +455,15 @@ const updateContactsEvent = (hashName, ipfsHash) =>
 
 const getContactsForUser = userHash =>
   new Promise((resolve, reject) => {
-    mailContract.getPastEvents('UpdateContacts',
-      {
+    mailContract.getPastEvents('UpdateContacts', {
+      filter: {
         usernameHash: userHash,
       },
-      {
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
+      fromBlock: 0,
+      toBlock: 'latest',
+    },
     ).then((events) => {
+      console.log(events);
       if (events.length > 0) {
         resolve(events.pop());
       } else {
