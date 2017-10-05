@@ -1,6 +1,6 @@
-# MelonMail
+# Melon Mail
 
-Melon mail is a decentralized ethereum based email like system.
+Melon Mail is a secure and decentralized email-like system that relies on Ethereum and IPFS.
 
 ## Using npm
 ```
