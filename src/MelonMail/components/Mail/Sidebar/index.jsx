@@ -7,7 +7,7 @@ import { Button } from 'semantic-ui-react';
 import * as composeActions from '../../../actions/compose';
 import * as mailActions from '../../../actions/mail';
 
-const Sidebar = ({ openCompose, changeMailsFolder, mails, compose }) => (
+const Sidebar = ({ openCompose, changeMailsFolder, mails, compose, mail }) => (
   <div className="sidebar">
     <div className="compose-button-wrapper">
       <Button compact content="Compose" onClick={() => openCompose()} />
@@ -45,6 +45,10 @@ const Sidebar = ({ openCompose, changeMailsFolder, mails, compose }) => (
           <span className="progress-bar" style={{ width: `${(compose.sendingStateNumber * 100) / 4}%` }} />
         </span>
       }
+      {
+        mail.showSendConfirmation &&
+        <span className="status">Success!</span>
+      }
     </div>
   </div>
 );
@@ -54,6 +58,9 @@ Sidebar.propTypes = {
   changeMailsFolder: PropTypes.func.isRequired,
   mails: PropTypes.shape({
     folder: PropTypes.string.isRequired,
+  }).isRequired,
+  mail: PropTypes.shape({
+    showSendConfirmation: PropTypes.bool.isRequired,
   }).isRequired,
   compose: PropTypes.shape({
     sendingState: PropTypes.string.isRequired,

@@ -1,128 +1,172 @@
-.mail-preview {
+.mail-preview-wrapper {
   background-color: white;
   flex-grow: 1;
   min-width: 400px;
-  overflow: auto;
+  overflow: hidden;
   height: 100%;
-  padding: 40px 60px;
+  position: relative;
+  .mail-preview {
+    padding: 40px 60px;
+    overflow: auto;
+    height: 100%;
 
-  .loader-wrapper {
-    height: 60px;
-    position: relative;
-  }
+    .loader-wrapper {
+      height: 60px;
+      position: relative;
+    }
 
-  .thread-wrapper {
-    .mail-wrapper {
-      padding-bottom: 40px;
-      .title-wrapper {
-        padding: 0 0 14px;
-        border-bottom: 1px solid $borderColor;
-        margin-bottom: 14px;
+    .thread-wrapper {
+      .mail-wrapper {
+        padding-bottom: 40px;
+        .title-wrapper {
+          padding: 0 0 14px;
+          border-bottom: 1px solid $borderColor;
+          margin-bottom: 14px;
 
-        h1 {
-          display: inline-block;
-          font-size: 36px;
-          font-weight: 300;
-        }
-        span {
-          float: right;
-          color: #B9B9B9;
-          line-height: 50px;
-          font-size: 16px;
-        }
-      }
-
-      .meta {
-        padding: 10px 0;
-        color: #C1C1C1;
-        span {
-          color: $textColor;
-          margin: 0 5px;
-        }
-      }
-
-      .mail-body {
-        margin: 40px auto;
-        font-size: 18px;
-        color: #4E4E4E;
-        line-height: 28px;
-        @import '../../../style/components/emailContent';
-      }
-
-      .attachments-wrapper {
-        .attachment {
-          display: block;
-          background-color: #F6F6F6;
-          border: 1px solid $borderColor;
-          border-radius: 4px;
-          padding: 17px 20px;
-          height: 80px;
-          margin-bottom: 10px;
-
-          &:before {
+          h1 {
             display: inline-block;
-            height: 45px;
-            width: 45px;
-            background-color: #EC644B;
-            border-radius: 4px;
-            content: attr(data-extension);
-            float: left;
-            margin-right: 20px;
-            color: #F6F6F6;
-            line-height: 45px;
-            text-align: center;
-            font-size: 15px;
-          }
-
-          .attachment-title {
-            display: block;
-            color: #4E4E4E;
-            font-size: 16px;
-            line-height: 23px;
-          }
-          .attachment-size {
-            display: block;
-            color: #9F9F9F;
-            font-size: 15px;
+            font-size: 36px;
             font-weight: 300;
-            line-height: 22px;
           }
-
-          .attachment-download-wrapper {
+          span {
             float: right;
-            .download {
+            color: #B9B9B9;
+            line-height: 50px;
+            font-size: 16px;
+          }
+        }
+
+        .meta {
+          padding: 10px 0;
+          color: #C1C1C1;
+          span {
+            color: $textColor;
+            margin: 0 5px;
+          }
+        }
+
+        .mail-body {
+          margin: 40px auto;
+          font-size: 18px;
+          color: #4E4E4E;
+          line-height: 28px;
+          @import '../../../style/components/emailContent';
+        }
+
+        .attachments-wrapper {
+          .attachment {
+            display: block;
+            background-color: #F6F6F6;
+            border: 1px solid $borderColor;
+            border-radius: 4px;
+            padding: 17px 20px;
+            height: 80px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color .1s;
+            &:hover {
+              background-color: #F0F0F0;
+            }
+
+            &:before {
               display: inline-block;
               height: 45px;
               width: 45px;
-              background: url('./assets/icon-download.svg');
-              background-size: 27px;
-              background-repeat: no-repeat;
-              background-position: 50%;
+              background-color: #EC644B;
+              border-radius: 4px;
+              content: attr(data-extension);
+              float: left;
+              margin-right: 20px;
+              color: #F6F6F6;
+              line-height: 45px;
+              text-align: center;
+              font-size: 15px;
             }
-            .loader {
-              margin: 7px;
-            }
-          }
 
+            .attachment-title {
+              display: block;
+              color: #4E4E4E;
+              font-size: 16px;
+              line-height: 23px;
+            }
+            .attachment-size {
+              display: block;
+              color: #9F9F9F;
+              font-size: 15px;
+              font-weight: 300;
+              line-height: 22px;
+            }
+
+            .attachment-download-wrapper {
+              float: right;
+              .download {
+                display: inline-block;
+                height: 45px;
+                width: 45px;
+                background: url('./assets/icon-download.svg');
+                background-size: 27px;
+                background-repeat: no-repeat;
+                background-position: 50%;
+              }
+              .loader {
+                margin: 7px;
+              }
+            }
+
+          }
+        }
+
+        .mail-actions {
+          margin-top: 40px;
         }
       }
+    }
 
-      .mail-actions {
-        margin-top: 40px;
+    .error-wrapper,
+    .empty-wrapper {
+      text-align: center;
+      padding: 50px 0;
+      display: flex;
+      height: 100%;
+      flex-direction: column;
+      justify-content: center;
+      h1 {
+        font-size: 36px;
       }
     }
   }
 
-  .error-wrapper,
-  .empty-wrapper {
+  .send-confirmation {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: white;
     text-align: center;
     padding: 50px 0;
     display: flex;
-    height: 100%;
     flex-direction: column;
     justify-content: center;
+    animation: show-up;
+    animation-duration: .5s;
+    img {
+      height: 60px;
+    }
     h1 {
+      margin-top: 30px;
       font-size: 36px;
+    }
+    @keyframes show-up {
+      0% {
+        opacity: 0;
+        transform: translateY(50%);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0%);
+      }
     }
   }
 }

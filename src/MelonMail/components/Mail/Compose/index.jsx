@@ -362,6 +362,7 @@ class Compose extends Component {
 
             <Button.Group basic compact size="tiny">
               <Button
+                className="header-button"
                 icon="header"
                 content="1"
                 onMouseDown={(e) => {
@@ -371,6 +372,7 @@ class Compose extends Component {
                 active={this.state.selectedBlockType === 'header-one'}
               />
               <Button
+                className="header-button"
                 icon="header"
                 content="2"
                 onMouseDown={(e) => {
@@ -405,11 +407,11 @@ class Compose extends Component {
         <div className="compose-footer">
           <div className="actions-wrapper">
             <Button
+              className="send-button"
               onClick={this.handleSend}
               primary
               size="big"
               content="Send"
-              icon="send"
               loading={this.props.compose.isSending}
               disabled={
                 this.state.recipientExists !== 'true' ||
@@ -433,9 +435,7 @@ class Compose extends Component {
               }}
             />
 
-            <Button
-              basic
-              icon="trash"
+            <button
               className="trash-button"
               size="big"
               onClick={this.props.closeCompose}
