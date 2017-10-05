@@ -6,6 +6,7 @@ import { Button, Loader } from 'semantic-ui-react';
 
 import * as composeActions from '../../../actions/compose';
 import { downloadAttachment } from '../../../actions/mail';
+import { scrollTo } from '../../../actions/utility';
 import { formatDate } from '../../../services/helperService';
 import Compose from '../Compose';
 import iconSuccess from '../../../assets/icon-success.svg';
@@ -15,6 +16,17 @@ class MailPreview extends Component {
     super(props);
 
     this.state = {};
+  }
+
+  compose(special, mailIndex) {
+    this.props.openCompose({
+      type: special,
+      indexInThread: mailIndex,
+    });
+
+    const mailPreviewEl = document.getElementsByClassName('mail-preview')[0];
+    scrollTo(mailPreviewEl, mailPreviewEl.scrollHeight, 300);
+    setTimeout(() => document.querySelector('.public-DraftEditor-content').focus(), 300);
   }
 
   render() {
@@ -100,18 +112,12 @@ class MailPreview extends Component {
                       <Button
                         icon="reply"
                         content="Reply"
-                        onClick={() => this.props.openCompose({
-                          type: 'reply',
-                          indexInThread: mailIndex,
-                        })}
+                        onClick={() => this.compose('reply', mailIndex)}
                       />
                       <Button
                         icon="mail forward"
                         content="Forward"
-                        onClick={() => this.props.openCompose({
-                          type: 'forward',
-                          indexInThread: mailIndex,
-                        })}
+                        onClick={() => this.compose('forward', mailIndex)}
                       />
                     </Button.Group>
                   </div>
