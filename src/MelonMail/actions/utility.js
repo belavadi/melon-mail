@@ -68,7 +68,7 @@ export const backupContacts = () => (dispatch, getState) => {
   console.log(storedContacts);
 
   // check the latest event and see if we already have a contacts obj.
-  eth.getContactsForUser().then((event) => {
+  eth.getContactsForUser(currUserHash).then((event) => {
     if (!event) {
       const newContact = storedContacts;
       // encrypt the contacts
@@ -82,13 +82,16 @@ export const backupContacts = () => (dispatch, getState) => {
           eth.updateContactsEvent(currUserHash, ipfsHash)
             .then(() => {
               dispatch(contactsUpdated(newContact.contacts));
-            });
+            })
+            .catch(err => console.log(err));
         })
         .catch((err) => {
           console.log(err);
         });
     } else {
       const ipfsHash = event.returnValues.threadHash;
+
+      console.log('IPFS hash: ', ipfsHash);
 
       ipfs.getFileContent(ipfsHash)
         .then((ipfsContent) => {
@@ -109,8 +112,10 @@ export const backupContacts = () => (dispatch, getState) => {
                 eth.updateContactsEvent(currUserHash, newIpfsHash)
                   .then(() => {
                     dispatch(contactsUpdated(decryptedContacts.contacts));
-                  });
-              });
+                  })
+                  .catch(err => console.log(err));
+              })
+              .catch(err => console.log(err));
           } else {
             console.log('All contacts already backuped!');
           }
