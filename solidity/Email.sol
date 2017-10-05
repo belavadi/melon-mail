@@ -8,32 +8,29 @@ contract Email {
 
     event SendEmail(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
     
-    event UpdateContacts(bytes32 indexed usernameHash, string threadHash);
+    event UpdateContacts(bytes32 indexed usernameHash, string ipfsHash);
 
-    function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) returns (bool) {
-        if(usernameHashToAddress[usernameHash] != 0x0) {
-            return false;
-        }
+    function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) public {
+        require(usernameHashToAddress[usernameHash] == 0x0);
 
         usernameHashToAddress[usernameHash] = msg.sender;
         addressToEncryptedUsername[msg.sender] = encryptedUsername;
 
         BroadcastPublicKey(usernameHash, msg.sender, publicKey);
-        return true;
     }
 
-    function internalEmail(address to, string mailHash, string threadHash, bytes32 threadId) {
+    function internalEmail(address to, string mailHash, string threadHash, bytes32 threadId) public {
         SendEmail(msg.sender, to, mailHash, threadHash, threadId);
     }
 
-    function externalEmail(Email contractAddress, address from, address to, string mailHash, string threadHash, bytes32 threadId) {
+    function externalEmail(Email contractAddress, address to, string mailHash, string threadHash, bytes32 threadId) public {
         Email mailContract = contractAddress;
 
         SendEmail(msg.sender, to, mailHash, threadHash, threadId);
         mailContract.internalEmail(to, mailHash, threadHash, threadId);
     }
 
-    function updateContacts(bytes32 usernameHash, string threadHash) {
-        UpdateContacts(usernameHash, threadHash);
+    function updateContacts(bytes32 usernameHash, string ipfsHash) public {
+        UpdateContacts(usernameHash, ipfsHash);
     }
 }

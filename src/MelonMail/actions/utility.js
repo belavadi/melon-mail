@@ -1,4 +1,5 @@
 import union from 'lodash/union';
+import uniq from 'lodash/uniq';
 import sha3 from 'solidity-sha3';
 
 import eth from '../services/ethereumService';
@@ -29,24 +30,60 @@ export const initialAppSetup = config => ({
   config,
 });
 
-export const saveContacts = (contactName, mailHash) => (dispatch, getState) => {
+export const saveContacts = (contactName, mailHash) => (dispatch) => {
   const contactsItem = localStorage.getItem(mailHash);
+
+  if (contactsItem) {
+    const contactObject = JSON.parse(contactsItem);
+
+    if (contactObject.contacts.indexOf(contactName) === -1) {
+      contactObject.contacts.push(contactName);
+      localStorage.setItem(mailHash, JSON.stringify(contactObject));
+    }
+  } else {
+    localStorage.setItem(mailHash, JSON.stringify({ contacts: [contactName] }));
+  }
+};
+
+export const fetchContacts = () => (dispatch, getState) => {
+  const currUserHash = sha3(getState().user.mailAddress);
 
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,
   };
 
-  if (contactsItem) {
-    const contactObject = JSON.parse(decrypt(keys, contactsItem));
+  eth.fetchAllEvents('inbox')
+    .then((inboxEvents) => {
+      eth.fetchAllEvents('outbox')
+        .then((outboxEvents) => {
+          console.log('Got the events');
+          const allEvents = uniq([
+            ...inboxEvents.map(event => event.returnValues.mailHash),
+          ]);
 
-    if (contactObject.contacts.indexOf(contactName) === -1) {
-      contactObject.contacts.push(contactName);
-      localStorage.setItem(mailHash, encrypt(keys, JSON.stringify(contactObject)));
-    }
-  } else {
-    localStorage.setItem(mailHash, encrypt(keys, JSON.stringify({ contacts: [contactName] })));
-  }
+          const ipfsPromises = allEvents.map(hash => ipfs.getFileContent(hash));
+
+          Promise.all(ipfsPromises)
+            .then((mailsData) => {
+              console.log(mailsData);
+
+              const mails = mailsData.map((mail) => {
+                const receiverData = JSON.parse(mail).receiverData;
+
+                const sendersMail = decrypt(keys, receiverData);
+
+                return JSON.parse(sendersMail).from;
+              });
+
+              console.log(mails);
+
+              localStorage.setItem(currUserHash, JSON.stringify({ contacts: mails }));
+
+              // this.backupContacts();
+            });
+        });
+    });
 };
 
 export const backupContacts = () => (dispatch, getState) => {
@@ -65,7 +102,7 @@ export const backupContacts = () => (dispatch, getState) => {
     return;
   }
 
-  const storedContacts = decrypt(keys, contactsItem);
+  const storedContacts = contactsItem;
   console.log(storedContacts);
 
   // check the latest event and see if we already have a contacts obj.

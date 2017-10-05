@@ -1,5 +1,3 @@
-import uniq from 'lodash/uniq';
-
 // import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import config from '../services/config.json';
@@ -112,26 +110,3 @@ export const registerUser = mailAddress => (dispatch) => {
         }));
 };
 
-export const fetchContacts = () => (dispatch) => {
-  // const start = Date.now();
-  eth.fetchAllEvents('inbox')
-    .then((inboxEvents) => {
-      eth.fetchAllEvents('outbox')
-        .then((outboxEvents) => {
-          const allEvents = uniq([
-            ...inboxEvents.map(event => event.returnValues.from),
-            ...outboxEvents.map(event => event.returnValues.to),
-          ]);
-          const fetchAddresses = allEvents.map(address => eth.getAddressInfo(address));
-          Promise.all(fetchAddresses)
-            .then((addresses) => {
-              const contacts =
-                addresses.map(events => events.length > 0 &&
-                  web3.utils.toAscii(events[0].returnValues.username));
-              // console.log(`Fetched contacts in ${(Date.now() - start) / 1000}s`);
-              // console.log(contacts);
-              dispatch(contactsSuccess(contacts));
-            });
-        });
-    });
-};
