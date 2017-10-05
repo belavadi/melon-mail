@@ -5,8 +5,12 @@
   cursor: pointer;
   border-bottom: 1px solid $borderColor;
   display: flex;
+  //transition: background-color .1s;
   @media screen and (max-width: 1400px) {
     padding: 20px 15px !important;
+  }
+  &:hover {
+    background-color: #F9F9F9;
   }
 
 

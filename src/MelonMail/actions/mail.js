@@ -4,7 +4,7 @@ import uniqBy from 'lodash/uniqBy';
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import { decrypt } from '../services/cryptoService';
-import { changeSendState, sendSuccess } from './compose';
+import { changeSendState, sendSuccess, sendSuccessClear } from './compose';
 
 export const mailRequest = threadId => ({
   type: 'MAIL_REQUEST',
@@ -92,6 +92,7 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
           })
           .then(() => {
             dispatch(sendSuccess());
+            setTimeout(() => dispatch(sendSuccessClear()), 2000);
           });
       }
       return ipfs.newThread(mailObject)
@@ -102,6 +103,7 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
         })
         .then(() => {
           dispatch(sendSuccess());
+          setTimeout(() => dispatch(sendSuccessClear()), 2000);
         });
     });
 };

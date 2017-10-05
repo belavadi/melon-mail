@@ -4,6 +4,7 @@ export default (state = {
   threadId: null,
   threadHash: null,
   error: '',
+  showSendConfirmation: false,
 }, action) => {
   switch (action.type) {
     case 'MAIL_REQUEST':
@@ -87,6 +88,16 @@ export default (state = {
         thread: [],
         threadId: null,
         threadHash: null,
+      };
+    case 'SEND_SUCCESS':
+      return {
+        ...state,
+        showSendConfirmation: true,
+      };
+    case 'SEND_SUCCESS_CLEAR':
+      return {
+        ...state,
+        showSendConfirmation: false,
       };
     default:
       return state;

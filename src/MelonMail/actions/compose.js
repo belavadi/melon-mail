@@ -37,3 +37,7 @@ export const sendError = message => ({
   isSending: false,
   message,
 });
+
+export const sendSuccessClear = () => ({
+  type: 'SEND_SUCCESS_CLEAR',
+});

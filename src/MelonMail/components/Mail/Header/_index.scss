@@ -37,5 +37,19 @@
   .ui.dropdown .menu {
     left: auto;
     right: 0;
+    box-shadow: none;
+    border-radius: 0;
+    border: 1px solid $borderColor;
+    border-top: 0;
+    border-bottom: 0;
+    .item {
+      padding: 20px 30px !important;
+      border-bottom: 1px solid $borderColor;
+      color: #4E4E4E;
+      font-size: 17px;
+      i {
+        margin-right: 5px;
+      }
+    }
   }
 }
