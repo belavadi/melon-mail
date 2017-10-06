@@ -248,7 +248,7 @@ const _getPublicKey = (email, optionalContract) =>
         console.log(events[0]);
 
         return resolve({
-          isExternal: optionalContract !== undefined,
+          externalMailContract: optionalContract,
           address: events[0].returnValues.addr,
           publicKey: events[0].returnValues.publicKey,
         });
@@ -357,8 +357,27 @@ const getThread = (threadId, afterBlock) =>
       });
   });
 
-const _sendEmail = (toAddress, mailHash, threadHash, threadId) =>
+const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContract) =>
   new Promise((resolve, reject) => {
+    if (externalMailContract !== undefined) {
+      externalMailContract.methods.sendExternalEmail(
+        externalMailContract.options.address,
+        toAddress,
+        mailHash,
+        threadHash,
+        threadId,
+      )
+        .send((error, result) => {
+          if (error) {
+            return reject({
+              message: error,
+            });
+          }
+
+          return resolve(result);
+        });
+    }
+
     mailContract.methods.sendEmail(toAddress, mailHash, threadHash, threadId)
       .send((error, result) => {
         if (error) {

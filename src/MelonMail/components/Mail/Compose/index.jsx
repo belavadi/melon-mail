@@ -262,7 +262,7 @@ class Compose extends Component {
               toAddress: data.address,
               senderData,
               receiverData,
-            }, threadId);
+            }, threadId, data.externalMailContract);
           })
           .then(() => {
             this.props.closeCompose();

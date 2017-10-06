@@ -77,7 +77,7 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
     });
 };
 
-export const sendMail = (mail, threadId) => (dispatch, getState) => {
+export const sendMail = (mail, threadId, externalMailContract) => (dispatch, getState) => {
   dispatch(changeSendState('Uploading...', 3));
   return ipfs.uploadData(mail)
     .then((mailLink) => {
@@ -88,7 +88,13 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
           .then((threadLink) => {
             const multihash = threadLink.toJSON().multihash;
             dispatch(changeSendState('Sending mail...', 4));
-            return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, threadId);
+            return eth._sendEmail(
+              mail.toAddress,
+              mailObject.hash,
+              multihash,
+              threadId,
+              externalMailContract,
+            );
           })
           .then(() => {
             dispatch(sendSuccess());
@@ -99,7 +105,13 @@ export const sendMail = (mail, threadId) => (dispatch, getState) => {
         .then((threadLink) => {
           const multihash = threadLink.toJSON().multihash;
           dispatch(changeSendState('Sending mail...', 4));
-          return eth._sendEmail(mail.toAddress, mailObject.hash, multihash, sha3(multihash));
+          return eth._sendEmail(
+            mail.toAddress,
+            mailObject.hash,
+            multihash,
+            sha3(multihash),
+            externalMailContract,
+          );
         })
         .then(() => {
           dispatch(sendSuccess());
