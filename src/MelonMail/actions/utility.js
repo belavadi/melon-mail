@@ -180,6 +180,8 @@ export const backupContacts = () => (dispatch, getState) => {
 export const importContacts = () => (dispatch, getState) => {
   const currUserHash = sha3(getState().user.mailAddress);
 
+  console.log(getState().user.mailAddress);
+
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,
