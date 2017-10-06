@@ -97,14 +97,14 @@ class Auth extends Component {
                 <Button
                   href="https://gitter.im/melonproject/general?source=orgpage"
                   target="blank"
-                  rel="noopener "
+                  rel="noopener"
                 >
                   Melon Gitter
                 </Button>
                 <Button
                   href="https://github.com/kovan-testnet/faucet"
                   target="blank"
-                  rel="noopener "
+                  rel="noopener"
                 >
                   Kovan Faucet
                 </Button>

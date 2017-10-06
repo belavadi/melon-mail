@@ -17,14 +17,6 @@ executeWhenReady(() => {
         mailContract = new web3.eth.Contract(config.abi, config.contractAddress, {
           from: accounts[0],
         });
-        console.log(mailContract);
-
-        // eslint-disable-next-line
-        getMailContract('decenter-test.test')
-          .then((resolvedMailContract) => {
-            console.log(resolvedMailContract);
-          })
-          .catch(err => console.error(err));
       });
   } catch (e) {
     console.log(e);
@@ -103,7 +95,7 @@ const checkRegistration = () =>
           fromBlock: 0,
           toBlock: 'latest',
         };
-        return mailContract.getPastEvents('BroadcastPublicKey', options)
+        return mailContract.getPastEvents('UserRegistered', options)
           .then((events) => {
             if (!events.length) {
               return reject({
@@ -166,7 +158,7 @@ const checkMailAddress = email =>
       fromBlock: 0,
       toBlock: 'latest',
     };
-    mailContract.getPastEvents('BroadcastPublicKey', options)
+    mailContract.getPastEvents('UserRegistered', options)
       .then((events) => {
         if (events.length > 0) {
           return reject({
@@ -235,6 +227,7 @@ const _registerUser = (mailAddress, signedString) =>
   });
 
 /* Scans the blockchain to find the public key for a user */
+/* TODO: Should be expanded or wrapped to include fetching keys for users on other domains */
 
 const _getPublicKey = email =>
   new Promise((resolve, reject) => {
@@ -245,7 +238,7 @@ const _getPublicKey = email =>
       fromBlock: 0,
       toBlock: 'latest',
     };
-    mailContract.getPastEvents('BroadcastPublicKey', options)
+    mailContract.getPastEvents('UserRegistered', options)
       .then((events) => {
         if (!events.length) {
           return reject({
@@ -441,7 +434,7 @@ const getAddressInfo = address =>
       fromBlock: 0,
       toBlock: 'latest',
     };
-    mailContract.getPastEvents('BroadcastPublicKey', options)
+    mailContract.getPastEvents('UserRegistered', options)
       .then((events) => {
         resolve(events);
       })
