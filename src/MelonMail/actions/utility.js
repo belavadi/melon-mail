@@ -17,6 +17,10 @@ export const contactsUpdated = contacts => ({
   contacts,
 });
 
+export const contactsBackupFailed = () => ({
+  type: 'CONTACTS_BACKUP_FAILED',
+});
+
 export const getBalance = () => (dispatch) => {
   eth.getBalance()
     .then((balance) => {
@@ -134,7 +138,6 @@ export const backupContacts = () => (dispatch, getState) => {
                   console.log(err);
                 });
             } else {
-              console.log(event);
               const ipfsHash = event.returnValues.ipfsHash;
 
               console.log('IPFS hash: ', ipfsHash);
@@ -145,18 +148,12 @@ export const backupContacts = () => (dispatch, getState) => {
 
                   const decryptedContacts = decrypt(keys, encryptedContacts);
 
-                  console.log('Contacts from ipfs: ', decryptedContacts);
-
                   const joinedContacts = union(storedContacts.contacts,
                     JSON.parse(decryptedContacts).contacts);
-
-                  console.log(joinedContacts, JSON.parse(decryptedContacts).contacts);
 
                   // only write to ipfs if we have some new data and add it to the list of contacts
                   if (joinedContacts.toString() !==
                   JSON.parse(decryptedContacts).contacts.toString()) {
-                    console.log(joinedContacts);
-
                     const updatedContacts = encrypt(keys,
                       JSON.stringify({ contacts: joinedContacts }));
 
@@ -169,7 +166,7 @@ export const backupContacts = () => (dispatch, getState) => {
 
                         eth.updateContactsEvent(currUserHash, newIpfsHash)
                           .then(() => {
-                            dispatch(contactsUpdated(JSON.parse(decryptedContacts).contacts));
+                            dispatch(contactsUpdated(storedContacts.contacts));
                           })
                           .catch(err => console.log(err));
                       })
@@ -182,6 +179,7 @@ export const backupContacts = () => (dispatch, getState) => {
           })
             .catch((err) => {
               console.log(err);
+              dispatch(contactsBackupFailed());
             });
         });
     });
@@ -189,8 +187,6 @@ export const backupContacts = () => (dispatch, getState) => {
 
 export const importContacts = () => (dispatch, getState) => {
   const currUserHash = sha3(getState().user.mailAddress);
-
-  console.log(getState().user.mailAddress);
 
   const keys = {
     publicKey: getState().user.publicKey,
