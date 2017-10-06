@@ -198,7 +198,9 @@ class Compose extends Component {
   handleSend() {
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
-    const domain = this.state.to.split('@');
+    const domain = this.state.to.split('@')[1];
+    const isExternalMail = domain === this.props.config.defaultDomain;
+    console.log(isExternalMail, this.state.to.split('@')[1]);
 
     if (fileTooLarge.length > 0) {
       this.props.sendError('Files too large (10mb limit).');
@@ -216,7 +218,7 @@ class Compose extends Component {
 
     this.props.sendRequest('Fetching public key...');
 
-    eth._getPublicKey(this.state.to)
+    eth.resolveUser(this.state.to)
       .then((data) => {
         if (this.props.user.contacts.indexOf(this.state.to) === -1) {
           this.props.contactsSuccess([
@@ -475,6 +477,9 @@ Compose.propTypes = {
     publicKey: PropTypes.string.isRequired,
     contacts: PropTypes.array,
   }),
+  config: PropTypes.shape({
+    defaultDomain: PropTypes.string.isRequired,
+  }).isRequired,
   closeCompose: PropTypes.func.isRequired,
   sendMail: PropTypes.func.isRequired,
   sendError: PropTypes.func.isRequired,

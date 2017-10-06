@@ -17,14 +17,6 @@ executeWhenReady(() => {
         mailContract = new web3.eth.Contract(config.abi, config.contractAddress, {
           from: accounts[0],
         });
-        console.log(mailContract);
-
-        // eslint-disable-next-line
-        getMailContract('decenter-test.test')
-          .then((resolvedMailContract) => {
-            console.log(resolvedMailContract);
-          })
-          .catch(err => console.error(err));
       });
   } catch (e) {
     console.log(e);
@@ -103,7 +95,7 @@ const checkRegistration = () =>
           fromBlock: 0,
           toBlock: 'latest',
         };
-        return mailContract.getPastEvents('BroadcastPublicKey', options)
+        return mailContract.getPastEvents('UserRegistered', options)
           .then((events) => {
             if (!events.length) {
               return reject({
@@ -112,14 +104,11 @@ const checkRegistration = () =>
                 message: 'User not registered.',
               });
             }
-            return mailContract.methods.addressToEncryptedUsername(accounts[0])
-              .call((err, data) => {
-                resolve({
-                  mail: data,
-                  address: events[0].returnValues.addr,
-                  startingBlock: events[0].blockNumber,
-                });
-              });
+            return resolve({
+              mail: events[0].returnValues.encryptedUsername,
+              address: events[0].returnValues.addr,
+              startingBlock: events[0].blockNumber,
+            });
           })
           .catch((error) => {
             reject({
@@ -166,7 +155,7 @@ const checkMailAddress = email =>
       fromBlock: 0,
       toBlock: 'latest',
     };
-    mailContract.getPastEvents('BroadcastPublicKey', options)
+    mailContract.getPastEvents('UserRegistered', options)
       .then((events) => {
         if (events.length > 0) {
           return reject({
@@ -235,9 +224,11 @@ const _registerUser = (mailAddress, signedString) =>
   });
 
 /* Scans the blockchain to find the public key for a user */
+/* TODO: Should be expanded or wrapped to include fetching keys for users on other domains */
 
-const _getPublicKey = email =>
+const _getPublicKey = (email, optionalContract) =>
   new Promise((resolve, reject) => {
+    const contract = optionalContract !== undefined ? optionalContract : mailContract;
     const options = {
       filter: {
         usernameHash: web3.utils.sha3(email),
@@ -245,7 +236,7 @@ const _getPublicKey = email =>
       fromBlock: 0,
       toBlock: 'latest',
     };
-    mailContract.getPastEvents('BroadcastPublicKey', options)
+    contract.getPastEvents('UserRegistered', options)
       .then((events) => {
         if (!events.length) {
           return reject({
@@ -257,6 +248,7 @@ const _getPublicKey = email =>
         console.log(events[0]);
 
         return resolve({
+          isExternal: optionalContract !== undefined,
           address: events[0].returnValues.addr,
           publicKey: events[0].returnValues.publicKey,
         });
@@ -279,7 +271,7 @@ const listenForMails = callback =>
       }
       return getBlockNumber()
         .then((startingBlock) => {
-          mailContract.events.SendEmail({
+          mailContract.events.EmailSent({
             filter: {
               to: accounts[0],
             },
@@ -294,7 +286,7 @@ const listenForMails = callback =>
             })
             .on('error', error => console.log(error));
 
-          mailContract.events.SendEmail({
+          mailContract.events.EmailSent({
             filter: {
               from: accounts[0],
             },
@@ -324,7 +316,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
           .then((currentBlock) => {
             const filter = folder === 'inbox' ? { to: accounts[0] } : { from: accounts[0] };
             const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
-            mailContract.getPastEvents('SendEmail', {
+            mailContract.getPastEvents('EmailSent', {
               filter,
               fromBlock: fetchTo - blocksToFetch,
               toBlock: fetchTo,
@@ -347,7 +339,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
 
 const getThread = (threadId, afterBlock) =>
   new Promise((resolve, reject) => {
-    mailContract.getPastEvents('SendEmail',
+    mailContract.getPastEvents('EmailSent',
       {
         filter: {
           threadId,
@@ -367,7 +359,7 @@ const getThread = (threadId, afterBlock) =>
 
 const _sendEmail = (toAddress, mailHash, threadHash, threadId) =>
   new Promise((resolve, reject) => {
-    mailContract.methods.internalEmail(toAddress, mailHash, threadHash, threadId)
+    mailContract.methods.sendEmail(toAddress, mailHash, threadHash, threadId)
       .send((error, result) => {
         if (error) {
           return reject({
@@ -415,7 +407,7 @@ const fetchAllEvents = folder =>
           });
         }
         const filter = folder === 'inbox' ? { to: accounts[0] } : { from: accounts[0] };
-        return mailContract.getPastEvents('SendEmail', {
+        return mailContract.getPastEvents('EmailSent', {
           filter,
           fromBlock: 0,
           toBlock: 'latest',
@@ -441,7 +433,7 @@ const getAddressInfo = address =>
       fromBlock: 0,
       toBlock: 'latest',
     };
-    mailContract.getPastEvents('BroadcastPublicKey', options)
+    mailContract.getPastEvents('UserRegistered', options)
       .then((events) => {
         resolve(events);
       })
@@ -520,6 +512,29 @@ const resolveMx = (resolverAddr, domain) =>
       });
   });
 
+// Used for testing purposes
+// const setMxRecord = () =>
+//   new Promise((resolve, reject) => {
+//     getResolverForDomain('decenter-test.test')
+//       .then((resolverAddr) => {
+//         web3.eth.getAccounts()
+//           .then((accounts) => {
+//             const mxResolverContract = new web3.eth.Contract(
+//               config.mxResolverAbi, resolverAddr, {
+//               from: accounts[0],
+//             });
+//             console.log(mxResolverContract);
+//             mxResolverContract.methods.setMxRecord(namehash('decenter-test.test'),
+// '              0x372d826abb22ed3546947a32977745830164717b')
+//               .send((errMx, data) => {
+//                 if (errMx) reject(errMx);
+//                 console.log(data);
+//                 resolve(data);
+//               });
+//           });
+//       });
+//   });
+
 const getMailContract = domain =>
   new Promise((resolve, reject) => {
     getResolverForDomain(domain)
@@ -538,6 +553,14 @@ const getMailContract = domain =>
       .catch(err => reject(err));
   });
 
+const resolveUser = (email, domain, isExternalMail) => {
+  if (!isExternalMail) {
+    return _getPublicKey(email);
+  }
+
+  return getMailContract(domain)
+    .then(resolvedMailContract => _getPublicKey(email, resolvedMailContract));
+};
 
 export default {
   getWeb3Status,
@@ -554,6 +577,7 @@ export default {
   getThread,
   getBalance,
   fetchAllEvents,
+  resolveUser,
   getAddressInfo,
   updateContactsEvent,
   getContactsForUser,
