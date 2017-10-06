@@ -198,7 +198,8 @@ class Compose extends Component {
   handleSend() {
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
-    console.log(fileTooLarge);
+    const domain = this.state.to.split('@')
+
     if (fileTooLarge.length > 0) {
       this.props.sendError('Files too large (10mb limit).');
       return;

@@ -17,6 +17,7 @@
     "concat-stream": "^1.6.0",
     "draft-js": "^0.10.1",
     "draft-js-export-html": "^1.1.0",
+    "ethjs-ens": "^2.0.1",
     "extract-text-webpack-plugin": "^3.0.0",
     "html-webpack-plugin": "^2.30.1",
     "human-time": "^0.0.1",

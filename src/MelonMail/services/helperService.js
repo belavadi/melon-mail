@@ -23,6 +23,17 @@ export const humanizeDate = (inputDate) => {
     formatDate(inputDate).slice(0, -12) : human(date);
 };
 
+export const namehash = (name) => {
+  let node = '0x0000000000000000000000000000000000000000000000000000000000000000';
+  if (name !== '') {
+    const labels = name.split('.');
+    for (let i = labels.length - 1; i >= 0; i -= 1) {
+      node = web3.sha3(node + web3.sha3(labels[i]).slice(2), { encoding: 'hex' });
+    }
+  }
+  return node.toString();
+};
+
 export const welcomeEmail = (to, username, signedString) => {
   const keys = generateKeys(signedString);
   const encryptedData = encrypt(keys, JSON.stringify({

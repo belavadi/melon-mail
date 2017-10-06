@@ -1,8 +1,9 @@
 import uniqBy from 'lodash/uniqBy';
 import Web3 from 'web3';
+import ENS from 'ethjs-ens';
 import config from './config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
-import { executeWhenReady } from './helperService';
+import { executeWhenReady, namehash } from './helperService';
 
 let mailContract;
 
@@ -460,18 +461,31 @@ const getContactsForUser = userHash =>
       },
       fromBlock: 0,
       toBlock: 'latest',
-    },
-    ).then((events) => {
-      console.log(events);
-      if (events.length > 0) {
-        resolve(events.pop());
-      } else {
-        resolve(null);
-      }
     })
+      .then((events) => {
+        console.log(events);
+        if (events.length > 0) {
+          resolve(events.pop());
+        } else {
+          resolve(null);
+        }
+      })
       .catch((err) => {
         reject(err);
       });
+  });
+
+const getResolverForDomain = domain =>
+  new Promise((resolve, reject) => {
+    const ens = new ENS({ provider: web3.currentProvider, network: '3' });
+    ens.registry.resolver(namehash(domain), (error, address) => {
+      if (error) {
+        return reject({
+          message: error,
+        });
+      }
+      return resolve(address[0]);
+    });
   });
 
 export default {
