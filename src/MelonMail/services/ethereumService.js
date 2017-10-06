@@ -104,14 +104,12 @@ const checkRegistration = () =>
                 message: 'User not registered.',
               });
             }
-            return mailContract.methods.addressToEncryptedUsername(accounts[0])
-              .call((err, data) => {
-                resolve({
-                  mail: data,
-                  address: events[0].returnValues.addr,
-                  startingBlock: events[0].blockNumber,
-                });
-              });
+            console.log(events[0]);
+            return resolve({
+              mail: events[0].returnValues.encryptedUsername,
+              address: events[0].returnValues.addr,
+              startingBlock: events[0].blockNumber,
+            });
           })
           .catch((error) => {
             reject({
@@ -317,7 +315,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
           .then((currentBlock) => {
             const filter = folder === 'inbox' ? { to: accounts[0] } : { from: accounts[0] };
             const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
-            mailContract.getPastEvents('SendEmail', {
+            mailContract.getPastEvents('EmailSent', {
               filter,
               fromBlock: fetchTo - blocksToFetch,
               toBlock: fetchTo,
