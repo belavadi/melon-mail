@@ -296,8 +296,7 @@ const listenForMails = callback =>
             .on('data', (event) => {
               console.log('Mail event: Received an email', event);
               callback(event, 'outbox');
-            })
-            .on('error', error => console.log(error));
+            });
         });
     });
 
