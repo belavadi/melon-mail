@@ -101,6 +101,7 @@ export default (state = {
         contacts: action.contacts,
       };
     case 'CONTACTS_UPDATE':
+      console.log('CONTACTS_UPDATE', action);
       return {
         ...state,
         contacts: action.contacts,

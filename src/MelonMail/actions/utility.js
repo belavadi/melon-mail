@@ -30,18 +30,23 @@ export const initialAppSetup = config => ({
   config,
 });
 
-export const saveContacts = (contactName, mailHash) => (dispatch) => {
+export const saveContacts = (contactName, mailHash) => (dispatch, getState) => {
   const contactsItem = localStorage.getItem(mailHash);
 
+  const keys = {
+    publicKey: getState().user.publicKey,
+    privateKey: getState().user.privateKey,
+  };
+
   if (contactsItem) {
-    const contactObject = JSON.parse(contactsItem);
+    const contactObject = JSON.parse(decrypt(keys, contactsItem));
 
     if (contactObject.contacts.indexOf(contactName) === -1) {
       contactObject.contacts.push(contactName);
-      localStorage.setItem(mailHash, JSON.stringify(contactObject));
+      localStorage.setItem(mailHash, encrypt(keys, JSON.stringify(contactObject)));
     }
   } else {
-    localStorage.setItem(mailHash, JSON.stringify({ contacts: [contactName] }));
+    localStorage.setItem(mailHash, encrypt(keys, JSON.stringify({ contacts: [contactName] })));
   }
 };
 
@@ -53,35 +58,33 @@ export const fetchContacts = () => (dispatch, getState) => {
     privateKey: getState().user.privateKey,
   };
 
+  const start = new Date().getTime();
+
   eth.fetchAllEvents('inbox')
     .then((inboxEvents) => {
-      eth.fetchAllEvents('outbox')
-        .then((outboxEvents) => {
-          console.log('Got the events');
-          const allEvents = uniq([
-            ...inboxEvents.map(event => event.returnValues.mailHash),
-          ]);
+      const allEvents = uniq([
+        ...inboxEvents.map(event => event.returnValues.mailHash),
+      ]);
 
-          const ipfsPromises = allEvents.map(hash => ipfs.getFileContent(hash));
+      const ipfsPromises = allEvents.map(hash => ipfs.getFileContent(hash));
 
-          Promise.all(ipfsPromises)
-            .then((mailsData) => {
-              console.log(mailsData);
+      Promise.all(ipfsPromises)
+        .then((mailsData) => {
+          const mails = mailsData.map((mail) => {
+            const receiverData = JSON.parse(mail).receiverData;
 
-              const mails = mailsData.map((mail) => {
-                const receiverData = JSON.parse(mail).receiverData;
+            const sendersMail = decrypt(keys, receiverData);
 
-                const sendersMail = decrypt(keys, receiverData);
+            return JSON.parse(sendersMail).from;
+          });
 
-                return JSON.parse(sendersMail).from;
-              });
+          console.log(mails);
 
-              console.log(mails);
+          localStorage.setItem(currUserHash, JSON.stringify({ contacts: mails }));
 
-              localStorage.setItem(currUserHash, JSON.stringify({ contacts: mails }));
+          const end = new Date().getTime();
 
-              // this.backupContacts();
-            });
+          console.log(end - start, 'ms');
         });
     });
 };
@@ -102,7 +105,7 @@ export const backupContacts = () => (dispatch, getState) => {
     return;
   }
 
-  const storedContacts = contactsItem;
+  const storedContacts = decrypt(keys, contactsItem);
   console.log(storedContacts);
 
   // check the latest event and see if we already have a contacts obj.
@@ -172,6 +175,32 @@ export const backupContacts = () => (dispatch, getState) => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+export const importContacts = () => (dispatch, getState) => {
+  const currUserHash = sha3(getState().user.mailAddress);
+
+  const keys = {
+    publicKey: getState().user.publicKey,
+    privateKey: getState().user.privateKey,
+  };
+
+  eth.getContactsForUser(currUserHash).then((event) => {
+    if (event) {
+      const ipfsHash = event.returnValues.threadHash;
+
+      ipfs.getFileContent(ipfsHash)
+        .then((ipfsContent) => {
+          const encryptedContacts = JSON.parse(ipfsContent);
+
+          const decryptedContacts = decrypt(keys, encryptedContacts);
+
+          dispatch(contactsUpdated(JSON.parse(decryptedContacts).contacts));
+
+          localStorage.setItem(currUserHash, encryptedContacts);
+        });
+    }
+  });
 };
 
 

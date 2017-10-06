@@ -8,13 +8,18 @@ import * as authActions from '../../../actions/auth';
 import * as utilActions from '../../../actions/utility';
 
 
-const Menu = ({ mailAddress, logout, fetchContacts }) => (
+const Menu = ({ mailAddress, logout, backupContacts, importContacts }) => (
   <Dropdown text={mailAddress}>
     <Dropdown.Menu>
       <CustomNodeModal />
-      <Dropdown.Item onClick={fetchContacts}>
+      <Dropdown.Item onClick={backupContacts}>
         <span role="link" tabIndex="-1">
           <Icon name="cloud" /> Backup contacts
+        </span>
+      </Dropdown.Item>
+      <Dropdown.Item onClick={importContacts}>
+        <span role="link" tabIndex="-1">
+          <Icon name="cloud download" /> Import contacts
         </span>
       </Dropdown.Item>
       <Dropdown.Item onClick={logout}>
@@ -29,7 +34,8 @@ const Menu = ({ mailAddress, logout, fetchContacts }) => (
 Menu.propTypes = {
   mailAddress: PropTypes.string,
   logout: PropTypes.func.isRequired,
-  fetchContacts: PropTypes.func.isRequired,
+  backupContacts: PropTypes.func.isRequired,
+  importContacts: PropTypes.func.isRequired,
 };
 
 Menu.defaultProps = {
@@ -39,7 +45,8 @@ Menu.defaultProps = {
 const mapStateToProps = state => state.user;
 const mapDispatchToProps = dispatch => bindActionCreators({
   logout: authActions.logout,
-  fetchContacts: utilActions.fetchContacts,
+  backupContacts: utilActions.backupContacts,
+  importContacts: utilActions.importContacts,
 }, dispatch);
 
 export default connect(
