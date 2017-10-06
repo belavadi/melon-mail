@@ -10,6 +10,9 @@ import MailPreview from '../MailPreview';
 
 import * as routerActions from '../../../actions/router';
 
+import { importContacts } from '../../../actions/utility';
+
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -20,6 +23,8 @@ class App extends Component {
   componentWillMount() {
     if (!this.props.user.isAuthenticated) {
       this.props.push('auth');
+    } else {
+      this.props.importContacts();
     }
   }
 
@@ -48,10 +53,15 @@ App.propTypes = {
     isAuthenticated: PropTypes.bool.isRequired,
   }).isRequired,
   push: PropTypes.func.isRequired,
+  importContacts: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => state;
-const mapDispatchToProps = dispatch => bindActionCreators({ ...routerActions }, dispatch);
+const mapDispatchToProps = dispatch => bindActionCreators(
+  {
+    ...routerActions,
+    importContacts,
+  }, dispatch);
 
 export default connect(
   mapStateToProps,

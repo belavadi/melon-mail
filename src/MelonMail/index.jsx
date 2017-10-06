@@ -32,7 +32,6 @@ class MelonMail extends Component {
         <div>Loading...</div>
       );
     }
-    console.info(web3);
     return (
       <Provider store={store}>
         <Router

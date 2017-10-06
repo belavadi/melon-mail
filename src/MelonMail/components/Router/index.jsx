@@ -25,8 +25,6 @@ class Router extends Component {
               this.props.logout();
               this.props.changeAccount(account);
               this.props.getBalance();
-              // DEPRECATED
-              // this.props.fetchContacts();
             }
           })
           .catch(() => {

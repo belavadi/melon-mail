@@ -104,7 +104,6 @@ const checkRegistration = () =>
                 message: 'User not registered.',
               });
             }
-            console.log(events[0]);
             return resolve({
               mail: events[0].returnValues.encryptedUsername,
               address: events[0].returnValues.addr,
@@ -272,7 +271,7 @@ const listenForMails = callback =>
       }
       return getBlockNumber()
         .then((startingBlock) => {
-          mailContract.events.SendEmail({
+          mailContract.events.EmailSent({
             filter: {
               to: accounts[0],
             },
@@ -287,7 +286,7 @@ const listenForMails = callback =>
             })
             .on('error', error => console.log(error));
 
-          mailContract.events.SendEmail({
+          mailContract.events.EmailSent({
             filter: {
               from: accounts[0],
             },
@@ -340,7 +339,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
 
 const getThread = (threadId, afterBlock) =>
   new Promise((resolve, reject) => {
-    mailContract.getPastEvents('SendEmail',
+    mailContract.getPastEvents('EmailSent',
       {
         filter: {
           threadId,
@@ -360,7 +359,7 @@ const getThread = (threadId, afterBlock) =>
 
 const _sendEmail = (toAddress, mailHash, threadHash, threadId) =>
   new Promise((resolve, reject) => {
-    mailContract.methods.internalEmail(toAddress, mailHash, threadHash, threadId)
+    mailContract.methods.sendEmail(toAddress, mailHash, threadHash, threadId)
       .send((error, result) => {
         if (error) {
           return reject({
@@ -408,7 +407,7 @@ const fetchAllEvents = folder =>
           });
         }
         const filter = folder === 'inbox' ? { to: accounts[0] } : { from: accounts[0] };
-        return mailContract.getPastEvents('SendEmail', {
+        return mailContract.getPastEvents('EmailSent', {
           filter,
           fromBlock: 0,
           toBlock: 'latest',
@@ -457,7 +456,7 @@ const updateContactsEvent = (hashName, ipfsHash) =>
 
 const getContactsForUser = userHash =>
   new Promise((resolve, reject) => {
-    mailContract.getPastEvents('UpdateContacts', {
+    mailContract.getPastEvents('ContactsUpdated', {
       filter: {
         usernameHash: userHash,
       },
@@ -554,21 +553,20 @@ const getMailContract = domain =>
       .catch(err => reject(err));
   });
 
-const resolveUser = (email, domain, isExternalMail) =>
-  new Promise((resolve, reject) => {
-    if (!isExternalMail) {
-      return _getPublicKey(email);
-    }
+const resolveUser = (email, domain, isExternalMail) => {
+  if (!isExternalMail) {
+    return _getPublicKey(email);
+  }
 
-    return getMailContract(domain)
-      .then((resolvedMailContract) => {
-        if (resolvedMailContract === config.contractAddress) {
-          return _getPublicKey(email);
-        }
+  return getMailContract(domain)
+    .then((resolvedMailContract) => {
+      if (resolvedMailContract === config.contractAddress) {
+        return _getPublicKey(email);
+      }
 
-        return _getPublicKey(email, resolvedMailContract);
-      });
-  });
+      return _getPublicKey(email, resolvedMailContract);
+    });
+};
 
 export default {
   getWeb3Status,
