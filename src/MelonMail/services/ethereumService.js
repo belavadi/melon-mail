@@ -1,8 +1,11 @@
 import uniqBy from 'lodash/uniqBy';
 import Web3 from 'web3';
+import ENS from 'ethjs-ens';
 import config from './config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
-import { executeWhenReady } from './helperService';
+import { executeWhenReady, namehash } from './helperService';
+
+const ENS_MX_INTERFACE_ID = '0x59d1d43c';
 
 let mailContract;
 
@@ -15,6 +18,13 @@ executeWhenReady(() => {
           from: accounts[0],
         });
         console.log(mailContract);
+
+        // eslint-disable-next-line
+        getMailContract('decenter-test.test')
+          .then((resolvedMailContract) => {
+            console.log(resolvedMailContract);
+          })
+          .catch(err => console.error(err));
       });
   } catch (e) {
     console.log(e);
@@ -460,19 +470,74 @@ const getContactsForUser = userHash =>
       },
       fromBlock: 0,
       toBlock: 'latest',
-    },
-    ).then((events) => {
-      console.log(events);
-      if (events.length > 0) {
-        resolve(events.pop());
-      } else {
-        resolve(null);
-      }
     })
+      .then((events) => {
+        console.log(events);
+        if (events.length > 0) {
+          resolve(events.pop());
+        } else {
+          resolve(null);
+        }
+      })
       .catch((err) => {
         reject(err);
       });
   });
+
+const getResolverForDomain = domain =>
+  new Promise((resolve, reject) => {
+    const ens = new ENS({ provider: web3.currentProvider, network: '3' });
+    ens.registry.resolver(namehash(domain), (error, address) => {
+      if (error) {
+        return reject({
+          message: error,
+        });
+      }
+      return resolve(address[0]);
+    });
+  });
+
+/* Returns address of contract on MX record of given domain on given resolver */
+
+const resolveMx = (resolverAddr, domain) =>
+  new Promise((resolve, reject) => {
+    web3.eth.getAccounts()
+      .then((accounts) => {
+        const mxResolverContract = new web3.eth.Contract(config.mxResolverAbi, resolverAddr, {
+          from: accounts[0],
+        });
+        mxResolverContract.methods.supportsInterface(ENS_MX_INTERFACE_ID)
+          .call((err, res) => {
+            if (err) reject(err);
+            if (!res) reject(false);
+
+            mxResolverContract.methods.MX(namehash(domain))
+              .call((errMx, mailContractAddr) => {
+                if (errMx) reject(errMx);
+                resolve(mailContractAddr);
+              });
+          });
+      });
+  });
+
+const getMailContract = domain =>
+  new Promise((resolve, reject) => {
+    getResolverForDomain(domain)
+      .then(resolverAddr => resolveMx(resolverAddr, domain))
+      .then((resolvedMailContractAddr) => {
+        web3.eth.getAccounts()
+          .then((accounts) => {
+            const resolvedMailContract = new web3.eth.Contract(
+              config.abi,
+              resolvedMailContractAddr, {
+                from: accounts[0],
+              });
+            resolve(resolvedMailContract);
+          });
+      })
+      .catch(err => reject(err));
+  });
+
 
 export default {
   getWeb3Status,
