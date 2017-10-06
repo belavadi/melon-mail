@@ -10,6 +10,8 @@ contract Email {
     function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) public {
         require(usernameHashExists[usernameHash] == false);
 
+        usernameHashExists[usernameHash] = true;
+
         UserRegistered(usernameHash, msg.sender, encryptedUsername, publicKey);
     }
 
