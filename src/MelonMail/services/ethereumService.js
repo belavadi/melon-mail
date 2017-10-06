@@ -227,8 +227,9 @@ const _registerUser = (mailAddress, signedString) =>
 /* Scans the blockchain to find the public key for a user */
 /* TODO: Should be expanded or wrapped to include fetching keys for users on other domains */
 
-const _getPublicKey = email =>
+const _getPublicKey = (email, optionalContract) =>
   new Promise((resolve, reject) => {
+    const contract = optionalContract !== undefined ? optionalContract : mailContract;
     const options = {
       filter: {
         usernameHash: web3.utils.sha3(email),
@@ -236,7 +237,7 @@ const _getPublicKey = email =>
       fromBlock: 0,
       toBlock: 'latest',
     };
-    mailContract.getPastEvents('UserRegistered', options)
+    contract.getPastEvents('UserRegistered', options)
       .then((events) => {
         if (!events.length) {
           return reject({
@@ -248,6 +249,7 @@ const _getPublicKey = email =>
         console.log(events[0]);
 
         return resolve({
+          isExternal: optionalContract !== undefined,
           address: events[0].returnValues.addr,
           publicKey: events[0].returnValues.publicKey,
         });
@@ -511,6 +513,29 @@ const resolveMx = (resolverAddr, domain) =>
       });
   });
 
+// Used for testing purposes
+// const setMxRecord = () =>
+//   new Promise((resolve, reject) => {
+//     getResolverForDomain('decenter-test.test')
+//       .then((resolverAddr) => {
+//         web3.eth.getAccounts()
+//           .then((accounts) => {
+//             const mxResolverContract = new web3.eth.Contract(
+//               config.mxResolverAbi, resolverAddr, {
+//               from: accounts[0],
+//             });
+//             console.log(mxResolverContract);
+//             mxResolverContract.methods.setMxRecord(namehash('decenter-test.test'),
+// '              0x372d826abb22ed3546947a32977745830164717b')
+//               .send((errMx, data) => {
+//                 if (errMx) reject(errMx);
+//                 console.log(data);
+//                 resolve(data);
+//               });
+//           });
+//       });
+//   });
+
 const getMailContract = domain =>
   new Promise((resolve, reject) => {
     getResolverForDomain(domain)
@@ -529,6 +554,15 @@ const getMailContract = domain =>
       .catch(err => reject(err));
   });
 
+const resolveUser = (email, domain, isExternalMail) =>
+  new Promise((resolve, reject) => {
+    if (!isExternalMail) {
+      return _getPublicKey(email);
+    }
+
+    return getMailContract(domain)
+      .then(resolvedMailContract => _getPublicKey(email, resolvedMailContract));
+  });
 
 export default {
   getWeb3Status,
@@ -545,6 +579,7 @@ export default {
   getThread,
   getBalance,
   fetchAllEvents,
+  resolveUser,
   getAddressInfo,
   updateContactsEvent,
   getContactsForUser,

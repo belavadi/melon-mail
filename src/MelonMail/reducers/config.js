@@ -1,6 +1,6 @@
 export default (state = {
   useLocalStorage: false,
-  defaultDomain: 'melonmail.eth',
+  defaultDomain: 'decenter-test.test',
 }, action) => {
   switch (action.type) {
     case 'INITIAL_SETUP':
