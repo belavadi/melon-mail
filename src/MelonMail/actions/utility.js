@@ -138,7 +138,7 @@ export const backupContacts = () => (dispatch, getState) => {
                   console.log(err);
                 });
             } else {
-              const ipfsHash = event.returnValues.ipfsHash;
+              const ipfsHash = event.args.ipfsHash;
 
               console.log('IPFS hash: ', ipfsHash);
 
@@ -196,7 +196,7 @@ export const importContacts = () => (dispatch, getState) => {
 
   eth.getContactsForUser(currUserHash).then((event) => {
     if (event) {
-      const ipfsHash = event.returnValues.ipfsHash;
+      const ipfsHash = event.args.ipfsHash;
 
       if (!ipfsHash) {
         return;

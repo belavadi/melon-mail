@@ -1,5 +1,4 @@
 import uniqBy from 'lodash/uniqBy';
-import Web3 from 'web3';
 import ENS from 'ethjs-ens';
 import config from './config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
@@ -9,15 +8,18 @@ const ENS_MX_INTERFACE_ID = '0x59d1d43c';
 
 let mailContract;
 
+const networks = {
+  3: 'ropsten',
+};
+
 executeWhenReady(() => {
   try {
-    window.web3 = new Web3(web3.currentProvider);
-    web3.eth.getAccounts()
-      .then((accounts) => {
-        mailContract = new web3.eth.Contract(config.abi, config.contractAddress, {
-          from: accounts[0],
-        });
-      });
+    // window.web3 = new Web3(web3.currentProvider);
+    web3.eth.getAccounts(() => {
+      console.log(web3);
+
+      mailContract = web3.eth.contract(config.abi).at(config.contractAddress);
+    });
   } catch (e) {
     console.log(e);
   }
@@ -31,92 +33,88 @@ const getWeb3Status = () =>
       });
     }
 
-    return web3.eth.net.getNetworkType((err, network) => {
-      if (network.toString() !== config.network) {
+    return web3.version.getNetwork((err, networkId) => {
+      if (networks[networkId] !== config.network) {
         return reject({
           message: 'WRONG_NETWORK',
         });
       }
 
+      console.log('Web3 status');
+
       return resolve();
     });
   });
 
-const getBalance = () =>
-  new Promise((resolve, reject) => {
-    web3.eth.getAccounts()
-      .then((accounts) => {
-        if (accounts.length === 0) {
-          return reject({
-            message: 'Account not found.',
-          });
-        }
-
-        return web3.eth.getBalance(accounts[0]);
-      })
-      .then((balance) => {
-        resolve(parseFloat(web3.utils.fromWei(balance)));
-      })
-      .catch((error) => {
-        reject({
-          message: error,
-        });
-      });
-  });
-
 const getAccount = () =>
   new Promise((resolve, reject) => {
-    web3.eth.getAccounts()
-      .then((accounts) => {
-        if (accounts.length === 0) {
+    web3.eth.getAccounts((err, accounts) => {
+      if (accounts.length === 0) {
+        return reject({
+          message: 'Account not found.',
+        });
+      }
+      return resolve(accounts[0]);
+    });
+  });
+
+const getBalance = () => new Promise((resolve, reject) => {
+  getAccount()
+    .then((account) => {
+      web3.eth.getBalance(account, (error, balance) => {
+        if (error) {
           return reject({
-            message: 'Account not found.',
+            message: error,
           });
         }
-        return resolve(accounts[0]);
+
+        return resolve(parseFloat(web3.fromWei(balance)));
       });
-  });
+    });
+});
 
 const checkRegistration = () =>
   new Promise((resolve, reject) => {
-    web3.eth.getAccounts()
-      .then((accounts) => {
-        if (accounts.length === 0) {
-          return reject({
-            error: true,
-            message: 'Account not found.',
-          });
-        }
+    getAccount().then((account) => {
+      if (!account) {
+        return reject({
+          error: true,
+          message: 'Account not found.',
+        });
+      }
 
-        const options = {
-          filter: {
-            addr: accounts[0],
-          },
+      return mailContract.UserRegistered(
+        {
+          addr: account,
+        },
+        {
           fromBlock: 0,
           toBlock: 'latest',
-        };
-        return mailContract.getPastEvents('UserRegistered', options)
-          .then((events) => {
-            if (!events.length) {
-              return reject({
-                error: false,
-                notRegistered: true,
-                message: 'User not registered.',
-              });
-            }
-            return resolve({
-              mail: events[0].returnValues.encryptedUsername,
-              address: events[0].returnValues.addr,
-              startingBlock: events[0].blockNumber,
-            });
-          })
-          .catch((error) => {
+        })
+        .get((err, events) => {
+          if (err) {
             reject({
               error: true,
-              message: error,
+              message: err,
             });
+          }
+
+          console.log(events);
+
+          if (!events.length) {
+            return reject({
+              error: false,
+              notRegistered: true,
+              message: 'User not registered.',
+            });
+          }
+          return resolve({
+            mail: events[0].args.encryptedUsername,
+            address: events[0].args.addr,
+            startingBlock: events[0].blockNumber,
           });
-      })
+        });
+    })
       .catch((error) => {
         reject({
           error: true,
@@ -127,7 +125,7 @@ const checkRegistration = () =>
 
 const signString = (account, stringToSign) =>
   new Promise((resolve, reject) => {
-    web3.eth.personal.sign(web3.utils.fromUtf8(stringToSign), account, (error, result) => {
+    web3.personal.sign(web3.fromUtf8(stringToSign), account, (error, result) => {
       if (error) {
         return reject(error);
       }
@@ -148,15 +146,23 @@ const getBlockNumber = () =>
 
 const checkMailAddress = email =>
   new Promise((resolve, reject) => {
-    const options = {
-      filter: {
-        usernameHash: web3.utils.sha3(email),
+    mailContract.UserRegistered(
+      {
+        usernameHash: web3.sha3(email),
       },
-      fromBlock: 0,
-      toBlock: 'latest',
-    };
-    mailContract.getPastEvents('UserRegistered', options)
-      .then((events) => {
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      },
+    )
+      .get((err, events) => {
+        if (err) {
+          reject({
+            message: err,
+            events: null,
+          });
+        }
+
         if (events.length > 0) {
           return reject({
             message: 'Username is already taken.',
@@ -165,12 +171,6 @@ const checkMailAddress = email =>
 
         return resolve({
           message: 'Username is available.',
-        });
-      })
-      .catch((error) => {
-        reject({
-          message: error,
-          events: null,
         });
       });
   });
@@ -181,19 +181,20 @@ const _registerUser = (mailAddress, signedString) =>
   new Promise((resolve, reject) => {
     const { privateKey, publicKey } = generateKeys(signedString);
 
-    web3.eth.getAccounts()
-      .then((accounts) => {
-        if (accounts.length === 0) {
+    console.log('Registring user');
+
+    getAccount()
+      .then((account) => {
+        if (!account) {
           return reject({
             message: 'Account not found.',
           });
         }
-        return mailContract.methods.registerUser(
-          web3.utils.sha3(mailAddress),
+        return mailContract.registerUser(
+          web3.sha3(mailAddress),
           encrypt({ privateKey, publicKey }, mailAddress),
           publicKey,
-        )
-          .send((error) => {
+          (error) => {
             if (error) {
               return reject({
                 message: error,
@@ -206,7 +207,7 @@ const _registerUser = (mailAddress, signedString) =>
                   publicKey,
                   privateKey,
                   mailAddress,
-                  address: accounts[0],
+                  address: account,
                   startingBlock,
                 });
               })
@@ -215,7 +216,7 @@ const _registerUser = (mailAddress, signedString) =>
                   publicKey,
                   privateKey,
                   mailAddress,
-                  address: accounts[0],
+                  address: account,
                   startingBlock: 0,
                 });
               });
@@ -229,15 +230,17 @@ const _registerUser = (mailAddress, signedString) =>
 const _getPublicKey = (email, optionalContract) =>
   new Promise((resolve, reject) => {
     const contract = optionalContract !== undefined ? optionalContract : mailContract;
-    const options = {
-      filter: {
-        usernameHash: web3.utils.sha3(email),
+
+    contract.UserRegistered(
+      {
+        usernameHash: web3.sha3(email),
       },
-      fromBlock: 0,
-      toBlock: 'latest',
-    };
-    contract.getPastEvents('UserRegistered', options)
-      .then((events) => {
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      },
+    )
+      .get((err, events) => {
         if (!events.length) {
           return reject({
             message: 'User not found!',
@@ -249,54 +252,61 @@ const _getPublicKey = (email, optionalContract) =>
 
         return resolve({
           externalMailContract: optionalContract,
-          address: events[0].returnValues.addr,
-          publicKey: events[0].returnValues.publicKey,
-        });
-      })
-      .catch((error) => {
-        reject({
-          message: error,
-          events: null,
+          address: events[0].args.addr,
+          publicKey: events[0].args.publicKey,
         });
       });
+    // .catch((error) => {
+    //   reject({
+    //     message: error,
+    //     events: null,
+    //   });
+    // });
   });
 
 /* Subscribes to the mail send event */
 
 const listenForMails = callback =>
-  web3.eth.getAccounts()
-    .then((accounts) => {
-      if (accounts.length === 0) {
+  getAccount()
+    .then((account) => {
+      if (!account) {
         return null;
       }
       return getBlockNumber()
         .then((startingBlock) => {
-          mailContract.events.EmailSent({
-            filter: {
-              to: accounts[0],
+          mailContract.EmailSent(
+            {
+              to: account,
             },
-            fromBlock: startingBlock,
-            toBlock: 'latest',
-          }, (event) => {
-            console.log(event);
-            callback(event, 'inbox');
-          })
-            .on('data', (event) => {
-              callback(event, 'inbox');
-            })
-            .on('error', error => console.log(error));
+            {
+              fromBlock: startingBlock,
+              toBlock: 'latest',
+            },
+          )
+            .watch((err, events) => {
+              if (err) {
+                console.log(err);
+              }
 
-          mailContract.events.EmailSent({
-            filter: {
-              from: accounts[0],
+              callback(events, 'inbox');
+            });
+
+
+          mailContract.EmailSent(
+            {
+              from: account,
             },
-            fromBlock: startingBlock,
-            toBlock: 'latest',
-          }, (event) => {
-            callback(event, 'outbox');
-          })
-            .on('data', (event) => {
-              console.log('Mail event: Received an email', event);
+            {
+              fromBlock: startingBlock,
+              toBlock: 'latest',
+            },
+          )
+            .watch((err, event) => {
+              if (err) {
+                console.log(err);
+              }
+
+              console.log(err);
               callback(event, 'outbox');
             });
         });
@@ -305,69 +315,76 @@ const listenForMails = callback =>
 const getMails = (folder, fetchToBlock, blocksToFetch) =>
   new Promise((resolve, reject) => {
     console.log(`Fetching emails with batch size of ${blocksToFetch} blocks`);
-    web3.eth.getAccounts()
-      .then((accounts) => {
-        if (accounts.length === 0) {
-          return reject({
-            message: 'Account not found.',
-          });
-        }
-        return getBlockNumber()
-          .then((currentBlock) => {
-            const filter = folder === 'inbox' ? { to: accounts[0] } : { from: accounts[0] };
-            const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
-            mailContract.getPastEvents('EmailSent', {
-              filter,
+    getAccount((account) => {
+      if (!account) {
+        return reject({
+          message: 'Account not found.',
+        });
+      }
+      return getBlockNumber()
+        .then((currentBlock) => {
+          const filter = folder === 'inbox' ? { to: account } : { from: account };
+          const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
+          mailContract.EmailSent(
+            filter,
+            {
               fromBlock: fetchTo - blocksToFetch,
               toBlock: fetchTo,
-            })
-              .then((events) => {
-                const filteredEvents = uniqBy(events.reverse(), 'returnValues.threadId');
-                return resolve({
-                  mailEvents: filteredEvents,
-                  fromBlock: fetchTo - blocksToFetch,
-                });
-              })
-              .catch((error) => {
-                reject({
-                  message: error,
-                });
+            },
+          )
+            .get((err, events) => {
+              const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
+              return resolve({
+                mailEvents: filteredEvents,
+                fromBlock: fetchTo - blocksToFetch,
               });
-          });
-      });
+            });
+          // .catch((error) => {
+          //   reject({
+          //     message: error,
+          //   });
+          // });
+        });
+    });
   });
 
 const getThread = (threadId, afterBlock) =>
   new Promise((resolve, reject) => {
-    mailContract.getPastEvents('EmailSent',
+    mailContract.EmailSent(
       {
-        filter: {
-          threadId,
-        },
+        threadId,
+      },
+      {
         fromBlock: afterBlock,
         toBlock: 'latest',
-      })
-      .then((events) => {
+      },
+    )
+      .get((err, events) => {
+        if (err) {
+          reject({
+            message: err,
+          });
+        }
+
         resolve(events.pop());
-      })
-      .catch((error) => {
-        reject({
-          message: error,
-        });
       });
+    // .catch((error) => {
+    //   reject({
+    //     message: error,
+    //   });
+    // });
   });
 
 const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContract) =>
   new Promise((resolve, reject) => {
     if (externalMailContract !== undefined) {
-      externalMailContract.methods.sendExternalEmail(
+      externalMailContract.sendExternalEmail(
         externalMailContract.options.address,
         toAddress,
         mailHash,
         threadHash,
         threadId,
-      )
-        .send((error, result) => {
+        (error, result) => {
           if (error) {
             return reject({
               message: error,
@@ -378,27 +395,26 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
         });
     }
 
-    mailContract.methods.sendEmail(toAddress, mailHash, threadHash, threadId)
-      .send((error, result) => {
-        if (error) {
-          return reject({
-            message: error,
-          });
-        }
+    mailContract.sendEmail(toAddress, mailHash, threadHash, threadId, (error, result) => {
+      if (error) {
+        return reject({
+          message: error,
+        });
+      }
 
-        return resolve(result);
-      });
+      return resolve(result);
+    });
   });
 
 const signIn = mail => new Promise((resolve, reject) => {
-  web3.eth.getAccounts()
-    .then((accounts) => {
-      if (accounts.length === 0) {
+  getAccount()
+    .then((account) => {
+      if (!account) {
         return reject({
           message: 'Account not found.',
         });
       }
-      return signString(accounts[0], config.stringToSign)
+      return signString(account, config.stringToSign)
         .then((signedString) => {
           const { privateKey, publicKey } = generateKeys(signedString);
           resolve({
@@ -418,7 +434,7 @@ const signIn = mail => new Promise((resolve, reject) => {
 
 const fetchAllEvents = folder =>
   new Promise((resolve, reject) => {
-    web3.eth.getAccounts()
+    getAccount()
       .then((accounts) => {
         if (accounts.length === 0) {
           return reject({
@@ -426,73 +442,81 @@ const fetchAllEvents = folder =>
           });
         }
         const filter = folder === 'inbox' ? { to: accounts[0] } : { from: accounts[0] };
-        return mailContract.getPastEvents('EmailSent', {
+        return mailContract.EmailSent(
           filter,
-          fromBlock: 0,
-          toBlock: 'latest',
-        })
-          .then((events) => {
-            const filteredEvents = uniqBy(events, folder === 'inbox' ? 'returnValues.from' : 'returnValues.to');
+          {
+            fromBlock: 0,
+            toBlock: 'latest',
+          },
+        )
+          .get((err, events) => {
+            const filteredEvents = uniqBy(events, folder === 'inbox' ? 'args.from' : 'args.to');
             return resolve(filteredEvents);
-          })
-          .catch((error) => {
-            reject({
-              message: error,
-            });
           });
+        // .catch((error) => {
+        //   reject({
+        //     message: error,
+        //   });
+        // });
       });
   });
 
 const getAddressInfo = address =>
   new Promise((resolve) => {
-    const options = {
-      filter: {
+    mailContract.UserRegistered(
+      {
         addr: address,
       },
-      fromBlock: 0,
-      toBlock: 'latest',
-    };
-    mailContract.getPastEvents('UserRegistered', options)
-      .then((events) => {
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      },
+    )
+      .get((err, events) => {
         resolve(events);
-      })
-      .catch((error) => {
-        console.log(error);
       });
+    // .catch((error) => {
+    //   console.log(error);
+    // });
   });
 
 const updateContactsEvent = (hashName, ipfsHash) =>
   new Promise((resolve, reject) => {
-    mailContract.methods.updateContacts(hashName, ipfsHash)
-      .send((err, resp) => {
-        if (err) {
-          reject(err);
-        }
+    mailContract.updateContacts(hashName, ipfsHash, (err, resp) => {
+      if (err) {
+        reject(err);
+      }
 
-        return resolve(resp);
-      });
+      return resolve(resp);
+    });
   });
 
 const getContactsForUser = userHash =>
   new Promise((resolve, reject) => {
-    mailContract.getPastEvents('ContactsUpdated', {
-      filter: {
+    mailContract.ContactsUpdated(
+      {
         usernameHash: userHash,
       },
-      fromBlock: 0,
-      toBlock: 'latest',
-    })
-      .then((events) => {
+      {
+        fromBlock: 0,
+        toBlock: 'latest',
+      },
+    )
+      .get((err, events) => {
+        if (err) {
+          reject(err);
+        }
+
         console.log(events);
         if (events.length > 0) {
           resolve(events.pop());
         } else {
           resolve(null);
         }
-      })
-      .catch((err) => {
-        reject(err);
       });
+    // .catch((err) => {
+    //   reject(err);
+    // });
   });
 
 const getResolverForDomain = domain =>
@@ -512,17 +536,17 @@ const getResolverForDomain = domain =>
 
 const resolveMx = (resolverAddr, domain) =>
   new Promise((resolve, reject) => {
-    web3.eth.getAccounts()
-      .then((accounts) => {
+    getAccount()
+      .then((account) => {
         const mxResolverContract = new web3.eth.Contract(config.mxResolverAbi, resolverAddr, {
-          from: accounts[0],
+          from: account,
         });
-        mxResolverContract.methods.supportsInterface(ENS_MX_INTERFACE_ID)
+        mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID)
           .call((err, res) => {
             if (err) reject(err);
             if (!res) reject(false);
 
-            mxResolverContract.methods.MX(namehash(domain))
+            mxResolverContract.MX(namehash(domain))
               .call((errMx, mailContractAddr) => {
                 if (errMx) reject(errMx);
                 resolve(mailContractAddr);
@@ -559,12 +583,12 @@ const getMailContract = domain =>
     getResolverForDomain(domain)
       .then(resolverAddr => resolveMx(resolverAddr, domain))
       .then((resolvedMailContractAddr) => {
-        web3.eth.getAccounts()
-          .then((accounts) => {
+        getAccount()
+          .then((account) => {
             const resolvedMailContract = new web3.eth.Contract(
               config.abi,
               resolvedMailContractAddr, {
-                from: accounts[0],
+                from: account,
               });
             resolve(resolvedMailContract);
           });

@@ -33,7 +33,7 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
     .then(threadEvent =>
       eth.getAccount()
         .then(account =>
-          ipfs.getThread(threadEvent.returnValues.threadHash)
+          ipfs.getThread(threadEvent.args.threadHash)
             .then((thread) => {
               const mailLinks = thread.toJSON().links;
 
@@ -58,7 +58,7 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
                   });
 
                   dispatch(
-                    mailSuccess(decryptedMails, threadEvent.returnValues.threadHash, threadId),
+                    mailSuccess(decryptedMails, threadEvent.args.threadHash, threadId),
                   );
                 })
                 .catch((error) => {
@@ -172,7 +172,7 @@ export const getMails = folder => (dispatch, getState) => {
     .then((res) => {
       const { mailEvents, fromBlock } = res;
       const ipfsFetchPromises = mailEvents.map(mail =>
-        ipfs.getFileContent(mail.returnValues.mailHash).catch(e => Promise.resolve(e)));
+        ipfs.getFileContent(mail.args.mailHash).catch(e => Promise.resolve(e)));
 
       return Promise.all(ipfsFetchPromises)
         .then((mails) => {
@@ -185,11 +185,11 @@ export const getMails = folder => (dispatch, getState) => {
               return {
                 transactionHash: mailEvents[index].transactionHash,
                 blockNumber: mailEvents[index].blockNumber,
-                ...mailEvents[index].returnValues,
+                ...mailEvents[index].args,
                 ...JSON.parse(decryptedBody),
               };
             } catch (error) {
-              console.log(`Failed decrypting mail with hash ${mailEvents[index].returnValues.mailHash}`);
+              console.log(`Failed decrypting mail with hash ${mailEvents[index].args.mailHash}`);
               return {};
             }
           });
@@ -210,7 +210,15 @@ export const getMails = folder => (dispatch, getState) => {
 export const listenForMails = () => (dispatch, getState) => {
   console.log('Listening for mail');
   eth.listenForMails((mailEvent, mailType) => {
-    ipfs.getFileContent(mailEvent.returnValues.mailHash)
+    console.log('MAIL  ', mailEvent);
+
+    if (!mailEvent) {
+      return;
+    }
+
+    console.log(mailEvent);
+
+    ipfs.getFileContent(mailEvent.args.mailHash)
       .then((ipfsContent) => {
         try {
           const encryptedMail = JSON.parse(ipfsContent);
@@ -222,7 +230,7 @@ export const listenForMails = () => (dispatch, getState) => {
           const mail = {
             transactionHash: mailEvent.transactionHash,
             blockNumber: mailEvent.blockNumber,
-            ...mailEvent.returnValues,
+            ...mailEvent.args,
             ...JSON.parse(decrypt(keys, mailContent)),
             new: mailType === 'inbox',
           };
@@ -234,11 +242,11 @@ export const listenForMails = () => (dispatch, getState) => {
             const mails = [mail, ...getState().mails.outbox];
             dispatch(newMail('outbox', uniqBy(mails, 'threadId')));
           }
-          if (mailEvent.returnValues.threadId === getState().mail.threadId) {
-            dispatch(getThread(mailEvent.returnValues.threadId, 0));
+          if (mailEvent.args.threadId === getState().mail.threadId) {
+            dispatch(getThread(mailEvent.args.threadId, 0));
           }
         } catch (error) {
-          console.log(`Failed decrypting mail with hash ${mailEvent.returnValues.mailHash}`);
+          console.log(`Failed decrypting mail with hash ${mailEvent.args.mailHash}`);
         }
       });
   });
