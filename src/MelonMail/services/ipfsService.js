@@ -4,7 +4,7 @@ const IPFS = require('ipfs');
 const concat = require('concat-stream');
 
 const getMultiaddressString = node =>
-  `/${node.connectionType}/${node.host}/tcp/${node.wsPort}/ws/ipfs/${node.id}`;
+  `/${node.connectionType}/${node.host}/tcp/${node.wsPort}/${node.protocol === 'https' ? 'wss' : 'wss'}/ipfs/${node.id}`;
 
 const getGatewayAddressString = node =>
   `${node.protocol}${node.host}:${node.gatewayPort}`;
@@ -46,7 +46,7 @@ const replicate = (hash, type) => {
     new Promise((resolve) => {
       const url = `${node}${type === 'file' ?
         '/api/v0/get?arg=' : '/api/v0/object/get?arg='}${hash}`;
-      return fetch(url, { method: 'get' })
+      return fetch(url, { method: 'head', mode: 'no-cors' })
         .then(() => {
           successful += 1;
           resolve();
