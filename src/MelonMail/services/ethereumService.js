@@ -10,15 +10,10 @@ let mailContract;
 
 const networks = {
   3: 'ropsten',
-<<<<<<< HEAD
   42: 'kovan',
   4: 'rinkeby',
   2: 'morden',
   1: 'mainnet',
-=======
-  4: 'rinkeby',
->>>>>>> d20a3a23af31acfc1b575b04ca70221690365a4a
-};
 
 executeWhenReady(() => {
   try {
