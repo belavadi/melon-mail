@@ -200,6 +200,7 @@ const _registerUser = (mailAddress, signedString) =>
           web3.sha3(mailAddress),
           encrypt({ privateKey, publicKey }, mailAddress),
           publicKey,
+          { from: account },
           (error) => {
             if (error) {
               return reject({

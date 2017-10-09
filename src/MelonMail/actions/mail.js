@@ -187,7 +187,7 @@ export const getMails = folder => (dispatch, getState) => {
                 blockNumber: mailEvents[index].blockNumber,
                 ...mailEvents[index].args,
                 ...JSON.parse(decryptedBody),
-                fromEth: mailEvents[index].returnValues.from,
+                fromEth: mailEvents[index].args.from,
               };
             } catch (error) {
               console.log(`Failed decrypting mail with hash ${mailEvents[index].args.mailHash}`);
@@ -252,7 +252,7 @@ export const listenForMails = () => (dispatch, getState) => {
             ...mailEvent.args,
             ...JSON.parse(decrypt(keys, mailContent)),
             new: mailType === 'inbox',
-            fromEth: mailEvent.returnValues.from,
+            fromEth: mailEvent.args.from,
           };
 
           const mailDomain = mail.from.split('@')[1];
@@ -270,8 +270,8 @@ export const listenForMails = () => (dispatch, getState) => {
                   const mails = [mail, ...getState().mails.outbox];
                   dispatch(newMail('outbox', uniqBy(mails, 'threadId')));
                 }
-                if (mailEvent.returnValues.threadId === getState().mail.threadId) {
-                  dispatch(getThread(mailEvent.returnValues.threadId, 0));
+                if (mailEvent.args.threadId === getState().mail.threadId) {
+                  dispatch(getThread(mailEvent.args.threadId, 0));
                 }
               }
             });
