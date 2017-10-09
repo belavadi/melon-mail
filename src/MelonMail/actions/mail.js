@@ -187,13 +187,32 @@ export const getMails = folder => (dispatch, getState) => {
                 blockNumber: mailEvents[index].blockNumber,
                 ...mailEvents[index].returnValues,
                 ...JSON.parse(decryptedBody),
+                fromEth: mailEvents[index].returnValues.from,
               };
             } catch (error) {
               console.log(`Failed decrypting mail with hash ${mailEvents[index].returnValues.mailHash}`);
               return {};
             }
           });
-          const newMailsState = [...getState().mails[folder], ...decryptedMails];
+
+          const validateSenderPromises = decryptedMails.map(mail =>
+            new Promise((resolve) => {
+              const mailDomain = mail.from.split('@')[1];
+              return eth.resolveUser(
+                mail.from,
+                mailDomain,
+                mailDomain === getState().config.defaultDomain,
+              )
+                .then((userInfo) => {
+                  if (userInfo.address === mail.fromEth) resolve(mail);
+                  resolve({});
+                });
+            }));
+          return Promise.all(validateSenderPromises);
+        })
+        .then((validatedMails) => {
+          console.log(validatedMails);
+          const newMailsState = [...getState().mails[folder], ...validatedMails];
           dispatch(mailsSuccess(folder, uniqBy(newMailsState, 'threadId'), fromBlock));
         })
         .catch((error) => {
@@ -225,18 +244,29 @@ export const listenForMails = () => (dispatch, getState) => {
             ...mailEvent.returnValues,
             ...JSON.parse(decrypt(keys, mailContent)),
             new: mailType === 'inbox',
+            fromEth: mailEvent.returnValues.from,
           };
 
-          if (mailType === 'inbox') {
-            const mails = [mail, ...getState().mails.inbox];
-            dispatch(newMail('inbox', uniqBy(mails, 'threadId')));
-          } else {
-            const mails = [mail, ...getState().mails.outbox];
-            dispatch(newMail('outbox', uniqBy(mails, 'threadId')));
-          }
-          if (mailEvent.returnValues.threadId === getState().mail.threadId) {
-            dispatch(getThread(mailEvent.returnValues.threadId, 0));
-          }
+          const mailDomain = mail.from.split('@')[1];
+          eth.resolveUser(
+            mail.from,
+            mailDomain,
+            mailDomain === getState().config.defaultDomain,
+          )
+            .then((userInfo) => {
+              if (userInfo.address === mail.fromEth) {
+                if (mailType === 'inbox') {
+                  const mails = [mail, ...getState().mails.inbox];
+                  dispatch(newMail('inbox', uniqBy(mails, 'threadId')));
+                } else {
+                  const mails = [mail, ...getState().mails.outbox];
+                  dispatch(newMail('outbox', uniqBy(mails, 'threadId')));
+                }
+                if (mailEvent.returnValues.threadId === getState().mail.threadId) {
+                  dispatch(getThread(mailEvent.returnValues.threadId, 0));
+                }
+              }
+            });
         } catch (error) {
           console.log(`Failed decrypting mail with hash ${mailEvent.returnValues.mailHash}`);
         }

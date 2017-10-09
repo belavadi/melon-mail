@@ -224,7 +224,6 @@ const _registerUser = (mailAddress, signedString) =>
   });
 
 /* Scans the blockchain to find the public key for a user */
-/* TODO: Should be expanded or wrapped to include fetching keys for users on other domains */
 
 const _getPublicKey = (email, optionalContract) =>
   new Promise((resolve, reject) => {
@@ -244,9 +243,6 @@ const _getPublicKey = (email, optionalContract) =>
             events,
           });
         }
-
-        console.log(events[0]);
-
         return resolve({
           externalMailContract: optionalContract,
           address: events[0].returnValues.addr,
@@ -322,7 +318,10 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
               toBlock: fetchTo,
             })
               .then((events) => {
-                const filteredEvents = uniqBy(events.reverse(), 'returnValues.threadId');
+                const filteredEvents = uniqBy(
+                  events.reverse(),
+                  event => `${event.returnValues.threadId}${event.returnValues.threadId}`,
+                );
                 return resolve({
                   mailEvents: filteredEvents,
                   fromBlock: fetchTo - blocksToFetch,

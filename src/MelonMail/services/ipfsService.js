@@ -4,7 +4,7 @@ const IPFS = require('ipfs');
 const concat = require('concat-stream');
 
 const getMultiaddressString = node =>
-  `/${node.connectionType}/${node.host}/tcp/${node.wsPort}/ws/ipfs/${node.id}`;
+  `/${node.connectionType}/${node.host}/tcp/${node.wsPort}/${node.protocol === 'https' ? 'wss' : 'wss'}/ipfs/${node.id}`;
 
 const getGatewayAddressString = node =>
   `${node.protocol}${node.host}:${node.gatewayPort}`;
