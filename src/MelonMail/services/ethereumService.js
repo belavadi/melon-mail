@@ -14,6 +14,7 @@ const networks = {
   4: 'rinkeby',
   2: 'morden',
   1: 'mainnet',
+};
 
 executeWhenReady(() => {
   try {
