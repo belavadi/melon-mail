@@ -130,7 +130,7 @@
       height: 50px;
       letter-spacing: 1px;
 
-      &:not(.disabled):before {
+      &:not(.loading):before {
         display: inline-block;
         content: '';
         width: 22px;

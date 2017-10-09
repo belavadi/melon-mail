@@ -47,6 +47,10 @@
       border-bottom: 1px solid $borderColor;
       color: #4E4E4E;
       font-size: 17px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       i {
         margin-right: 5px;
       }
