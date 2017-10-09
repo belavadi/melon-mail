@@ -10,6 +10,7 @@ let mailContract;
 
 const networks = {
   3: 'ropsten',
+  4: 'rinkeby',
 };
 
 executeWhenReady(() => {
