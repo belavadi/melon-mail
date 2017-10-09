@@ -380,33 +380,39 @@ const getThread = (threadId, afterBlock) =>
 
 const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContract) =>
   new Promise((resolve, reject) => {
-    if (externalMailContract !== undefined) {
-      externalMailContract.sendExternalEmail(
-        externalMailContract.options.address,
-        toAddress,
-        mailHash,
-        threadHash,
-        threadId,
-        (error, result) => {
-          if (error) {
-            return reject({
-              message: error,
+    getAccount()
+      .then((account) => {
+        if (externalMailContract !== undefined) {
+          externalMailContract.sendExternalEmail(
+            externalMailContract.options.address,
+            toAddress,
+            mailHash,
+            threadHash,
+            threadId,
+            { from: account },
+            (error, result) => {
+              if (error) {
+                return reject({
+                  message: error,
+                });
+              }
+
+              return resolve(result);
             });
-          }
+        }
 
-          return resolve(result);
-        });
-    }
 
-    mailContract.sendEmail(toAddress, mailHash, threadHash, threadId, (error, result) => {
-      if (error) {
-        return reject({
-          message: error,
-        });
-      }
+        mailContract.sendEmail(toAddress, mailHash, threadHash, threadId,
+          { from: account }, (error, result) => {
+            if (error) {
+              return reject({
+                message: error,
+              });
+            }
 
-      return resolve(result);
-    });
+            return resolve(result);
+          });
+      });
   });
 
 const signIn = mail => new Promise((resolve, reject) => {
