@@ -10,6 +10,10 @@ let mailContract;
 
 const networks = {
   3: 'ropsten',
+  42: 'kovan',
+  4: 'rinkeby',
+  2: 'morden',
+  1: 'mainnet',
 };
 
 executeWhenReady(() => {
@@ -34,6 +38,7 @@ const getWeb3Status = () =>
     }
 
     return web3.version.getNetwork((err, networkId) => {
+      console.log(networkId);
       if (networks[networkId] !== config.network) {
         return reject({
           message: 'WRONG_NETWORK',
@@ -190,6 +195,7 @@ const _registerUser = (mailAddress, signedString) =>
             message: 'Account not found.',
           });
         }
+
         return mailContract.registerUser(
           web3.sha3(mailAddress),
           encrypt({ privateKey, publicKey }, mailAddress),
