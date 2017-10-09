@@ -85,8 +85,6 @@ const checkRegistration = () =>
         });
       }
 
-      console.log(account);
-
       return mailContract.UserRegistered(
         {
           addr: account,
@@ -103,7 +101,7 @@ const checkRegistration = () =>
             });
           }
 
-          console.log('Registration ', events);
+          console.log(events);
 
           if (!events.length) {
             return reject({
@@ -246,8 +244,6 @@ const _getPublicKey = (email, optionalContract) =>
       },
     )
       .get((err, events) => {
-        console.log('getPubKey ', events);
-
         if (!events.length) {
           return reject({
             message: 'User not found!',
@@ -294,7 +290,6 @@ const listenForMails = callback =>
 
               callback(events, 'inbox');
             });
-
 
           mailContract.EmailSent(
             {
@@ -344,11 +339,11 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
                   fromBlock: fetchTo - blocksToFetch,
                 });
               });
-          // .catch((error) => {
-          //   reject({
-          //     message: error,
-          //   });
-          // });
+            // .catch((error) => {
+            //   reject({
+            //     message: error,
+            //   });
+            // });
           });
       });
   });
@@ -402,7 +397,6 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
               return resolve(result);
             });
         }
-
 
         mailContract.sendEmail(toAddress, mailHash, threadHash, threadId,
           { from: account }, (error, result) => {
@@ -532,15 +526,19 @@ const getContactsForUser = userHash =>
 
 const getResolverForDomain = domain =>
   new Promise((resolve, reject) => {
-    const ens = new ENS({ provider: web3.currentProvider, network: '3' });
-    ens.registry.resolver(namehash(domain), (error, address) => {
-      if (error) {
-        return reject({
-          message: error,
+    getAccount()
+      .then((account) => {
+        const ens = new ENS({ provider: web3.currentProvider, registryAddress: '0xe7410170f87102df0055eb195163a03b7f2bff4a' });
+        console.log(ens);
+        ens.registry.resolver(namehash(domain), { from: account }, (error, address) => {
+          if (error) {
+            return reject({
+              message: error,
+            });
+          }
+          return resolve(address[0]);
         });
-      }
-      return resolve(address[0]);
-    });
+      });
   });
 
 /* Returns address of contract on MX record of given domain on given resolver */
@@ -549,20 +547,18 @@ const resolveMx = (resolverAddr, domain) =>
   new Promise((resolve, reject) => {
     getAccount()
       .then((account) => {
-        const mxResolverContract = new web3.eth.Contract(config.mxResolverAbi, resolverAddr, {
-          from: account,
-        });
-        mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID)
-          .call((err, res) => {
-            if (err) reject(err);
-            if (!res) reject(false);
+        console.log(resolverAddr);
+        const mxResolverContract = web3.eth.contract(config.mxResolverAbi).at(resolverAddr);
+        console.log(mxResolverContract);
+        mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID, { from: account }, (err, res) => {
+          if (err) reject(err);
+          if (!res) reject(false);
 
-            mxResolverContract.MX(namehash(domain))
-              .call((errMx, mailContractAddr) => {
-                if (errMx) reject(errMx);
-                resolve(mailContractAddr);
-              });
+          mxResolverContract.mx(namehash(domain), { from: account }, (errMx, mailContractAddr) => {
+            if (errMx) reject(errMx);
+            resolve(mailContractAddr);
           });
+        });
       });
   });
 
@@ -596,11 +592,7 @@ const getMailContract = domain =>
       .then((resolvedMailContractAddr) => {
         getAccount()
           .then((account) => {
-            const resolvedMailContract = new web3.eth.Contract(
-              config.abi,
-              resolvedMailContractAddr, {
-                from: account,
-              });
+            const resolvedMailContract = web3.eth.contract(config.abi).at(resolvedMailContractAddr);
             resolve(resolvedMailContract);
           });
       })

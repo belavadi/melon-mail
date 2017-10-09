@@ -28,7 +28,7 @@ export const namehash = (name) => {
   if (name !== '') {
     const labels = name.split('.');
     for (let i = labels.length - 1; i >= 0; i -= 1) {
-      node = web3.utils.sha3(node + web3.utils.sha3(labels[i]).slice(2), { encoding: 'hex' });
+      node = web3.sha3(node + web3.sha3(labels[i]).slice(2), { encoding: 'hex' });
     }
   }
   return node.toString();
