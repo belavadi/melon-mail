@@ -201,12 +201,13 @@ export const getMails = folder => (dispatch, getState) => {
               return eth.resolveUser(
                 mail.from,
                 mailDomain,
-                mailDomain === getState().config.defaultDomain,
+                mailDomain !== getState().config.defaultDomain,
               )
                 .then((userInfo) => {
                   if (userInfo.address === mail.fromEth) resolve(mail);
                   resolve({});
-                });
+                })
+                .catch(err => resolve({}));
             }));
           return Promise.all(validateSenderPromises);
         })
