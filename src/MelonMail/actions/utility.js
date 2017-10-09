@@ -1,5 +1,6 @@
 import union from 'lodash/union';
 import uniq from 'lodash/uniq';
+import isEqual from 'lodash/isEqual';
 import sha3 from 'solidity-sha3';
 
 import eth from '../services/ethereumService';
@@ -99,7 +100,6 @@ export const backupContacts = () => (dispatch, getState) => {
     privateKey: getState().user.privateKey,
   };
 
-
   fetchContacts(currUserHash, keys, 'inbox')
     .then((inboxMails) => {
       fetchContacts(currUserHash, keys, 'outbox')
@@ -151,9 +151,10 @@ export const backupContacts = () => (dispatch, getState) => {
                   const joinedContacts = union(storedContacts.contacts,
                     JSON.parse(decryptedContacts).contacts);
 
+
                   // only write to ipfs if we have some new data and add it to the list of contacts
-                  if (joinedContacts.toString() !==
-                  JSON.parse(decryptedContacts).contacts.toString()) {
+                  if (!isEqual(joinedContacts.sort(),
+                    JSON.parse(decryptedContacts).contacts.sort())) {
                     const updatedContacts = encrypt(keys,
                       JSON.stringify({ contacts: joinedContacts }));
 
