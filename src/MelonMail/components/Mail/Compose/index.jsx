@@ -199,7 +199,7 @@ class Compose extends Component {
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
     const domain = this.state.to.split('@')[1];
-    const isExternalMail = domain === this.props.config.defaultDomain;
+    const isExternalMail = domain !== this.props.config.defaultDomain;
     console.log(isExternalMail, this.state.to.split('@')[1]);
 
     if (fileTooLarge.length > 0) {
