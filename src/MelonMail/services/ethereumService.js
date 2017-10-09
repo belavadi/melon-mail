@@ -18,7 +18,6 @@ const networks = {
 
 executeWhenReady(() => {
   try {
-    // window.web3 = new Web3(web3.currentProvider);
     web3.eth.getAccounts(() => {
       console.log(web3);
 
@@ -44,8 +43,6 @@ const getWeb3Status = () =>
           message: 'WRONG_NETWORK',
         });
       }
-
-      console.log('Web3 status');
 
       return resolve();
     });
@@ -88,6 +85,8 @@ const checkRegistration = () =>
         });
       }
 
+      console.log(account);
+
       return mailContract.UserRegistered(
         {
           addr: account,
@@ -104,7 +103,7 @@ const checkRegistration = () =>
             });
           }
 
-          console.log(events);
+          console.log('Registration ', events);
 
           if (!events.length) {
             return reject({
@@ -247,6 +246,8 @@ const _getPublicKey = (email, optionalContract) =>
       },
     )
       .get((err, events) => {
+        console.log('getPubKey ', events);
+
         if (!events.length) {
           return reject({
             message: 'User not found!',
@@ -318,37 +319,38 @@ const listenForMails = callback =>
 const getMails = (folder, fetchToBlock, blocksToFetch) =>
   new Promise((resolve, reject) => {
     console.log(`Fetching emails with batch size of ${blocksToFetch} blocks`);
-    getAccount((account) => {
-      if (!account) {
-        return reject({
-          message: 'Account not found.',
-        });
-      }
-      return getBlockNumber()
-        .then((currentBlock) => {
-          const filter = folder === 'inbox' ? { to: account } : { from: account };
-          const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
-          mailContract.EmailSent(
-            filter,
-            {
-              fromBlock: fetchTo - blocksToFetch,
-              toBlock: fetchTo,
-            },
-          )
-            .get((err, events) => {
-              const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
-              return resolve({
-                mailEvents: filteredEvents,
+    getAccount()
+      .then((account) => {
+        if (!account) {
+          return reject({
+            message: 'Account not found.',
+          });
+        }
+        return getBlockNumber()
+          .then((currentBlock) => {
+            const filter = folder === 'inbox' ? { to: account } : { from: account };
+            const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
+            mailContract.EmailSent(
+              filter,
+              {
                 fromBlock: fetchTo - blocksToFetch,
+                toBlock: fetchTo,
+              },
+            )
+              .get((err, events) => {
+                const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
+                return resolve({
+                  mailEvents: filteredEvents,
+                  fromBlock: fetchTo - blocksToFetch,
+                });
               });
-            });
           // .catch((error) => {
           //   reject({
           //     message: error,
           //   });
           // });
-        });
-    });
+          });
+      });
   });
 
 const getThread = (threadId, afterBlock) =>
