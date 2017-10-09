@@ -218,7 +218,7 @@ class Compose extends Component {
 
     this.props.sendRequest('Fetching public key...');
 
-    eth.resolveUser(this.state.to)
+    eth.resolveUser(this.state.to, domain, isExternalMail)
       .then((data) => {
         if (this.props.user.contacts.indexOf(this.state.to) === -1) {
           this.props.contactsSuccess([
