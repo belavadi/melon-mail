@@ -60,7 +60,7 @@ const fetchContacts = (currUserHash, keys, type) =>
     eth.fetchAllEvents(type)
       .then((inboxEvents) => {
         const allEvents = uniq([
-          ...inboxEvents.map(event => event.returnValues.mailHash),
+          ...inboxEvents.map(event => event.args.mailHash),
         ]);
 
         const ipfsPromises = allEvents.map(hash => ipfs.getFileContent(hash));
