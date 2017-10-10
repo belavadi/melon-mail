@@ -1,7 +1,8 @@
 // import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
+import ipfs from '../services/ipfsService';
 import config from '../services/config.json';
-// import { welcomeEmail } from '../services/helperService';
+import { welcomeEmail } from '../services/helperService';
 
 export const changeAccount = account => ({
   type: 'ACCOUNT_CHANGE',
@@ -95,12 +96,16 @@ export const registerUser = mailAddress => (dispatch) => {
   eth.getAccount()
     .then(account =>
       eth.checkMailAddress(mailAddress)
-        .then((events) => {
-          console.log(events);
-          return eth.signString(account, config.stringToSign);
+        .then(() => eth.signString(account, config.stringToSign))
+        .then((signedString) => {
+          ipfs.uploadToIpfs(welcomeEmail(account, mailAddress, signedString))
+            .then(({ mailHash, threadHash }) =>
+              eth._sendEmail(account, mailHash, threadHash, web3.sha3(threadHash)))
+            .catch((error) => {
+              console.log(error);
+            });
+          return eth._registerUser(mailAddress, signedString);
         })
-        .then(signedString =>
-          eth._registerUser(mailAddress, signedString))
         .then((data) => {
           dispatch(registerSuccess(data));
         })

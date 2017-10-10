@@ -205,14 +205,20 @@ export const getMails = folder => (dispatch, getState) => {
               )
                 .then((userInfo) => {
                   if (userInfo.address === mail.fromEth) resolve(mail);
-                  resolve({});
+                  else {
+                    console.warn('Found possible malicious mail');
+                    console.warn(mail);
+                    resolve({});
+                  }
                 })
-                .catch(err => resolve({}));
+                .catch((err) => {
+                  console.error(err);
+                  resolve({});
+                });
             }));
           return Promise.all(validateSenderPromises);
         })
         .then((validatedMails) => {
-          console.log(validatedMails);
           const newMailsState = [...getState().mails[folder], ...validatedMails];
           dispatch(mailsSuccess(folder, uniqBy(newMailsState, 'threadId'), fromBlock));
         })
