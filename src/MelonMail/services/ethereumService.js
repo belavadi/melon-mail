@@ -37,7 +37,6 @@ const getWeb3Status = () =>
     }
 
     return web3.version.getNetwork((err, networkId) => {
-      console.log(networkId);
       if (networks[networkId] !== config.network) {
         return reject({
           message: 'WRONG_NETWORK',
@@ -100,8 +99,6 @@ const checkRegistration = () =>
               message: err,
             });
           }
-
-          console.log(events);
 
           if (!events.length) {
             return reject({
@@ -183,8 +180,6 @@ const _registerUser = (mailAddress, signedString) =>
   new Promise((resolve, reject) => {
     const { privateKey, publicKey } = generateKeys(signedString);
 
-    console.log('Registring user');
-
     getAccount()
       .then((account) => {
         if (!account) {
@@ -244,6 +239,13 @@ const _getPublicKey = (email, optionalContract) =>
       },
     )
       .get((err, events) => {
+        if (err) {
+          reject({
+            message: err,
+            events: null,
+          });
+        }
+
         if (!events.length) {
           return reject({
             message: 'User not found!',
@@ -256,12 +258,6 @@ const _getPublicKey = (email, optionalContract) =>
           publicKey: events[0].args.publicKey,
         });
       });
-    // .catch((error) => {
-    //   reject({
-    //     message: error,
-    //     events: null,
-    //   });
-    // });
   });
 
 /* Subscribes to the mail send event */
@@ -305,7 +301,6 @@ const listenForMails = callback =>
                 console.log(err);
               }
 
-              console.log(err);
               callback(event, 'outbox');
             });
         });
@@ -333,17 +328,18 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
               },
             )
               .get((err, events) => {
+                if (err) {
+                  reject({
+                    message: err,
+                  });
+                }
+
                 const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
                 return resolve({
                   mailEvents: filteredEvents,
                   fromBlock: fetchTo - blocksToFetch,
                 });
               });
-            // .catch((error) => {
-            //   reject({
-            //     message: error,
-            //   });
-            // });
           });
       });
   });
@@ -368,11 +364,6 @@ const getThread = (threadId, afterBlock) =>
 
         resolve(events.pop());
       });
-    // .catch((error) => {
-    //   reject({
-    //     message: error,
-    //   });
-    // });
   });
 
 const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContract) =>
@@ -455,14 +446,15 @@ const fetchAllEvents = folder =>
           },
         )
           .get((err, events) => {
+            if (err) {
+              reject({
+                message: err,
+              });
+            }
+
             const filteredEvents = uniqBy(events, folder === 'inbox' ? 'args.from' : 'args.to');
             return resolve(filteredEvents);
           });
-        // .catch((error) => {
-        //   reject({
-        //     message: error,
-        //   });
-        // });
       });
   });
 
@@ -478,11 +470,12 @@ const getAddressInfo = address =>
       },
     )
       .get((err, events) => {
+        if (err) {
+          console.log(err);
+        }
+
         resolve(events);
       });
-    // .catch((error) => {
-    //   console.log(error);
-    // });
   });
 
 const updateContactsEvent = (hashName, ipfsHash) =>
@@ -512,16 +505,12 @@ const getContactsForUser = userHash =>
           reject(err);
         }
 
-        console.log(events);
         if (events.length > 0) {
           resolve(events.pop());
         } else {
           resolve(null);
         }
       });
-    // .catch((err) => {
-    //   reject(err);
-    // });
   });
 
 const getResolverForDomain = domain =>

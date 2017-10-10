@@ -228,15 +228,10 @@ export const getMails = folder => (dispatch, getState) => {
 };
 
 export const listenForMails = () => (dispatch, getState) => {
-  console.log('Listening for mail');
   eth.listenForMails((mailEvent, mailType) => {
-    console.log('MAIL  ', mailEvent);
-
     if (!mailEvent) {
       return;
     }
-
-    console.log(mailEvent);
 
     ipfs.getFileContent(mailEvent.args.mailHash)
       .then((ipfsContent) => {
