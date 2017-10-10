@@ -5,7 +5,7 @@ import './AbstractENS.sol';
 /**
  * ENS resolver that supports MX records for decentralized mail systems.
  */
-contract Resolver {
+contract PublicMxResolver {
     bytes4 constant INTERFACE_META_ID = 0x01ffc9a7;
     bytes4 constant ADDR_INTERFACE_ID = 0x3b3b57de;
     bytes4 constant CONTENT_INTERFACE_ID = 0xd8389dc5;
@@ -13,7 +13,7 @@ contract Resolver {
     bytes4 constant ABI_INTERFACE_ID = 0x2203ab56;
     bytes4 constant PUBKEY_INTERFACE_ID = 0xc8690233;
     bytes4 constant TEXT_INTERFACE_ID = 0x59d1d43c;
-    bytes4 constant MX_INTERFACE_ID = 0x59d1d43c; // interface id same as text interface, mx interface id will be generated
+    bytes4 constant MX_INTERFACE_ID = 0x7d753cf6;
 
     event AddrChanged(bytes32 indexed node, address a);
     event ContentChanged(bytes32 indexed node, bytes32 hash);
@@ -50,7 +50,7 @@ contract Resolver {
      * Constructor.
      * @param ensAddr The ENS registrar contract.
      */
-    function PublicResolver(AbstractENS ensAddr) {
+    function PublicMxResolver(AbstractENS ensAddr) {
         ens = ensAddr;
     }
 
