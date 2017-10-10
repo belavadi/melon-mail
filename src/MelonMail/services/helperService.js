@@ -37,7 +37,7 @@ export const namehash = (name) => {
 export const welcomeEmail = (to, username, signedString) => {
   const keys = generateKeys(signedString);
   const encryptedData = encrypt(keys, JSON.stringify({
-    from: 'noreply@melonmail.eth',
+    from: username,
     to: username,
     subject: 'Welcome to Melon Mail',
     body: '<h1>Welcome</h1><p>To get started try sending an email!</p>',

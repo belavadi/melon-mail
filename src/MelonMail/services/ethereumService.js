@@ -19,8 +19,6 @@ const networks = {
 executeWhenReady(() => {
   try {
     web3.eth.getAccounts(() => {
-      console.log(web3);
-
       mailContract = web3.eth.contract(config.abi).at(config.contractAddress);
     });
   } catch (e) {
@@ -37,7 +35,6 @@ const getWeb3Status = () =>
     }
 
     return web3.version.getNetwork((err, networkId) => {
-      console.log(networkId);
       if (networks[networkId] !== config.network) {
         return reject({
           message: 'WRONG_NETWORK',
@@ -100,8 +97,6 @@ const checkRegistration = () =>
               message: err,
             });
           }
-
-          console.log(events);
 
           if (!events.length) {
             return reject({
@@ -283,12 +278,9 @@ const listenForMails = callback =>
               toBlock: 'latest',
             },
           )
-            .watch((err, events) => {
-              if (err) {
-                console.log(err);
-              }
-
-              callback(events, 'inbox');
+            .watch((err, event) => {
+              if (err) console.log(err);
+              else callback(event, 'inbox');
             });
 
           mailContract.EmailSent(
@@ -301,12 +293,8 @@ const listenForMails = callback =>
             },
           )
             .watch((err, event) => {
-              if (err) {
-                console.log(err);
-              }
-
-              console.log(err);
-              callback(event, 'outbox');
+              if (err) console.log(err);
+              else callback(event, 'outbox');
             });
         });
     });
@@ -512,7 +500,6 @@ const getContactsForUser = userHash =>
           reject(err);
         }
 
-        console.log(events);
         if (events.length > 0) {
           resolve(events.pop());
         } else {
@@ -530,7 +517,6 @@ const getResolverForDomain = domain =>
       provider: web3.currentProvider,
       registryAddress: '0xe7410170f87102df0055eb195163a03b7f2bff4a',
     });
-    console.log(ens);
     ens.registry.resolver(namehash(domain), (error, address) => {
       if (error) {
         return reject({
@@ -548,7 +534,6 @@ const resolveMx = (resolverAddr, domain) =>
     getAccount()
       .then((account) => {
         const mxResolverContract = web3.eth.contract(config.mxResolverAbi).at(resolverAddr);
-        console.log(mxResolverContract);
         mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID, { from: account }, (err, res) => {
           if (err) reject(err);
           if (!res) reject(false);
@@ -589,11 +574,8 @@ const getMailContract = domain =>
     getResolverForDomain(domain)
       .then(resolverAddr => resolveMx(resolverAddr, domain))
       .then((resolvedMailContractAddr) => {
-        getAccount()
-          .then((account) => {
-            const resolvedMailContract = web3.eth.contract(config.abi).at(resolvedMailContractAddr);
-            resolve(resolvedMailContract);
-          });
+        const resolvedMailContract = web3.eth.contract(config.abi).at(resolvedMailContractAddr);
+        resolve(resolvedMailContract);
       })
       .catch(err => reject(err));
   });
