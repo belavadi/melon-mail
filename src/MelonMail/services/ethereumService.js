@@ -364,7 +364,7 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
       .then((account) => {
         if (externalMailContract !== undefined) {
           externalMailContract.sendExternalEmail(
-            externalMailContract.options.address,
+            externalMailContract.address,
             toAddress,
             mailHash,
             threadHash,

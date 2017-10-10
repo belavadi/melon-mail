@@ -171,7 +171,10 @@ class Compose extends Component {
   }
 
   checkRecipient() {
-    eth._getPublicKey(this.state.to.toLowerCase().trim())
+    const username = this.state.to.toLowerCase().trim();
+    const domain = username.split('@')[1];
+    const isExternalMail = domain !== this.props.config.defaultDomain;
+    eth.resolveUser(username, domain, isExternalMail)
       .then(() => {
         this.setState({ recipientExists: 'true' });
       })
