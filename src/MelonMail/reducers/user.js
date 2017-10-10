@@ -12,6 +12,8 @@ export default (state = {
   startingBlock: 0,
   balance: 0,
   contacts: [],
+  backupDone: false,
+  backupAlreadyDone: false,
 }, action) => {
   switch (action.type) {
     case 'REGISTER_REQUEST':
@@ -104,7 +106,24 @@ export default (state = {
     case 'CONTACTS_UPDATE':
       return {
         ...state,
+        backupDone: true,
         contacts: action.contacts,
+      };
+    case 'CONTACTS_IMPORT':
+      return {
+        ...state,
+        contacts: action.contacts,
+      };
+    case 'CONTACTS_BACKUP_ALREADY':
+      return {
+        ...state,
+        backupAlreadyDone: true,
+      };
+    case 'RESET_BACKUP_STATE':
+      return {
+        ...state,
+        backupAlreadyDone: false,
+        backupDone: false,
       };
     default:
       return state;

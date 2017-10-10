@@ -18,8 +18,21 @@ export const contactsUpdated = contacts => ({
   contacts,
 });
 
+export const contactsImport = contacts => ({
+  type: 'CONTACTS_IMPORT',
+  contacts,
+});
+
 export const contactsBackupFailed = () => ({
   type: 'CONTACTS_BACKUP_FAILED',
+});
+
+export const contactsBackupAlready = () => ({
+  type: 'CONTACTS_BACKUP_ALREADY',
+});
+
+export const resetBackupState = () => ({
+  type: 'RESET_BACKUP_STATE',
 });
 
 export const getBalance = () => (dispatch) => {
@@ -93,7 +106,8 @@ const fetchContacts = (currUserHash, keys, type) =>
   });
 
 export const backupContacts = () => (dispatch, getState) => {
-  const currUserHash = sha3(getState().user.mailAddress);
+  const userMail = getState().user.mailAddress;
+  const currUserHash = sha3(userMail);
 
   const keys = {
     publicKey: getState().user.publicKey,
@@ -104,14 +118,16 @@ export const backupContacts = () => (dispatch, getState) => {
     .then((inboxMails) => {
       fetchContacts(currUserHash, keys, 'outbox')
         .then((outboxMails) => {
-          const allMails = uniq([
+          let allMails = uniq([
             ...inboxMails,
             ...outboxMails,
           ]);
 
+          allMails = allMails.filter(m => m !== userMail);
 
           if (allMails.length === 0) {
             console.log('No contact to backup');
+            dispatch(contactsBackupAlready());
             return;
           }
 
@@ -174,6 +190,7 @@ export const backupContacts = () => (dispatch, getState) => {
                       .catch(err => console.log(err));
                   } else {
                     console.log('All contacts already backuped!');
+                    dispatch(contactsBackupAlready());
                   }
                 });
             }
@@ -208,12 +225,16 @@ export const importContacts = () => (dispatch, getState) => {
 
           const decryptedContacts = decrypt(keys, encryptedContacts);
 
-          dispatch(contactsUpdated(JSON.parse(decryptedContacts).contacts));
+          dispatch(contactsImport(JSON.parse(decryptedContacts).contacts));
 
           localStorage.setItem(currUserHash, encryptedContacts);
         });
     }
   });
+};
+
+export const backupProgressReset = () => (dispatch) => {
+  dispatch(resetBackupState());
 };
 
 
