@@ -423,13 +423,13 @@ const signIn = mail => new Promise((resolve, reject) => {
 const fetchAllEvents = folder =>
   new Promise((resolve, reject) => {
     getAccount()
-      .then((accounts) => {
-        if (accounts.length === 0) {
+      .then((account) => {
+        if (!account) {
           return reject({
             message: 'Account not found.',
           });
         }
-        const filter = folder === 'inbox' ? { to: accounts[0] } : { from: accounts[0] };
+        const filter = folder === 'inbox' ? { to: account } : { from: account };
         return mailContract.EmailSent(
           filter,
           {
@@ -472,13 +472,16 @@ const getAddressInfo = address =>
 
 const updateContactsEvent = (hashName, ipfsHash) =>
   new Promise((resolve, reject) => {
-    mailContract.updateContacts(hashName, ipfsHash, (err, resp) => {
-      if (err) {
-        reject(err);
-      }
+    getAccount()
+      .then((account) => {
+        mailContract.updateContacts(hashName, ipfsHash, { from: account }, (err, resp) => {
+          if (err) {
+            reject(err);
+          }
 
-      return resolve(resp);
-    });
+          return resolve(resp);
+        });
+      });
   });
 
 const getContactsForUser = userHash =>
