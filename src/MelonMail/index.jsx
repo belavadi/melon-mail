@@ -19,10 +19,14 @@ class MelonMail extends Component {
 
   componentWillMount() {
     executeWhenReady(() => {
-      window.web3 = new Web3(web3.currentProvider);
-      this.setState({
-        loaded: true,
-      });
+      try {
+        this.setState({
+          loaded: true,
+        });
+        window.web3 = new Web3(web3.currentProvider);
+      } catch (e) {
+        console.log(e);
+      }
     });
   }
 
