@@ -261,7 +261,7 @@ export const listenForMails = () => (dispatch, getState) => {
           eth.resolveUser(
             mail.from,
             mailDomain,
-            mailDomain === getState().config.defaultDomain,
+            mailDomain !== getState().config.defaultDomain,
           )
             .then((userInfo) => {
               if (userInfo.address === mail.fromEth) {
