@@ -18,9 +18,7 @@ const networks = {
 
 executeWhenReady(() => {
   try {
-    web3.eth.getAccounts(() => {
-      mailContract = web3.eth.contract(config.abi).at(config.contractAddress);
-    });
+    mailContract = web3.eth.contract(config.abi).at(config.contractAddress);
   } catch (e) {
     console.log(e);
   }
