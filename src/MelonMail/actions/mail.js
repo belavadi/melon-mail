@@ -197,7 +197,6 @@ export const getMails = folder => (dispatch, getState) => {
 
           const validateSenderPromises = decryptedMails.map(mail =>
             new Promise((resolve) => {
-              console.log(mail);
               if (!mail.from) {
                 resolve({});
               }
