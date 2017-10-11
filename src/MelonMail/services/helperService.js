@@ -39,7 +39,7 @@ export const welcomeEmail = (to, username, signedString) => {
   const encryptedData = encrypt(keys, JSON.stringify({
     from: username,
     to: username,
-    subject: 'Welcome to Melon Mail',
+    subject: 'Welcome to MelonMail',
     body: '<h1>Welcome</h1><p>To get started try sending an email!</p>',
     time: new Date().toString(),
     attachments: [],

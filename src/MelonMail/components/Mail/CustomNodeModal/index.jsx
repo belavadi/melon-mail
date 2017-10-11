@@ -182,21 +182,24 @@ class CustomNodeModal extends Component {
               </Form.Field>
             </Form.Group>
           </Form>
-          { this.state.status }
-          {
-            this.state.status === 'ERROR' &&
-            <span>
-              : {this.state.error}
-            </span>
-          }
-          <Button
-            onClick={this.handleFormSubmit}
-            positive
-            icon="add"
-            content="Add"
-            labelPosition="right"
-            disabled={this.state.status !== '' && this.state.status !== 'ERROR'}
-          />
+          <div className="ipfs-actions-wrapper">
+            { this.state.status }
+            {
+              this.state.status === 'ERROR' &&
+              <span>
+                : {this.state.error}
+              </span>
+            }
+            <Button
+              onClick={this.handleFormSubmit}
+              positive
+              icon="add"
+              content="Add"
+              labelPosition="right"
+              className="pull-right"
+              disabled={this.state.status !== '' && this.state.status !== 'ERROR'}
+            />
+          </div>
           <div className="help-wrapper">
             <h2>Help</h2>
             You can add a custom IPFS node. It will be used to bootstrap the node
@@ -222,6 +225,7 @@ class CustomNodeModal extends Component {
             Note: if the mail service is using https, your nodes must be
             using https (and wss) too. Currently the simplest way to do this is by
             proxying traffic to your IPFS node through nginx or Apache.
+            A more detailed guide can be found <a rel="noopener noreferrer" target="_blank" href="https://ipfs.decenter.com:4443/ipfs/QmVtByCvRQsibrKy6HKtNUnxddJY3H5aVjz2djDQjnsBFz">here</a>.
           </div>
         </Modal.Content>
         {
