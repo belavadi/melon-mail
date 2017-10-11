@@ -511,8 +511,9 @@ const getContactsForUser = userHash =>
 const getResolverForDomain = domain =>
   new Promise((resolve, reject) => {
     const ens = new ENS({
-      provider: web3.currentProvider,
-      registryAddress: '0xe7410170f87102df0055eb195163a03b7f2bff4a',
+      provider: new web3.providers.HttpProvider('http://rinkeby.infura.io'),
+      network: '4',
+      // registryAddress: '0xe7410170f87102df0055eb195163a03b7f2bff4a',
     });
     ens.registry.resolver(namehash(domain), (error, address) => {
       if (error) {
