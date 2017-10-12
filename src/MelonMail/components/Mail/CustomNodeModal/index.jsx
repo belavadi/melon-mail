@@ -225,7 +225,7 @@ class CustomNodeModal extends Component {
             Note: if the mail service is using https, your nodes must be
             using https (and wss) too. Currently the simplest way to do this is by
             proxying traffic to your IPFS node through nginx or Apache.
-            A more detailed guide can be found <a rel="noopener noreferrer" target="_blank" href="https://ipfs.decenter.com:4443/ipfs/QmVtByCvRQsibrKy6HKtNUnxddJY3H5aVjz2djDQjnsBFz">here</a>.
+            A more detailed guide can be found <a rel="noopener noreferrer" target="_blank" href="https://ipfs.decenter.com/ipfs/QmVtByCvRQsibrKy6HKtNUnxddJY3H5aVjz2djDQjnsBFz">here</a>.
           </div>
         </Modal.Content>
         {
