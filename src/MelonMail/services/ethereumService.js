@@ -527,8 +527,6 @@ const getResolverForDomain = domain =>
     });
   });
 
-getResolverForDomain();
-
 /* Returns address of contract on MX record of given domain on given resolver */
 
 const resolveMx = (resolverAddr, domain) =>

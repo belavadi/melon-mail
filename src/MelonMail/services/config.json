@@ -5,6 +5,5 @@
   "network": "kovan",
   "resolverNetwork": "rinkeby",
   "registryAddress": "0xe7410170f87102df0055eb195163a03b7f2bff4a",
-  "domain": "decenter-test.test",
   "stringToSign": "By signing this message you are generating your keys used for encryption."
 }
