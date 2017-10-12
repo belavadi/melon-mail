@@ -11,11 +11,12 @@ export const mailRequest = threadId => ({
   threadId,
 });
 
-export const mailSuccess = (thread, threadHash, threadId) => ({
+export const mailSuccess = (thread, threadHash, threadId, threadTransaction) => ({
   type: 'MAIL_SUCCESS',
   thread,
   threadHash,
   threadId,
+  threadTransaction,
 });
 
 export const mailError = error => ({
@@ -58,7 +59,11 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
                   });
 
                   dispatch(
-                    mailSuccess(decryptedMails, threadEvent.args.threadHash, threadId),
+                    mailSuccess(
+                      decryptedMails,
+                      threadEvent.args.threadHash,
+                      threadId,
+                      threadEvent.transactionHash),
                   );
                 })
                 .catch((error) => {
@@ -237,6 +242,7 @@ export const getMails = folder => (dispatch, getState) => {
 };
 
 export const listenForMails = () => (dispatch, getState) => {
+  console.log('LISTENING');
   eth.listenForMails((mailEvent, mailType) => {
     if (!mailEvent) {
       return;

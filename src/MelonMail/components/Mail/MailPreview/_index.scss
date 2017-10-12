@@ -16,6 +16,14 @@
     }
 
     .thread-wrapper {
+      .thread-meta {
+        margin-bottom: 40px;
+        text-align: right;
+        a {
+          color: #4E4E4E;
+        }
+      }
+
       .mail-wrapper {
         padding: 40px;
         border: 1px solid $borderColor;
@@ -54,6 +62,10 @@
           .date {
             float: right;
             color: #B9B9B9;
+            a {
+              color: inherit;
+              margin-right: 10px;
+            }
           }
         }
 

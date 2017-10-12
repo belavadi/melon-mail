@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Button, Loader } from 'semantic-ui-react';
+import { Button, Loader, Icon } from 'semantic-ui-react';
 
 import * as composeActions from '../../../actions/compose';
 import { downloadAttachment } from '../../../actions/mail';
@@ -60,6 +60,29 @@ class MailPreview extends Component {
             !this.props.mail.isFetching &&
             this.props.mail.thread.length > 0 &&
             <div className="thread-wrapper">
+              <div className="thread-meta">
+                <Button.Group basic>
+                  <Button>
+                    <a
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      href={`https://kovan.etherscan.io/tx/${this.props.mail.threadTransaction}`}
+                    >
+                      <Icon name="chain" /> Thread transaction
+                      {/* {this.props.mail.threadTransaction} */}
+                    </a>
+                  </Button>
+                  <Button>
+                    <a
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      href={`https://ipfs.decenter.com/api/v0/object/get?arg=${this.props.mail.threadHash}`}
+                    >
+                      <Icon name="cloud" /> Thread on IPFS
+                    </a>
+                  </Button>
+                </Button.Group>
+              </div>
               {this.props.mail.thread.map((mail, mailIndex) => (
                 mail.hash &&
                 <div className="mail-wrapper" key={mail.hash}>
@@ -81,7 +104,17 @@ class MailPreview extends Component {
                     </div>
                   </div>
                   <div className="meta">
-                    <span className="date">{formatDate(Date.parse(mail.time))}</span>
+                    <span className="date">
+                      <a
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        href={`https://ipfs.decenter.com/api/v0/cat?arg=${mail.hash}`}
+                        title="Encrypted mail content on IPFS"
+                      >
+                        <Icon name="cloud" />
+                      </a>
+                      {formatDate(Date.parse(mail.time))}
+                    </span>
                     <span className="from">
                       From <span className="from">{
                         mail.from !== this.props.user.mailAddress ?
@@ -170,6 +203,8 @@ MailPreview.propTypes = {
     isFetching: PropTypes.bool,
     thread: PropTypes.array,
     threadId: PropTypes.string,
+    threadHash: PropTypes.string,
+    threadTransaction: PropTypes.string,
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     attachments: PropTypes.array,
     showSendConfirmation: PropTypes.bool.isRequired,
