@@ -21,6 +21,7 @@ export default (state = {
         thread: action.thread,
         threadId: action.threadId,
         threadHash: action.threadHash,
+        threadTransaction: action.threadTransaction,
       };
     case 'MAIL_ERROR':
       return {
