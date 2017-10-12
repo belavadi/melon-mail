@@ -11,9 +11,15 @@
     padding: 10px 0;
   }
 
+  .ipfs-actions-wrapper {
+    height: 36px;
+    line-height: 36px;
+  }
+
   .help-wrapper {
     text-align: left;
     line-height: 1.5em;
+    margin-top: 1.5em;
     code {
       background-color: rgba(255, 214, 107, 0.41);
       color: #755728;

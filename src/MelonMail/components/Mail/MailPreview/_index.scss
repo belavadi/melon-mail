@@ -17,31 +17,43 @@
 
     .thread-wrapper {
       .mail-wrapper {
-        padding-bottom: 40px;
+        padding: 40px;
+        border: 1px solid $borderColor;
+        margin-bottom: 40px;
         .title-wrapper {
-          padding: 0 0 14px;
-          border-bottom: 1px solid $borderColor;
-          margin-bottom: 14px;
+          display: flex;
+          width: 100%;
 
           h1 {
             display: inline-block;
             font-size: 36px;
             font-weight: 300;
+            flex-grow: 1;
           }
-          span {
-            float: right;
-            color: #B9B9B9;
-            line-height: 50px;
-            font-size: 16px;
+
+          .mail-actions {
+            display: block;
+            flex-grow: 0;
+            flex-shrink: 0;
           }
         }
 
         .meta {
+          clear: both;
           padding: 10px 0;
           color: #C1C1C1;
-          span {
-            color: $textColor;
-            margin: 0 5px;
+          border-bottom: 1px solid $borderColor;
+
+          .from {
+            span {
+              color: $textColor;
+              margin: 0 5px;
+            }
+          }
+
+          .date {
+            float: right;
+            color: #B9B9B9;
           }
         }
 
@@ -114,10 +126,6 @@
             }
 
           }
-        }
-
-        .mail-actions {
-          margin-top: 40px;
         }
       }
     }

@@ -18,6 +18,16 @@ class MailPreview extends Component {
     this.state = {};
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.mail.thread.length !== 0 &&
+      (prevProps.mail.threadId !== this.props.mail.threadId ||
+       prevProps.mail.thread.length !== this.props.mail.thread.length)
+    ) {
+      const mailWrappers = document.querySelectorAll('.mail-wrapper');
+      document.querySelector('.mail-preview').scrollTop = mailWrappers[mailWrappers.length - 1].offsetTop - 40;
+    }
+  }
+
   compose(special, mailIndex) {
     this.props.openCompose({
       type: special,
@@ -54,18 +64,34 @@ class MailPreview extends Component {
                 mail.hash &&
                 <div className="mail-wrapper" key={mail.hash}>
                   <div className="title-wrapper">
-                    <span>{formatDate(Date.parse(mail.time))}</span>
                     <h1>{mail.subject}</h1>
+                    <div className="mail-actions">
+                      <Button.Group basic>
+                        <Button
+                          icon="reply"
+                          content="Reply"
+                          onClick={() => this.compose('reply', mailIndex)}
+                        />
+                        <Button
+                          icon="mail forward"
+                          content="Forward"
+                          onClick={() => this.compose('forward', mailIndex)}
+                        />
+                      </Button.Group>
+                    </div>
                   </div>
                   <div className="meta">
-                    From <span className="from">{
-                      mail.from !== this.props.user.mailAddress ?
-                        mail.from : 'Me'
-                    } </span>
-                    to <span className="to">{
-                      mail.to !== this.props.user.mailAddress ?
-                        mail.to : 'Me'
-                    } </span>
+                    <span className="date">{formatDate(Date.parse(mail.time))}</span>
+                    <span className="from">
+                      From <span className="from">{
+                        mail.from !== this.props.user.mailAddress ?
+                          mail.from : 'Me'
+                      } </span>
+                      to <span className="to">{
+                        mail.to !== this.props.user.mailAddress ?
+                          mail.to : 'Me'
+                      } </span>
+                    </span>
                   </div>
                   <div>
                     <div className="mail-body">
@@ -107,20 +133,6 @@ class MailPreview extends Component {
                       }
                     </div>
                   </div>
-                  <div className="mail-actions">
-                    <Button.Group basic>
-                      <Button
-                        icon="reply"
-                        content="Reply"
-                        onClick={() => this.compose('reply', mailIndex)}
-                      />
-                      <Button
-                        icon="mail forward"
-                        content="Forward"
-                        onClick={() => this.compose('forward', mailIndex)}
-                      />
-                    </Button.Group>
-                  </div>
                 </div>
               ))}
             </div>
@@ -157,6 +169,7 @@ MailPreview.propTypes = {
   mail: PropTypes.shape({
     isFetching: PropTypes.bool,
     thread: PropTypes.array,
+    threadId: PropTypes.string,
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     attachments: PropTypes.array,
     showSendConfirmation: PropTypes.bool.isRequired,
