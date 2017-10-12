@@ -9,9 +9,8 @@ const config = {
     './src/',
   ],
   output: {
-    path: path.join(__dirname, './public/web/dist'),
+    path: path.join(__dirname, './public/dist'),
     filename: 'bundle.js',
-    publicPath: 'web/dist/',
   },
   resolve: {
     extensions: ['.jsx', '.js', '.scss', '.eot', '.svg', '.ttf', '.woff', '.woff2', '.png', '.jpg'],
@@ -65,7 +64,7 @@ const config = {
             options: {
               limit: 10000,
               mimetype: 'application/font-woff',
-              name: 'fonts/[name].[ext]',
+              name: './fonts/[name].[ext]',
             },
           },
         ],
@@ -87,16 +86,14 @@ const config = {
     new UglifyJsPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.HotModuleReplacementPlugin(),
-    new ExtractTextPlugin(
-      {
-        filename: 'style.css',
-        allChunks: true,
-      },
-    ),
+    new ExtractTextPlugin({
+      filename: 'style.css',
+      allChunks: true,
+    }),
     new HtmlWebpackPlugin({
       inject: true,
       template: 'src/index.html',
-      filename: '../../index.html',
+      filename: '../index.html',
     }),
     new webpack.DefinePlugin({
       'process.env': {
