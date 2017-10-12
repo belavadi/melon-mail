@@ -40,15 +40,27 @@
   }
   .info {
     flex-grow: 1;
+    max-width: calc(100% - 40px);
 
-    .mail-title {
-      font-size: 24px;
-      margin: 0 0 10px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      line-height: 24px;
+    .title-wrapper {
+      display: flex;
+      width: 100%;
+      .mail-title {
+        font-size: 24px;
+        margin: 0 0 10px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        line-height: 24px;
+        flex-grow: 1;
+      }
+      .time {
+        opacity: .5;
+        white-space: nowrap;
+        padding-left: 10px;
+      }
     }
+
     .from, .to {
       font-size: 16px;
       margin: 10px 0;
@@ -56,10 +68,6 @@
       text-overflow: ellipsis;
       overflow: hidden;
       opacity: .85;
-    }
-    .time {
-      float: right;
-      opacity: .5;
     }
     .content {
       margin-top: 10px;

@@ -2,6 +2,8 @@
 
 .compose-wrapper {
   background-color: white;
+  padding: 40px;
+  border: 1px solid $borderColor;
 
   .inputs-wrapper {
     .ui.input,
@@ -22,7 +24,7 @@
       box-shadow: 0 0 1px 1px rgba(white, 0);
       transition: all .2s;
       font-size: 16px;
-      margin-top: 10px;
+      margin-bottom: 10px;
       display: block;
       width: 100%;
       &:focus {
@@ -122,7 +124,7 @@
   .compose-footer {
     background-color: white;
     line-height: 60px;
-    padding: 20px 0;
+    padding: 20px 0 0;
 
     .send-button {
       font-weight: normal;

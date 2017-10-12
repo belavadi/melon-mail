@@ -25,9 +25,11 @@ const MailListItem = ({ args, getThread, mails, mail }) => (
       }
     </div>
     <div className="info">
-      <div className="time">{humanizeDate(Date.parse(args.time))}</div>
-      <div className="mail-title">
-        {args.subject}
+      <div className="title-wrapper">
+        <div className="mail-title">
+          {args.subject}
+        </div>
+        <div className="time">{humanizeDate(Date.parse(args.time))}</div>
       </div>
       {
         mails.folder === 'inbox' ?
