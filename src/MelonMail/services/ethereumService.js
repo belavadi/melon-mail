@@ -18,7 +18,7 @@ const networks = {
 
 executeWhenReady(() => {
   try {
-    mailContract = web3.eth.contract(config.abi).at(config.contractAddress);
+    mailContract = web3.eth.contract(config.mailContractAbi).at(config.mailContractAddress);
   } catch (e) {
     console.log(e);
   }
@@ -318,6 +318,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
               },
             )
               .get((err, events) => {
+                console.log(events);
                 if (err) {
                   reject({
                     message: err,
@@ -508,10 +509,13 @@ const getContactsForUser = userHash =>
 
 const getResolverForDomain = domain =>
   new Promise((resolve, reject) => {
+    const provider = config.network === config.resolverNetwork ?
+      web3.currentProvider :
+      new web3.providers.HttpProvider(`http://${config.resolverNetwork}.infura.io`);
     const ens = new ENS({
-      provider: new web3.providers.HttpProvider('http://rinkeby.infura.io'),
-      network: '4',
-      // registryAddress: '0xe7410170f87102df0055eb195163a03b7f2bff4a',
+      provider,
+      network: Object.keys(networks).find(key => networks[key] === config.resolverNetwork),
+      registryAddress: config.registryAddress,
     });
     ens.registry.resolver(namehash(domain), (error, address) => {
       if (error) {
@@ -522,6 +526,8 @@ const getResolverForDomain = domain =>
       return resolve(address[0]);
     });
   });
+
+getResolverForDomain();
 
 /* Returns address of contract on MX record of given domain on given resolver */
 
@@ -570,7 +576,8 @@ const getMailContract = domain =>
     getResolverForDomain(domain)
       .then(resolverAddr => resolveMx(resolverAddr, domain))
       .then((resolvedMailContractAddr) => {
-        const resolvedMailContract = web3.eth.contract(config.abi).at(resolvedMailContractAddr);
+        const resolvedMailContract = web3.eth.contract(config.mailContractAbi)
+          .at(resolvedMailContractAddr);
         resolve(resolvedMailContract);
       })
       .catch(err => reject(err));
@@ -583,7 +590,7 @@ const resolveUser = (email, domain, isExternalMail) => {
 
   return getMailContract(domain)
     .then((resolvedMailContract) => {
-      if (resolvedMailContract === config.contractAddress) {
+      if (resolvedMailContract === config.mailContractAddress) {
         return _getPublicKey(email);
       }
 
