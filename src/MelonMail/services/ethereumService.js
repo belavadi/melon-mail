@@ -318,7 +318,6 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
               },
             )
               .get((err, events) => {
-                console.log(events);
                 if (err) {
                   reject({
                     message: err,

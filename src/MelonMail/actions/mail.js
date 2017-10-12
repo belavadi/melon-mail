@@ -242,7 +242,6 @@ export const getMails = folder => (dispatch, getState) => {
 };
 
 export const listenForMails = () => (dispatch, getState) => {
-  console.log('LISTENING');
   eth.listenForMails((mailEvent, mailType) => {
     if (!mailEvent) {
       return;
