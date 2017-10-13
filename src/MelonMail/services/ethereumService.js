@@ -4,7 +4,7 @@ import config from './config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
 import { executeWhenReady, namehash } from './helperService';
 
-const ENS_MX_INTERFACE_ID = '0x59d1d43c';
+const ENS_MX_INTERFACE_ID = '0x7d753cf6';
 
 let mailContract;
 
@@ -510,7 +510,7 @@ const getResolverForDomain = domain =>
   new Promise((resolve, reject) => {
     const provider = config.network === config.resolverNetwork ?
       web3.currentProvider :
-      new web3.providers.HttpProvider(`http://${config.resolverNetwork}.infura.io`);
+      new web3.providers.HttpProvider(`https://${config.resolverNetwork}.infura.io`);
     const ens = new ENS({
       provider,
       network: Object.keys(networks).find(key => networks[key] === config.resolverNetwork),
@@ -581,18 +581,21 @@ const getMailContract = domain =>
   });
 
 const resolveUser = (email, domain, isExternalMail) => {
+  console.log(isExternalMail);
   if (!isExternalMail) {
     return _getPublicKey(email);
   }
 
   return getMailContract(domain)
     .then((resolvedMailContract) => {
+      console.log(resolvedMailContract);
       if (resolvedMailContract === config.mailContractAddress) {
         return _getPublicKey(email);
       }
 
       return _getPublicKey(email, resolvedMailContract);
-    });
+    })
+    .catch(error => Promise.reject({ error }));
 };
 
 export default {
