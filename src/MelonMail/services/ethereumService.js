@@ -1,3 +1,4 @@
+import Web3 from 'web3';
 import uniqBy from 'lodash/uniqBy';
 import ENS from 'ethjs-ens';
 import config from './config.json';
@@ -532,7 +533,9 @@ const resolveMx = (resolverAddr, domain) =>
   new Promise((resolve, reject) => {
     getAccount()
       .then((account) => {
-        const mxResolverContract = web3.eth.contract(config.mxResolverAbi).at(resolverAddr);
+        const _web3 = config.network === config.resolverNetwork ?
+          web3 : new Web3(new web3.providers.HttpProvider(`https://${config.resolverNetwork}.infura.io`));
+        const mxResolverContract = _web3.eth.contract(config.mxResolverAbi).at(resolverAddr);
         mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID, { from: account }, (err, res) => {
           if (err) reject(err);
           if (!res) reject(false);
