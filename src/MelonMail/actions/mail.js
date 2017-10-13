@@ -5,6 +5,7 @@ import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import { decrypt } from '../services/cryptoService';
 import { changeSendState, sendSuccess, sendSuccessClear } from './compose';
+import { welcomeEmailUnencrypted } from '../services/helperService';
 
 export const mailRequest = threadId => ({
   type: 'MAIL_REQUEST',
@@ -26,6 +27,16 @@ export const mailError = error => ({
 
 export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
   dispatch(mailRequest(threadId));
+  if (threadId === 'welcome') {
+    dispatch(
+      mailSuccess(
+        [welcomeEmailUnencrypted(getState().user.mailAddress)],
+        'welcome',
+        'welcome',
+        'welcome'),
+    );
+    return;
+  }
   const keys = {
     publicKey: getState().user.publicKey,
     privateKey: getState().user.privateKey,
@@ -169,6 +180,13 @@ export const getMails = folder => (dispatch, getState) => {
   const blocksInBatch = folder === 'inbox' ?
     getState().mails.inboxBatchSize : getState().mails.outboxBatchSize;
   if (fetchToBlock !== null && fetchToBlock <= userStartingBlock) {
+    if (folder === 'inbox') {
+      const mails = uniqBy([
+        ...getState().mails.inbox,
+        welcomeEmailUnencrypted(getState().user.mailAddress),
+      ], 'threadId');
+      dispatch(mailsSuccess('inbox', mails, getState().mails.inboxFetchedFromBlock));
+    }
     dispatch(mailsNoMore());
     return;
   }

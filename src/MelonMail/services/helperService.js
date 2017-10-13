@@ -51,3 +51,17 @@ export const welcomeEmail = (to, username, signedString) => {
     receiverData: encryptedData,
   };
 };
+
+export const welcomeEmailUnencrypted = username => ({
+  from: username,
+  to: username,
+  subject: 'Welcome to MelonMail',
+  body: '<h1>Welcome</h1><p>To get started try sending an email!</p>',
+  time: new Date().toString(),
+  attachments: [],
+  threadId: 'welcome',
+  transactionHash: '',
+  mailHash: '',
+  threadHash: '',
+  hash: 'welcome',
+});

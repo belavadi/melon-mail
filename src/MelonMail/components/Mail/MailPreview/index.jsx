@@ -24,7 +24,9 @@ class MailPreview extends Component {
        prevProps.mail.thread.length !== this.props.mail.thread.length)
     ) {
       const mailWrappers = document.querySelectorAll('.mail-wrapper');
-      document.querySelector('.mail-preview').scrollTop = mailWrappers[mailWrappers.length - 1].offsetTop - 40;
+      if (mailWrappers.length) {
+        document.querySelector('.mail-preview').scrollTop = mailWrappers[mailWrappers.length - 1].offsetTop - 40;
+      }
     }
   }
 
@@ -60,29 +62,29 @@ class MailPreview extends Component {
             !this.props.mail.isFetching &&
             this.props.mail.thread.length > 0 &&
             <div className="thread-wrapper">
-              <div className="thread-meta">
-                <Button.Group basic>
-                  <Button>
+              {
+                this.props.mail.thread[0].threadHash !== '' &&
+                <div className="thread-meta">
+                  <Button.Group basic>
                     <a
+                      className="ui button"
                       rel="noopener noreferrer"
                       target="_blank"
                       href={`https://kovan.etherscan.io/tx/${this.props.mail.threadTransaction}`}
                     >
                       <Icon name="chain" /> Thread transaction
-                      {/* {this.props.mail.threadTransaction} */}
                     </a>
-                  </Button>
-                  <Button>
                     <a
+                      className="ui button"
                       rel="noopener noreferrer"
                       target="_blank"
                       href={`https://ipfs.decenter.com/api/v0/object/get?arg=${this.props.mail.threadHash}`}
                     >
                       <Icon name="cloud" /> Thread on IPFS
                     </a>
-                  </Button>
-                </Button.Group>
-              </div>
+                  </Button.Group>
+                </div>
+              }
               {this.props.mail.thread.map((mail, mailIndex) => (
                 mail.hash &&
                 <div className="mail-wrapper" key={mail.hash}>
@@ -105,14 +107,17 @@ class MailPreview extends Component {
                   </div>
                   <div className="meta">
                     <span className="date">
-                      <a
-                        rel="noopener noreferrer"
-                        target="_blank"
-                        href={`https://ipfs.decenter.com/api/v0/cat?arg=${mail.hash}`}
-                        title="Encrypted mail content on IPFS"
-                      >
-                        <Icon name="cloud" />
-                      </a>
+                      {
+                        mail.hash !== 'welcome' &&
+                        <a
+                          rel="noopener noreferrer"
+                          target="_blank"
+                          href={`https://ipfs.decenter.com/api/v0/cat?arg=${mail.hash}`}
+                          title="Encrypted mail content on IPFS"
+                        >
+                          <Icon name="cloud" />
+                        </a>
+                      }
                       {formatDate(Date.parse(mail.time))}
                     </span>
                     <span className="from">
