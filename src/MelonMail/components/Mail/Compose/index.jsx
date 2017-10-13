@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import { Button, Search } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
-import sha3 from 'solidity-sha3';
 
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
@@ -193,7 +192,7 @@ class Compose extends Component {
       return;
     }
 
-    const mailHash = sha3(this.props.user.mailAddress);
+    const mailHash = web3.sha3(this.props.user.mailAddress);
 
     this.props.saveContacts(contactName, mailHash);
   }

@@ -1,4 +1,5 @@
 import findIndex from 'lodash/findIndex';
+
 const concat = require('concat-stream');
 
 const getMultiaddressString = node =>

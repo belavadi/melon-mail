@@ -1,4 +1,3 @@
-import sha3 from 'solidity-sha3';
 import uniqBy from 'lodash/uniqBy';
 
 import ipfs from '../services/ipfsService';
@@ -114,7 +113,7 @@ export const sendMail = (mail, threadId, externalMailContract) => (dispatch, get
             mail.toAddress,
             mailObject.hash,
             multihash,
-            sha3(multihash),
+            web3.sha3(multihash),
             externalMailContract,
           );
         })

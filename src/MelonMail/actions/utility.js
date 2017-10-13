@@ -1,7 +1,6 @@
 import union from 'lodash/union';
 import uniq from 'lodash/uniq';
 import isEqual from 'lodash/isEqual';
-import sha3 from 'solidity-sha3';
 
 import eth from '../services/ethereumService';
 import ipfs from '../services/ipfsService';
@@ -107,7 +106,7 @@ const fetchContacts = (currUserHash, keys, type) =>
 
 export const backupContacts = () => (dispatch, getState) => {
   const userMail = getState().user.mailAddress;
-  const currUserHash = sha3(userMail);
+  const currUserHash = web3.sha3(userMail);
 
   const keys = {
     publicKey: getState().user.publicKey,
@@ -204,7 +203,7 @@ export const backupContacts = () => (dispatch, getState) => {
 };
 
 export const importContacts = () => (dispatch, getState) => {
-  const currUserHash = sha3(getState().user.mailAddress);
+  const currUserHash = web3.sha3(getState().user.mailAddress);
 
   const keys = {
     publicKey: getState().user.publicKey,

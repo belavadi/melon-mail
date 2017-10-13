@@ -87,7 +87,7 @@ export const checkRegistration = () => (dispatch) => {
         return dispatch(wrongNetwork());
       }
       return dispatch(authError(
-        'Something wen\'t wrong or you didn\'t accept the signing process.',
+        'Something went wrong or you didn\'t accept the signing process.',
       ));
     });
 };
