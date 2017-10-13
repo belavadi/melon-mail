@@ -25,5 +25,6 @@ module.exports = {
     web3: true,
     fetch: true,
     localStorage: true,
+    Ipfs: true,
   },
 };
