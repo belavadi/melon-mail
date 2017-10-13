@@ -36,15 +36,16 @@ const MailListItem = ({ args, getThread, mails, mail }) => (
           <div className="from">{args.from}</div> :
           <div className="to">{args.to}</div>
       }
-      <div className="content">
-        {
-          args.body
+      <div
+        className="content"
+        dangerouslySetInnerHTML={{
+          __html: args.body
             .replace(/&nbsp;/g, '')
             .replace(/<(?:.|\n)*?>/gm, '\n')
             .replace(/\n{2,}/g, '\n')
-            .trim()
-        }
-      </div>
+            .trim(),
+        }}
+      />
     </div>
   </div>
 );
