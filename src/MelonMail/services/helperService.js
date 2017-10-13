@@ -11,6 +11,7 @@ export const executeWhenReady = (f) => {
 };
 
 export const formatDate = (inputDate) => {
+  if (isNaN(inputDate)) return '';
   const date = new Date(inputDate);
 
   return `${date.getDate()}. ${date.getMonth() + 1}. ${date.getFullYear()}. 
@@ -18,6 +19,7 @@ export const formatDate = (inputDate) => {
 };
 
 export const humanizeDate = (inputDate) => {
+  if (isNaN(inputDate)) return '';
   const date = new Date(inputDate);
   return (Date.now() - date > 7 * 24 * 60 * 60 * 1000) ?
     formatDate(inputDate).slice(0, -12) : human(date);
@@ -57,7 +59,7 @@ export const welcomeEmailUnencrypted = username => ({
   to: username,
   subject: 'Welcome to MelonMail',
   body: '<h1>Welcome</h1><p>To get started try sending an email!</p>',
-  time: new Date().toString(),
+  time: '',
   attachments: [],
   threadId: 'welcome',
   transactionHash: '',

@@ -9,7 +9,7 @@ const config = {
     './src/',
   ],
   output: {
-    path: path.join(__dirname, './public/dist'),
+    path: path.join(__dirname, './public'),
     filename: 'bundle.js',
   },
   resolve: {
@@ -93,7 +93,8 @@ const config = {
     new HtmlWebpackPlugin({
       inject: true,
       template: 'src/index.html',
-      filename: '../index.html',
+      filename: 'index.html',
+      favicon: 'src/favicon.ico',
     }),
     new webpack.DefinePlugin({
       'process.env': {
