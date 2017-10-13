@@ -584,14 +584,12 @@ const getMailContract = domain =>
   });
 
 const resolveUser = (email, domain, isExternalMail) => {
-  console.log(isExternalMail);
   if (!isExternalMail) {
     return _getPublicKey(email);
   }
 
   return getMailContract(domain)
     .then((resolvedMailContract) => {
-      console.log(resolvedMailContract);
       if (resolvedMailContract === config.mailContractAddress) {
         return _getPublicKey(email);
       }
