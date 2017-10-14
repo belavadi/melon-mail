@@ -69,7 +69,7 @@ class Auth extends Component {
             <Header as="h2" className="form-title">Signing in...</Header>
             <Divider />
             <div className="line-divider" />
-            <p>You will be prompted to sign a transaction, this mechanism will log you in.</p>
+            <p>You will be prompted to sign a transaction, after which you will be logged in.</p>
           </div>
         );
       case 'authError':
@@ -84,7 +84,7 @@ class Auth extends Component {
       case 'register':
         return (
           <form onSubmit={this.register}>
-            <Header as="h2" className="form-title">You have not registered yet!</Header>
+            <Header as="h2" className="form-title">Welcome to Melon Mail! It appears that you have not create an account yet. To begin, please chose a desired username:</Header>
             <Divider />
             <p>{this.props.user.activeAccount === '' ? 'Please login to metamask first.' : ''}</p>
             {
