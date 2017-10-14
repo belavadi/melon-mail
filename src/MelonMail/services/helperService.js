@@ -36,28 +36,10 @@ export const namehash = (name) => {
   return node.toString();
 };
 
-export const welcomeEmail = (to, username, signedString) => {
-  const keys = generateKeys(signedString);
-  const encryptedData = encrypt(keys, JSON.stringify({
-    from: username,
-    to: username,
-    subject: 'Welcome to MelonMail',
-    body: '<h1>Welcome</h1><p>To get started try sending an email!</p>',
-    time: new Date().toString(),
-    attachments: [],
-  }));
-
-  return {
-    toAddress: to,
-    senderData: encryptedData,
-    receiverData: encryptedData,
-  };
-};
-
 export const welcomeEmailUnencrypted = username => ({
   from: username,
   to: username,
-  subject: 'Welcome to MelonMail',
+  subject: 'Welcome to Melon Mail',
   body: '<h1>Welcome</h1><p>To get started try sending an email!</p>',
   time: '',
   attachments: [],

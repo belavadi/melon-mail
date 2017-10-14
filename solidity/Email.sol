@@ -1,6 +1,8 @@
 pragma solidity ^0.4.16;
 
-contract Email {
+import './AbstractEmail.sol';
+
+contract PublicEmail is AbstractEmail {
     mapping (bytes32 => bool) usernameHashExists;
     
     event UserRegistered(bytes32 indexed usernameHash, address indexed addr, string encryptedUsername, string publicKey);
@@ -19,10 +21,10 @@ contract Email {
         EmailSent(tx.origin, to, mailHash, threadHash, threadId);
     }
 
-    function sendExternalEmail(Email externalContractAddress, address to, string mailHash, string threadHash, bytes32 threadId) public {
+    function sendExternalEmail(AbstractEmail externalContractAddress, address to, string mailHash, string threadHash, bytes32 threadId) public {
         EmailSent(msg.sender, to, mailHash, threadHash, threadId);
 
-        Email externalEmailContract = Email(externalContractAddress);
+        AbstractEmail externalEmailContract = AbstractEmail(externalContractAddress);
         externalEmailContract.sendEmail(to, mailHash, threadHash, threadId);
     }
 
