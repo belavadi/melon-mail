@@ -22,8 +22,6 @@ class Auth extends Component {
   componentWillMount() {
     if (!this.props.user.isAuthenticated) {
       this.props.checkRegistration();
-    }
-    if (window.web3 !== undefined && !this.props.user.isAuthenticated) {
       this.props.getBalance();
     }
   }
@@ -35,6 +33,7 @@ class Auth extends Component {
       this.props.push('/');
     }
     if (nextProps.user.stage !== this.props.user.stage && nextProps.user.stage === 'check') {
+      console.log(nextProps.user.stage, this.props.user.stage);
       this.props.checkRegistration();
     }
   }
@@ -45,7 +44,7 @@ class Auth extends Component {
   }
 
   renderRegistration() {
-    if (window.web3 !== undefined && this.props.user.activeAccount === '') {
+    if (this.props.user.activeAccount === '' && this.props.user.stage === 'authError') {
       return (
         <div>
           <Header as="h2" className="form-title">Please log in to metamask first.</Header>
@@ -86,7 +85,6 @@ class Auth extends Component {
           <form onSubmit={this.register}>
             <Header as="h2" className="form-title">You have not registered yet!</Header>
             <Divider />
-            <p>{this.props.user.activeAccount === '' ? 'Please login to metamask first.' : ''}</p>
             {
               this.props.user.balance === 0 &&
               <div>
@@ -214,7 +212,6 @@ Auth.propTypes = {
 
 Auth.defaultProps = {
   user: {},
-  checkRegistration: () => {},
 };
 
 const mapStateToProps = state => state;

@@ -87,7 +87,6 @@ export default (state = {
         mailAddress: '',
         ethAddress: '',
         startingBlock: 0,
-        stage: 'check',
         isAuthenticated: false,
       };
     case 'UPDATE_BALANCE':

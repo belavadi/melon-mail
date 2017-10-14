@@ -17,21 +17,21 @@ class Router extends Component {
   }
 
   componentWillMount() {
-    if (window.web3 !== undefined) {
-      setInterval(() => {
-        eth.getAccount()
-          .then((account) => {
-            if (this.props.user.activeAccount !== account && account) {
+    setInterval(() => {
+      eth.getAccount()
+        .then((account) => {
+          if (this.props.user.activeAccount !== account && account) {
+            if (this.props.user.activeAccount !== '') {
               this.props.logout();
-              this.props.changeAccount(account);
               this.props.getBalance();
             }
-          })
-          .catch(() => {
-            console.log('Log in to metamask.');
-          });
-      }, 500);
-    }
+            this.props.changeAccount(account);
+          }
+        })
+        .catch(() => {
+          console.log('Log in to metamask.');
+        });
+    }, 500);
 
     this.props.initialAppSetup({
       useLocalStorage: this.props.useLocalStorage,
