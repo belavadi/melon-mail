@@ -160,6 +160,17 @@ class Auth extends Component {
             <p className="regular-text">
               Open MetaMask plugin and switch to Kovan Test Network.
             </p>
+            <Button primary onClick={this.props.checkRegistration}>Try again?</Button>
+          </div>
+        );
+      case 'unsecureContext':
+        return (
+          <div>
+            <Header as="h2" className="form-title">Unsecure context</Header>
+            <Divider />
+            <p className="regular-text">
+              You need to be in a secure context (https or localhost).
+            </p>
           </div>
         );
       default:

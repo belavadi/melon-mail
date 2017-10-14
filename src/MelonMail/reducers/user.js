@@ -72,11 +72,8 @@ export default (state = {
         stage: action.stage,
       };
     case 'NO_CONNECTION':
-      return {
-        ...state,
-        stage: action.stage,
-      };
     case 'WRONG_NETWORK':
+    case 'UNSECURE_CONTEXT':
       return {
         ...state,
         stage: action.stage,

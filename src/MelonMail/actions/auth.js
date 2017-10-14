@@ -49,6 +49,11 @@ export const noConnection = () => ({
   stage: 'noConnection',
 });
 
+export const unsecureContext = () => ({
+  type: 'UNSECURE_CONTEXT',
+  stage: 'unsecureContext',
+});
+
 export const logout = () => ({
   type: 'CLEAR_STORE',
 });
@@ -59,6 +64,10 @@ export const contactsSuccess = contacts => ({
 });
 
 export const checkRegistration = () => (dispatch) => {
+  if (!window.isSecureContext) {
+    dispatch(unsecureContext());
+    return;
+  }
   eth.getWeb3Status()
     .then(() => eth.checkRegistration())
     .then((data) => {
