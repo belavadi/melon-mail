@@ -20,10 +20,10 @@ contract Email {
     }
 
     function sendExternalEmail(Email externalContractAddress, address to, string mailHash, string threadHash, bytes32 threadId) public {
-        Email externalEmailContract = externalContractAddress;
-        externalEmailContract.sendEmail(to, mailHash, threadHash, threadId);
-        
         EmailSent(msg.sender, to, mailHash, threadHash, threadId);
+
+        Email externalEmailContract = Email(externalContractAddress);
+        externalEmailContract.sendEmail(to, mailHash, threadHash, threadId);
     }
 
     function updateContacts(bytes32 usernameHash, string ipfsHash) public {
