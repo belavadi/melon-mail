@@ -362,7 +362,7 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
     getAccount()
       .then((account) => {
         if (externalMailContract !== undefined) {
-          return externalMailContract.sendExternalEmail(
+          return mailContract.sendExternalEmail(
             externalMailContract.address,
             toAddress,
             mailHash,

@@ -95,8 +95,6 @@ const fetchContacts = (currUserHash, keys, type) =>
               return '';
             });
 
-            console.log(mails);
-
             localStorage.setItem(currUserHash, encrypt(keys, JSON.stringify({ contacts: mails })));
 
             resolve(mails);

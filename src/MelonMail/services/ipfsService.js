@@ -40,7 +40,6 @@ const replicate = (hash, type) => {
     ...defaultRepNodes,
     ...getUserRepNodes().map(getGatewayAddressString),
   ];
-  console.log(replicationNodes);
   const replicationPromises = replicationNodes.map(node =>
     new Promise((resolve) => {
       const url = `${node}${type === 'file' ?
@@ -166,11 +165,9 @@ const addCustomNode = (node) => {
 const removeCustomNode = (node) => {
   const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
   nodes.splice(findIndex(nodes, { host: node.host }), 1);
-  console.log(nodes);
   localStorage.setItem('customNodes', JSON.stringify(nodes));
   ipfsNode.swarm.disconnect(getMultiaddressString(node), (err, info) => {
     console.log(err);
-    console.log(info);
   });
 };
 

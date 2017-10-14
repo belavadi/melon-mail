@@ -63,7 +63,6 @@ class CustomNodeModal extends Component {
       const url = `${protocol}${host}:${gatewayPort}/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/quick-start`;
       fetch(url, { method: 'get' })
         .then((res) => {
-          console.log(res);
           const status = ipfs.addCustomNode({
             protocol,
             host,
