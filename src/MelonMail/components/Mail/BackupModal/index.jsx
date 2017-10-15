@@ -27,7 +27,7 @@ class BackupModal extends Component {
       >
         <Modal.Header>Backup contacts</Modal.Header>
         <Modal.Content>
-          <div className="help-wrapper">
+          <div>
             <h5>Hi there, you can save your contacts permanently to the IPFS</h5>
             <ul>
               <li>
