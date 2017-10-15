@@ -164,7 +164,6 @@ export const backupContacts = () => (dispatch, getState) => {
                   const joinedContacts = union(storedContacts.contacts,
                     JSON.parse(decryptedContacts).contacts);
 
-
                   // only write to ipfs if we have some new data and add it to the list of contacts
                   if (!isEqual(joinedContacts.sort(),
                     JSON.parse(decryptedContacts).contacts.sort())) {
@@ -226,6 +225,14 @@ export const importContacts = () => (dispatch, getState) => {
 
           localStorage.setItem(currUserHash, encryptedContacts);
         });
+    } else {
+      const contactsItem = localStorage.getItem(currUserHash);
+
+      if (contactsItem) {
+        const contactObject = JSON.parse(decrypt(keys, contactsItem));
+
+        dispatch(contactsImport(contactObject.contacts));
+      }
     }
   });
 };
