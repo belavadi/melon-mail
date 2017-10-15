@@ -11,7 +11,6 @@ import {
   Checkbox,
   Input,
   Popup,
-  Grid,
 } from 'semantic-ui-react';
 import ipfs from '../../../services/ipfsService';
 
@@ -72,7 +71,7 @@ class CustomNodeModal extends Component {
 
       const url = `${protocol}${host}:${gatewayPort}/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/quick-start`;
       fetch(url, { method: 'get' })
-        .then((res) => {
+        .then(() => {
           const status = ipfs.addCustomNode({
             protocol,
             host,

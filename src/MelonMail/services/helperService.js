@@ -1,5 +1,3 @@
-import { generateKeys, encrypt } from './cryptoService';
-
 const human = require('human-time');
 
 export const executeWhenReady = (f) => {
