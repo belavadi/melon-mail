@@ -83,7 +83,11 @@ class Auth extends Component {
       case 'register':
         return (
           <form onSubmit={this.register}>
-            <Header as="h2" className="form-title">Welcome to Melon Mail! It appears that you have not create an account yet. To begin, please chose a desired username:</Header>
+            <Header as="h2" className="form-title no-divider">
+              Welcome to Melon Mail!
+            </Header>
+            <p className="regular-text">It appears that you haven&apos;t created an account yet. To
+              begin, please choose a desired username.</p>
             <Divider />
             {
               this.props.user.balance === 0 &&
