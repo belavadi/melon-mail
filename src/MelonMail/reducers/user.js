@@ -78,6 +78,11 @@ export default (state = {
         ...state,
         stage: action.stage,
       };
+    case 'SET_ACCOUNT':
+      return {
+        ...state,
+        activeAccount: action.account,
+      };
     case 'ACCOUNT_CHANGE':
       return {
         ...state,

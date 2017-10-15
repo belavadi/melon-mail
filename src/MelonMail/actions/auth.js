@@ -1,6 +1,11 @@
 import eth from '../services/ethereumService';
 import config from '../services/config.json';
 
+export const setAccount = account => ({
+  type: 'SET_ACCOUNT',
+  account,
+});
+
 export const changeAccount = account => ({
   type: 'ACCOUNT_CHANGE',
   account,

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { logout, changeAccount, fetchContacts } from '../../actions/auth';
+import { logout, changeAccount, fetchContacts, setAccount } from '../../actions/auth';
 import { getBalance, initialAppSetup } from '../../actions/utility';
 import eth from '../../services/ethereumService';
 
@@ -24,8 +24,11 @@ class Router extends Component {
             if (this.props.user.activeAccount !== '') {
               this.props.logout();
               this.props.getBalance();
+              this.props.changeAccount(account);
             }
-            this.props.changeAccount(account);
+          }
+          if (this.props.user.activeAccount === '') {
+            this.props.setAccount(account);
           }
         })
         .catch(() => {
@@ -67,7 +70,7 @@ Router.propTypes = {
   changeAccount: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
   initialAppSetup: PropTypes.func.isRequired,
-
+  setAccount: PropTypes.func.isRequired,
   useLocalStorage: PropTypes.bool.isRequired,
   defaultDomain: PropTypes.string.isRequired,
 };
@@ -82,6 +85,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   changeAccount,
   fetchContacts,
   getBalance,
+  setAccount,
   initialAppSetup,
 }, dispatch);
 
