@@ -54,7 +54,7 @@ MelonMail.propTypes = {
 
 MelonMail.defaultProps = {
   useLocalStorage: false,
-  defaultDomain: 'melonmail.test',
+  defaultDomain: 'melon-mail.eth',
 };
 
 export default MelonMail;

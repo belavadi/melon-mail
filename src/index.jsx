@@ -4,6 +4,6 @@ import { AppContainer } from 'react-hot-loader';
 
 import MelonMail from './MelonMail/';
 
-render((<AppContainer><MelonMail defaultDomain="melonmail.test" /></AppContainer>), document.getElementById('app'));
+render((<AppContainer><MelonMail defaultDomain="melon-mail.eth" /></AppContainer>), document.getElementById('app'));
 
 module.hot.accept();
