@@ -2,12 +2,6 @@
 
 Melon Mail is a secure and decentralized email-like system that relies on Ethereum and IPFS.
 
-## Using npm
-```
-npm install @decenter/melon-mail --save
-```
-After installing the npm package you need to import the css which is located at `node_modules/@decenter/melon-mail/dist/style.css`
-
 ## Running locally
 Clone the project
 ```git
