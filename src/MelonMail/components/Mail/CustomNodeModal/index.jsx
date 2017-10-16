@@ -215,7 +215,8 @@ class CustomNodeModal extends Component {
               hoverable
             >
               <h2>Help</h2>
-              You can add custom IPFS nodes that you trust. They will be added to the bootstrap nodes
+              You can add custom IPFS nodes that you trust.
+              They will be added to the bootstrap nodes
               list in the browser and therefore used as additional backup option for your emails.
               Some useful tips:
               <ul>
