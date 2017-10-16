@@ -27,7 +27,7 @@ class BackupModal extends Component {
       >
         <Modal.Header>Backup contacts</Modal.Header>
         <Modal.Content>
-          <div className="help-wrapper">
+          <div>
             <h5>Use this option if you want to save your email contacts
               permanently on the IPFS. If you do this, your contact list
               will be available even after you change the computer or browser.</h5>

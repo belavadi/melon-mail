@@ -33,7 +33,7 @@ class MelonMail extends Component {
   render() {
     if (!this.state.loaded) {
       return (
-        <div>Loading...</div>
+        <div />
       );
     }
     return (

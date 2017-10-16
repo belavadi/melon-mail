@@ -166,7 +166,7 @@ const removeCustomNode = (node) => {
   const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
   nodes.splice(findIndex(nodes, { host: node.host }), 1);
   localStorage.setItem('customNodes', JSON.stringify(nodes));
-  ipfsNode.swarm.disconnect(getMultiaddressString(node), (err, info) => {
+  ipfsNode.swarm.disconnect(getMultiaddressString(node), (err) => {
     console.log(err);
   });
 };

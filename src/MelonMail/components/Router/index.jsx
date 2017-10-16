@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { logout, changeAccount, fetchContacts } from '../../actions/auth';
+import { logout, changeAccount, fetchContacts, setAccount } from '../../actions/auth';
 import { getBalance, initialAppSetup } from '../../actions/utility';
 import eth from '../../services/ethereumService';
 
@@ -17,21 +17,24 @@ class Router extends Component {
   }
 
   componentWillMount() {
-    if (window.web3 !== undefined) {
-      setInterval(() => {
-        eth.getAccount()
-          .then((account) => {
-            if (this.props.user.activeAccount !== account && account) {
+    setInterval(() => {
+      eth.getAccount()
+        .then((account) => {
+          if (this.props.user.activeAccount !== account && account) {
+            if (this.props.user.activeAccount !== '') {
               this.props.logout();
-              this.props.changeAccount(account);
               this.props.getBalance();
+              this.props.changeAccount(account);
             }
-          })
-          .catch(() => {
-            console.log('Log in to metamask.');
-          });
-      }, 500);
-    }
+          }
+          if (this.props.user.activeAccount === '') {
+            this.props.setAccount(account);
+          }
+        })
+        .catch(() => {
+          console.log('Log in to metamask.');
+        });
+    }, 500);
 
     this.props.initialAppSetup({
       useLocalStorage: this.props.useLocalStorage,
@@ -67,7 +70,7 @@ Router.propTypes = {
   changeAccount: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
   initialAppSetup: PropTypes.func.isRequired,
-
+  setAccount: PropTypes.func.isRequired,
   useLocalStorage: PropTypes.bool.isRequired,
   defaultDomain: PropTypes.string.isRequired,
 };
@@ -82,6 +85,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   changeAccount,
   fetchContacts,
   getBalance,
+  setAccount,
   initialAppSetup,
 }, dispatch);
 
