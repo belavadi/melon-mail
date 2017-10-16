@@ -201,28 +201,29 @@ class CustomNodeModal extends Component {
           </div>
           <div className="help-wrapper">
             <h2>Help</h2>
-            You can add a custom IPFS node. It will be used to bootstrap the node
-            in the browser and backup the mails you send.
+            You can add custom IPFS nodes that you trust. They will be added to the bootstrap nodes
+            list in the browser and therefore used as additional backup option for your emails.
+            Some useful tips:
             <ul>
               <li>
-                Make sure your node is <a
+                Make sure the node is <a
                   href="https://github.com/ipfs/js-ipfs/tree/master/examples/exchange-files-in-browser#2-make-your-daemons-listen-on-websockets"
-                >listening on a WebSocket</a> first.
+                >listening on a WebSocket</a> first
               </li>
               <li>
-                <b>Swarm WebSocket port</b> is the port you set in your config
-                (9999 in the guide above).
+                <b>Swarm WebSocket port</b> is the port set in the node&apos;s configuration
+                (9999 in the guide above)
               </li>
               <li>
-                <b>Gateway port</b> is the port used by the IPFS gateway, AKA the public API
-                (usually 8080).
+                <b>Gateway port</b> is the port used by the IPFS gateway (usually 8080)
               </li>
               <li>
-                <b>Node ID</b> can be found by running <code>ipfs id</code>.
+                <b>Node ID</b> is node&apos;s unique identifier and can be found by
+                running <code>ipfs id</code>
               </li>
             </ul>
-            Note: if the mail service is using https, your nodes must be
-            using https (and wss) too. Currently the simplest way to do this is by
+            Note: If this Melon Mail service is served over HTTPS, the IPFS node must also be
+            using HTTPS and WSS. The simplest way to do this is by
             proxying traffic to your IPFS node through nginx or Apache.
             A more detailed guide can be found <a rel="noopener noreferrer" target="_blank" href="https://ipfs.decenter.com/ipfs/QmVtByCvRQsibrKy6HKtNUnxddJY3H5aVjz2djDQjnsBFz">here</a>.
           </div>

@@ -28,15 +28,9 @@ class BackupModal extends Component {
         <Modal.Header>Backup contacts</Modal.Header>
         <Modal.Content>
           <div className="help-wrapper">
-            <h5>Hi there, you can save your contacts permanently to the IPFS</h5>
-            <ul>
-              <li>
-                By backing up your config they will be stored on the ipfs
-              </li>
-              <li>
-                After backup your contacs will sync automatically every time you enter MelonMail
-              </li>
-            </ul>
+            <h5>Use this option if you want to save your email contacts
+              permanently on the IPFS. If you do this, your contact list
+              will be available even after you change the computer or browser.</h5>
             {
               this.props.backupAlreadyDone &&
                 <h4> All contacts are already saved!</h4>
