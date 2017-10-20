@@ -448,7 +448,10 @@ class Compose extends Component {
                 this.setState({
                   files: {
                     ...e.target,
-                    files: [...e.target.files],
+                    files: [
+                      ...e.target.files,
+                      ...this.state.files.files,
+                    ],
                   },
                 });
               }}
