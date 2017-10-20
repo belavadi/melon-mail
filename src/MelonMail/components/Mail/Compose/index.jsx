@@ -219,6 +219,21 @@ class Compose extends Component {
 
     this.props.sendRequest('Fetching public key...');
 
+    const multiple = mail.to.split(',');
+
+    let recipients = [];
+
+    if (multiple.length > 0) {
+      recipients = multiple;
+    } else {
+      recipients = mail.to;
+    }
+
+    const resolveUserPromises = recipients.map(r =>
+      eth.resolveUser(r, domain, isExternalMail));
+
+    console.log(resolveUserPromises);
+
     eth.resolveUser(this.state.to, domain, isExternalMail)
       .then((data) => {
         if (this.props.user.contacts.indexOf(this.state.to) === -1) {

@@ -20,6 +20,7 @@ const networks = {
 executeWhenReady(() => {
   try {
     mailContract = web3.eth.contract(config.mailContractAbi).at(config.mailContractAddress);
+    console.log(mailContract);
   } catch (e) {
     console.log(e);
   }
@@ -380,7 +381,7 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
             });
         }
 
-        return mailContract.sendEmail(toAddress, mailHash, threadHash, threadId,
+        return mailContract.sendEmail([toAddress], mailHash, threadHash, threadId,
           { from: account }, (error, result) => {
             if (error) {
               return reject({
