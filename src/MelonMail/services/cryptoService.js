@@ -2,6 +2,8 @@ import bitcore from 'bitcore-lib';
 import ecies from 'bitcore-ecies';
 import ipfs from './ipfsService';
 
+const Random = bitcore.crypto.Random;
+
 export const generateKeys = (data) => {
   const privateKey = bitcore.PrivateKey.fromString(data.slice(2, 66));
   const publicKey = bitcore.PublicKey.fromPrivateKey(privateKey);
@@ -16,7 +18,7 @@ export const encrypt = (keys, data) => {
   const privateKey = new bitcore.PrivateKey(keys.privateKey);
   const receiver = ecies().privateKey(privateKey).publicKey(new bitcore.PublicKey(keys.publicKey));
 
-  return receiver.encrypt(data).toString('hex');
+  return receiver.encrypt(data, Random.getRandomBuffer(16)).toString('hex');
 };
 
 export const decrypt = (keys, data) => {
