@@ -56,8 +56,8 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
                   const decryptedMails = mails.map((mail, index) => {
                     try {
                       const mailToDecrypt = JSON.parse(mail);
-                      const mailBody = mailToDecrypt.toAddress === account ?
-                        mailToDecrypt.receiverData : mailToDecrypt.senderData;
+                      const mailBody = mailToDecrypt.toAddress.indexOf(account) !== -1 ?
+                        mailToDecrypt.receiversData[keys.publicKey] : mailToDecrypt.senderData;
                       return {
                         ...JSON.parse(decrypt(keys, mailBody)),
                         hash: mailLinks[index].multihash,
@@ -202,7 +202,7 @@ export const getMails = folder => (dispatch, getState) => {
             if (typeof mail !== 'string' || mail === 'timeout') return {};
             try {
               const mailToDecrypt = JSON.parse(mail);
-              const mailBody = folder === 'inbox' ? mailToDecrypt.receiverData : mailToDecrypt.senderData;
+              const mailBody = folder === 'inbox' ? mailToDecrypt.receiversData[keys.publicKey] : mailToDecrypt.senderData;
               const decryptedBody = decrypt(keys, mailBody);
               return {
                 transactionHash: mailEvents[index].transactionHash,
@@ -217,6 +217,7 @@ export const getMails = folder => (dispatch, getState) => {
             }
           });
 
+          // TODO: handle multiple recepients
           const validateSenderPromises = decryptedMails.map(mail =>
             new Promise((resolve) => {
               if (!mail.from) {
@@ -268,11 +269,12 @@ export const listenForMails = () => (dispatch, getState) => {
       .then((ipfsContent) => {
         try {
           const encryptedMail = JSON.parse(ipfsContent);
-          const mailContent = mailType === 'inbox' ? encryptedMail.receiverData : encryptedMail.senderData;
           const keys = {
             publicKey: getState().user.publicKey,
             privateKey: getState().user.privateKey,
           };
+
+          const mailContent = mailType === 'inbox' ? encryptedMail.receiversData[keys.publicKey] : encryptedMail.senderData;
           const mail = {
             transactionHash: mailEvent.transactionHash,
             blockNumber: mailEvent.blockNumber,

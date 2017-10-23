@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Button, Search } from 'semantic-ui-react';
+import { Button, Search, Dropdown } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 
@@ -17,6 +17,11 @@ class Compose extends Component {
   constructor(props) {
     super(props);
 
+    const recepients = props.user.contacts.map(c => ({
+      text: c,
+      value: c,
+    }));
+
     this.state = {
       to: '',
       subject: '',
@@ -27,6 +32,8 @@ class Compose extends Component {
       recipientExists: 'undetermined',
       editorState: EditorState.createEmpty(),
       selectedBlockType: '',
+      recepients,
+      selectedRecepients: [],
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -37,6 +44,7 @@ class Compose extends Component {
     this.handleEditorChange = this.handleEditorChange.bind(this);
     this.getRecipientSuggestions = this.getRecipientSuggestions.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
+    this.handleAddition = this.handleAddition.bind(this);
   }
 
   componentWillMount() {
@@ -169,22 +177,24 @@ class Compose extends Component {
     this.setState({ recipientExists: 'undetermined' });
   }
 
-  checkRecipient() {
-    const username = this.state.to.toLowerCase().trim();
+  checkRecipient(recipient, callback) {
+    const username = recipient.toLowerCase().trim() || this.state.to.toLowerCase().trim();
     const domain = username.split('@')[1];
     const isExternalMail = domain !== this.props.config.defaultDomain;
+
     eth.resolveUser(username, domain, isExternalMail)
       .then(() => {
         this.setState({ recipientExists: 'true' });
+        if (callback) callback(true);
       })
       .catch(() => {
-        this.setState({ recipientExists: 'false' });
+        // this.setState({ recipientExists: 'false' });
+        if (callback) callback(false);
       });
   }
 
-  saveContact() {
+  saveContact(contactName) {
     // removes the null chars from the end of the string
-    const contactName = this.state.to.replace(/\0/g, '');
     const currMail = this.props.user.mailAddress.replace(/\0/g, '');
 
     // don't save our own email in contacts list
@@ -200,7 +210,7 @@ class Compose extends Component {
   handleSend() {
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
-    const domain = this.state.to.split('@')[1];
+    const domain = this.state.selectedRecepients[0].split('@')[1];
     const isExternalMail = domain !== this.props.config.defaultDomain;
 
     if (fileTooLarge.length > 0) {
@@ -209,75 +219,61 @@ class Compose extends Component {
     }
     const mail = {
       from: this.props.user.mailAddress,
-      to: this.state.to,
+      to: this.state.selectedRecepients,
       subject: this.state.subject ? this.state.subject : '(No subject)',
       body: stateToHTML(this.state.editorState.getCurrentContent()).toString(),
       time: new Date().toString(),
     };
 
-    this.saveContact();
-
     this.props.sendRequest('Fetching public key...');
 
-    const multiple = mail.to.split(',');
-
-    let recipients = [];
-
-    if (multiple.length > 0) {
-      recipients = multiple;
-    } else {
-      recipients = mail.to;
-    }
-
-    const resolveUserPromises = recipients.map(r =>
+    const resolveUserPromises = this.state.selectedRecepients.map(r =>
       eth.resolveUser(r, domain, isExternalMail));
 
-    console.log(resolveUserPromises);
-
-    eth.resolveUser(this.state.to, domain, isExternalMail)
+    Promise.all(resolveUserPromises)
       .then((data) => {
-        if (this.props.user.contacts.indexOf(this.state.to) === -1) {
-          this.props.contactsSuccess([
-            this.state.to,
-            ...this.props.user.contacts,
-          ]);
-        }
-
         const keysForSender = {
           privateKey: this.props.user.privateKey,
           publicKey: this.props.user.publicKey,
         };
-        const keysForReceiver = {
-          privateKey: this.props.user.privateKey,
-          publicKey: data.publicKey,
-        };
 
-        if (files.length > 0) this.props.changeSendState('Encrypting attachments...', 2);
+        const receiversKeys = data.map(d => ({
+          privateKey: this.props.user.privateKey,
+          publicKey: d.publicKey,
+        }));
 
         const attachments = [
           encryptAttachments(files, keysForSender),
-          encryptAttachments(files, keysForReceiver),
+          ...receiversKeys.map(key => encryptAttachments(files, key)),
         ];
+
         return Promise.all(attachments)
           .then(([senderAttachments, receiverAttachments]) => {
-            this.props.changeSendState('Encrypting mail...', 1);
+            console.log(senderAttachments, receiverAttachments);
+
             const senderData = encrypt(keysForSender, JSON.stringify({
               ...mail,
               attachments: senderAttachments,
             }));
-            const receiverData = encrypt(keysForReceiver, JSON.stringify({
-              ...mail,
-              attachments: receiverAttachments,
-            }));
+
+            const receiversData = {};
+
+            receiversKeys.forEach((elem) => {
+              receiversData[elem.publicKey] = (encrypt(elem, JSON.stringify({
+                ...mail,
+                attachments: senderAttachments,
+              })));
+            });
+
             let threadId = null;
             if (this.props.compose.special && this.props.compose.special.type === 'reply') {
               threadId = this.props.mail.threadId;
             }
 
             return this.props.sendMail({
-              toAddress: data.address,
+              toAddress: data.map(d => d.address),
               senderData,
-              receiverData,
+              receiversData,
             }, threadId, data.externalMailContract);
           })
           .then(() => {
@@ -286,20 +282,110 @@ class Compose extends Component {
           .catch((err) => {
             throw err;
           });
-      })
-      .catch((err) => {
-        console.log(`Error in state: ${this.props.compose.sendingState}!`);
-        console.log(err);
-        // this.props.sendError('Couldn\'t fetch public key.');
-        this.props.sendError(err.message.toString());
       });
+
+    // eth.resolveUser(this.state.to, domain, isExternalMail)
+    //   .then((data) => {
+    //     if (this.props.user.contacts.indexOf(this.state.to) === -1) {
+    //       this.props.contactsSuccess([
+    //         this.state.to,
+    //         ...this.props.user.contacts,
+    //       ]);
+    //     }
+
+    //     const keysForSender = {
+    //       privateKey: this.props.user.privateKey,
+    //       publicKey: this.props.user.publicKey,
+    //     };
+    //     const keysForReceiver = {
+    //       privateKey: this.props.user.privateKey,
+    //       publicKey: data.publicKey,
+    //     };
+
+    //     if (files.length > 0) this.props.changeSendState('Encrypting attachments...', 2);
+
+    //     const attachments = [
+    //       encryptAttachments(files, keysForSender),
+    //       encryptAttachments(files, keysForReceiver),
+    //     ];
+    //     return Promise.all(attachments)
+    //       .then(([senderAttachments, receiverAttachments]) => {
+    //         this.props.changeSendState('Encrypting mail...', 1);
+    //         const senderData = encrypt(keysForSender, JSON.stringify({
+    //           ...mail,
+    //           attachments: senderAttachments,
+    //         }));
+    //         const receiverData = encrypt(keysForReceiver, JSON.stringify({
+    //           ...mail,
+    //           attachments: receiverAttachments,
+    //         }));
+    //         let threadId = null;
+    //         if (this.props.compose.special && this.props.compose.special.type === 'reply') {
+    //           threadId = this.props.mail.threadId;
+    //         }
+
+    //         return this.props.sendMail({
+    //           toAddress: data.address,
+    //           senderData,
+    //           receiverData,
+    //         }, threadId, data.externalMailContract);
+    //       })
+    //       .then(() => {
+    //         this.props.closeCompose();
+    //       })
+    //       .catch((err) => {
+    //         throw err;
+    //       });
+    //   })
+    //   .catch((err) => {
+    //     console.log(`Error in state: ${this.props.compose.sendingState}!`);
+    //     console.log(err);
+    //     // this.props.sendError('Couldn\'t fetch public key.');
+    //     this.props.sendError(err.message.toString());
+    //   });
+  }
+
+  handleAddition(e, { value }) {
+    console.log(value);
+
+    this.checkRecipient(value, (validRecipient) => {
+      if (validRecipient) {
+        this.setState({
+          recepients: [{ text: value, value }, ...this.state.recepients],
+          selectedRecepients: [...this.state.selectedRecepients, value],
+        });
+
+        // add the contact to the list
+        if (this.props.user.contacts.indexOf(value) === -1) {
+          this.props.contactsSuccess([
+            value,
+            ...this.props.user.contacts,
+          ]);
+        }
+
+        this.saveContact(value);
+      }
+    });
   }
 
   render() {
     return (
       <div className="compose-wrapper">
+
+        <Dropdown
+          placeholder="To"
+          options={this.state.recepients}
+          fluid
+          multiple
+          search
+          selection
+          allowAdditions
+          onChange={this.handleInputChange}
+          onAddItem={this.handleAddition}
+        />
+
         <div className="inputs-wrapper">
-          <Search
+          {/* <Search
             name="to"
             placeholder="To"
             value={this.state.to}
@@ -316,7 +402,8 @@ class Compose extends Component {
               this.handleInputChange({ target: { name: 'to', value: data.result.title } });
               setTimeout(() => this.checkRecipient(), 100);
             }}
-          />
+          /> */}
+
           <div className="ui input">
             <input
               type="text"
@@ -500,7 +587,7 @@ Compose.propTypes = {
   sendMail: PropTypes.func.isRequired,
   sendError: PropTypes.func.isRequired,
   sendRequest: PropTypes.func.isRequired,
-  changeSendState: PropTypes.func.isRequired,
+  // changeSendState: PropTypes.func.isRequired,
   contactsSuccess: PropTypes.func.isRequired,
   saveContacts: PropTypes.func.isRequired,
 };

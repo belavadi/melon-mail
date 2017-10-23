@@ -36,7 +36,7 @@ export const namehash = (name) => {
 
 export const welcomeEmailUnencrypted = username => ({
   from: username,
-  to: username,
+  to: [username],
   subject: 'Welcome to Melon Mail',
   body: '<h1>Welcome</h1><p>To get started try sending an email!</p>',
   time: '',

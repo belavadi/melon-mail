@@ -381,7 +381,7 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
             });
         }
 
-        return mailContract.sendEmail([toAddress], mailHash, threadHash, threadId,
+        return mailContract.sendEmail(toAddress, mailHash, threadHash, threadId,
           { from: account }, (error, result) => {
             if (error) {
               return reject({

@@ -34,7 +34,7 @@ const MailListItem = ({ args, getThread, mails, mail }) => (
       {
         mails.folder === 'inbox' ?
           <div className="from">{args.from}</div> :
-          <div className="to">{args.to}</div>
+          <div className="to">{args.to.toString()}</div>
       }
       <div
         className="content"
@@ -53,7 +53,7 @@ const MailListItem = ({ args, getThread, mails, mail }) => (
 MailListItem.propTypes = {
   args: PropTypes.shape({
     from: PropTypes.string.isRequired,
-    to: PropTypes.string.isRequired,
+    to: PropTypes.array.isRequired,
     threadId: PropTypes.string.isRequired,
     mailHash: PropTypes.string.isRequired,
     threadHash: PropTypes.string.isRequired,
