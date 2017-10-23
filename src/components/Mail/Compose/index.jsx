@@ -20,6 +20,7 @@ class Compose extends Component {
     const recepients = props.user.contacts.map(c => ({
       text: c,
       value: c,
+      name: c,
     }));
 
     this.state = {
@@ -32,7 +33,7 @@ class Compose extends Component {
       recipientExists: 'undetermined',
       editorState: EditorState.createEmpty(),
       selectedBlockType: '',
-      recepients,
+      recepients: [],
       selectedRecepients: [],
     };
 
@@ -117,8 +118,16 @@ class Compose extends Component {
 
   handleInputChange(event, clean) {
     const target = event.target;
-    const value = clean ? target.value.toLowerCase().trim() : target.value;
+    let value = '';
+
+    if (target.value) {
+      value = clean ? target.value.toLowerCase().trim() : target.value;
+    } else {
+      value = target.innerText;
+    }
     const name = target.name;
+
+    console.log(name);
 
     this.setState({
       [name]: value,
