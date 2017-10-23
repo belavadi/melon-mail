@@ -1,9 +1,15 @@
 import React from 'react';
 import { render } from 'react-dom';
+
 import { AppContainer } from 'react-hot-loader';
 
-import MelonMail from './MelonMail/';
+import './style.scss';
+import App from './components/App/';
 
-render((<AppContainer><MelonMail defaultDomain="melon-mail.eth" /></AppContainer>), document.getElementById('app'));
+render(
+  <AppContainer>
+    <App />
+  </AppContainer>,
+  document.getElementById('app'));
 
 module.hot.accept();

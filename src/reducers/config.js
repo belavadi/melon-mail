@@ -1,6 +1,8 @@
+import config from '../services/config.json';
+
 export default (state = {
-  useLocalStorage: false,
-  defaultDomain: 'melon-mail.eth',
+  useLocalStorage: config.useLocalStorage,
+  defaultDomain: config.defaultDomain,
 }, action) => {
   switch (action.type) {
     case 'INITIAL_SETUP':

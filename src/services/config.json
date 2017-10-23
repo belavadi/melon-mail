@@ -5,5 +5,7 @@
   "network": "kovan",
   "resolverNetwork": "main",
   "registryAddress": "0x314159265dd8dbb310642f98f50c066173c1259b",
-  "stringToSign": "By signing THIS MESSAGE you are generating your keys used for Melon Mail encryption."
+  "stringToSign": "By signing THIS MESSAGE you are generating your keys used for Melon Mail encryption.",
+  "useLocalStorage": true,
+  "defaultDomain": "melon-mail.eth"
 }
