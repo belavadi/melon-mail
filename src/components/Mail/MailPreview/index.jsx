@@ -127,7 +127,7 @@ class MailPreview extends Component {
                       } </span>
                       to <span className="to">{
                         mail.to !== this.props.user.mailAddress ?
-                          mail.to : 'Me'
+                          mail.to.join(', ') : 'Me'
                       } </span>
                     </span>
                   </div>

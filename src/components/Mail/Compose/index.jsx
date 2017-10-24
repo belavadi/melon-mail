@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Button, Search, Dropdown } from 'semantic-ui-react';
+import { Button, Dropdown } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 
@@ -20,8 +20,16 @@ class Compose extends Component {
     const recepients = props.user.contacts.map(c => ({
       text: c,
       value: c,
-      name: c,
+      key: c,
     }));
+
+    const options = [
+      { key: 'English', text: 'English', value: 'English' },
+      { key: 'French', text: 'French', value: 'French' },
+      { key: 'Spanish', text: 'Spanish', value: 'Spanish' },
+      { key: 'German', text: 'German', value: 'German' },
+      { key: 'Chinese', text: 'Chinese', value: 'Chinese' },
+    ];
 
     this.state = {
       to: '',
@@ -33,8 +41,7 @@ class Compose extends Component {
       recipientExists: 'undetermined',
       editorState: EditorState.createEmpty(),
       selectedBlockType: '',
-      recepients: [],
-      selectedRecepients: [],
+      recepients,
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -46,6 +53,7 @@ class Compose extends Component {
     this.getRecipientSuggestions = this.getRecipientSuggestions.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
     this.handleAddition = this.handleAddition.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   }
 
   componentWillMount() {
@@ -126,8 +134,6 @@ class Compose extends Component {
       value = target.innerText;
     }
     const name = target.name;
-
-    console.log(name);
 
     this.setState({
       [name]: value,
@@ -226,6 +232,7 @@ class Compose extends Component {
       this.props.sendError('Files too large (10mb limit).');
       return;
     }
+
     const mail = {
       from: this.props.user.mailAddress,
       to: this.state.selectedRecepients,
@@ -251,15 +258,16 @@ class Compose extends Component {
           publicKey: d.publicKey,
         }));
 
+
         const attachments = [
           encryptAttachments(files, keysForSender),
           ...receiversKeys.map(key => encryptAttachments(files, key)),
         ];
 
+        if (files.length > 0) this.props.changeSendState('Encrypting attachments...', 2);
+
         return Promise.all(attachments)
           .then(([senderAttachments, receiverAttachments]) => {
-            console.log(senderAttachments, receiverAttachments);
-
             const senderData = encrypt(keysForSender, JSON.stringify({
               ...mail,
               attachments: senderAttachments,
@@ -268,10 +276,10 @@ class Compose extends Component {
             const receiversData = {};
 
             receiversKeys.forEach((elem) => {
-              receiversData[elem.publicKey] = (encrypt(elem, JSON.stringify({
+              receiversData[elem.publicKey] = encrypt(elem, JSON.stringify({
                 ...mail,
-                attachments: senderAttachments,
-              })));
+                attachments: receiverAttachments,
+              }));
             });
 
             let threadId = null;
@@ -291,77 +299,20 @@ class Compose extends Component {
           .catch((err) => {
             throw err;
           });
+      })
+      .catch((err) => {
+        console.log(`Error in state: ${this.props.compose.sendingState}!`);
+        console.log(err);
+        // this.props.sendError('Couldn\'t fetch public key.');
+        this.props.sendError(err.message.toString());
       });
-
-    // eth.resolveUser(this.state.to, domain, isExternalMail)
-    //   .then((data) => {
-    //     if (this.props.user.contacts.indexOf(this.state.to) === -1) {
-    //       this.props.contactsSuccess([
-    //         this.state.to,
-    //         ...this.props.user.contacts,
-    //       ]);
-    //     }
-
-    //     const keysForSender = {
-    //       privateKey: this.props.user.privateKey,
-    //       publicKey: this.props.user.publicKey,
-    //     };
-    //     const keysForReceiver = {
-    //       privateKey: this.props.user.privateKey,
-    //       publicKey: data.publicKey,
-    //     };
-
-    //     if (files.length > 0) this.props.changeSendState('Encrypting attachments...', 2);
-
-    //     const attachments = [
-    //       encryptAttachments(files, keysForSender),
-    //       encryptAttachments(files, keysForReceiver),
-    //     ];
-    //     return Promise.all(attachments)
-    //       .then(([senderAttachments, receiverAttachments]) => {
-    //         this.props.changeSendState('Encrypting mail...', 1);
-    //         const senderData = encrypt(keysForSender, JSON.stringify({
-    //           ...mail,
-    //           attachments: senderAttachments,
-    //         }));
-    //         const receiverData = encrypt(keysForReceiver, JSON.stringify({
-    //           ...mail,
-    //           attachments: receiverAttachments,
-    //         }));
-    //         let threadId = null;
-    //         if (this.props.compose.special && this.props.compose.special.type === 'reply') {
-    //           threadId = this.props.mail.threadId;
-    //         }
-
-    //         return this.props.sendMail({
-    //           toAddress: data.address,
-    //           senderData,
-    //           receiverData,
-    //         }, threadId, data.externalMailContract);
-    //       })
-    //       .then(() => {
-    //         this.props.closeCompose();
-    //       })
-    //       .catch((err) => {
-    //         throw err;
-    //       });
-    //   })
-    //   .catch((err) => {
-    //     console.log(`Error in state: ${this.props.compose.sendingState}!`);
-    //     console.log(err);
-    //     // this.props.sendError('Couldn\'t fetch public key.');
-    //     this.props.sendError(err.message.toString());
-    //   });
   }
 
   handleAddition(e, { value }) {
-    console.log(value);
-
     this.checkRecipient(value, (validRecipient) => {
       if (validRecipient) {
         this.setState({
           recepients: [{ text: value, value }, ...this.state.recepients],
-          selectedRecepients: [...this.state.selectedRecepients, value],
         });
 
         // add the contact to the list
@@ -377,6 +328,15 @@ class Compose extends Component {
     });
   }
 
+
+  handleChange(e, { value }) {
+    this.checkRecipient(value[value.length - 1], (validRecipient) => {
+      if (validRecipient) {
+        this.setState({ selectedRecepients: value });
+      }
+    });
+  }
+
   render() {
     return (
       <div className="compose-wrapper">
@@ -384,35 +344,19 @@ class Compose extends Component {
         <Dropdown
           placeholder="To"
           options={this.state.recepients}
+          value={this.state.selectedRecepients}
           fluid
           multiple
           search
           selection
           allowAdditions
-          onChange={this.handleInputChange}
+          noResultsMessage=""
+          onChange={this.handleChange}
           onAddItem={this.handleAddition}
+          // onLabelClick={this.handleAddition}
         />
 
         <div className="inputs-wrapper">
-          {/* <Search
-            name="to"
-            placeholder="To"
-            value={this.state.to}
-            icon={false}
-            showNoResults={false}
-            className={
-              `${this.state.recipientExists === 'true' ? 'input-ok' : ''}
-               ${this.state.recipientExists === 'false' ? 'input-error' : ''}`}
-            results={this.state.contactSuggestions}
-            onBlur={() => setTimeout(() => this.checkRecipient(), 100)}
-            onFocus={this.resetRecipient}
-            onSearchChange={e => this.handleInputChange(e, true)}
-            onResultSelect={(e, data) => {
-              this.handleInputChange({ target: { name: 'to', value: data.result.title } });
-              setTimeout(() => this.checkRecipient(), 100);
-            }}
-          /> */}
-
           <div className="ui input">
             <input
               type="text"
@@ -599,7 +543,7 @@ Compose.propTypes = {
   sendMail: PropTypes.func.isRequired,
   sendError: PropTypes.func.isRequired,
   sendRequest: PropTypes.func.isRequired,
-  // changeSendState: PropTypes.func.isRequired,
+  changeSendState: PropTypes.func.isRequired,
   contactsSuccess: PropTypes.func.isRequired,
   saveContacts: PropTypes.func.isRequired,
 };

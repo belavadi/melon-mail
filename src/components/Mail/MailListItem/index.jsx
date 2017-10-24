@@ -34,7 +34,7 @@ const MailListItem = ({ args, getThread, mails, mail }) => (
       {
         mails.folder === 'inbox' ?
           <div className="from">{args.from}</div> :
-          <div className="to">{args.to.toString()}</div>
+          <div className="to">{args.to.join(', ')}</div>
       }
       <div
         className="content"
