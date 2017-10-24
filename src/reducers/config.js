@@ -1,4 +1,4 @@
-import config from '../services/config.json';
+import config from '../../config/config.json';
 
 export default (state = {
   useLocalStorage: config.useLocalStorage,

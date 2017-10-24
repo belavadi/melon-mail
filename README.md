@@ -2,32 +2,55 @@
 
 Melon Mail is a secure and decentralized email-like system that relies on Ethereum and IPFS.
 
-## Running locally
-Clone the project
-```git
-git clone https://github.com/DecenterApps/MelonMail.git
-``` 
-Install dependencies
+## Project structure
 ```
-npm install
+Project Root/
+│
+├── config/ - Config files
+│
+├── public/ - Bundled files
+│
+├── solidity/ - Contract code
+│
+├── src/
+│   ├── actions/ - Redux actions / Async calls
+│   ├── assets/ - Project assets
+│   ├── components/ - React components
+│   │   ├── App/  - App wrapper
+│   │   ├── Auth/ - Auth page 
+│   │   ├── Mail/ - Main mail page
+│   │   └── Router/ - Basic helper router
+│   ├── reducers/ - Redux reducers / Application state
+│   ├── services/ - Helper services wrapping ipfs, ethereum...
+│   ├── style/
+│   └── index.jsx - Entry react file
 ```
-Run the project
+## Getting started
+### Running locally
 ```
-npm run start
+npm install             Install dependencies 
+npm run setup           Setup config parameters
+npm run start           Start the app
 ```
-Go to 127.0.0.1:3300
+Then visit [http://localhost:3000/](http://localhost:3300/) to use your app.
 
-## Production build
-Clone the project
-```git
-git clone https://github.com/DecenterApps/MelonMail.git
-``` 
-Install dependencies
+### Production deploy
 ```
-npm install
+npm install             Install dependencies 
+npm run setup           Setup config parameters
+npm run prod            Build a minified bundle
 ```
-Run the project
+Your bundled files will be at the `public/` folder, after that you just need to host them somewhere.
+
+#### Hosting on IPFS
+Follow the instructions for production deploy and proceed. 
+
+Install IPFS [https://ipfs.io/docs/getting-started/](https://ipfs.io/docs/getting-started/)
+```javascript
+ipfs add -r public/
 ```
-npm run prod
-```
-Your bundled files will be at the `dist/` folder, after that you just need to host them somewhere.
+You will be given a set of hashes corresponding to the files in the public folder, use the most bottom one for the public folder.
+ 
+ It should look something like this `added #your_ipfs_hash# public`
+ 
+ Visit [https://ipfs.io/ipfs/#your_ipfs_hash#](https://ipfs.io/ipfs/#your_ipfs_hash#/)

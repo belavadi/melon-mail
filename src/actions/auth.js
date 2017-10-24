@@ -1,5 +1,5 @@
 import eth from '../services/ethereumService';
-import config from '../services/config.json';
+import config from '../../config/config.json';
 
 export const setAccount = account => ({
   type: 'SET_ACCOUNT',
