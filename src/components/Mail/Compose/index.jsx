@@ -260,7 +260,7 @@ class Compose extends Component {
     this.props.sendRequest('Fetching public key...');
 
     const resolveUserPromises = this.state.selectedRecepients.map(r =>
-      eth.resolveUser(r, domain, isExternalMail));
+      eth.resolveUser(r, r.split('@')[1], r.split('@')[1] !== this.props.config.defaultDomain));
 
     Promise.all(resolveUserPromises)
       .then((data) => {
@@ -283,7 +283,7 @@ class Compose extends Component {
         if (files.length > 0) this.props.changeSendState('Encrypting attachments...', 2);
 
         return Promise.all(attachments)
-          .then(([senderAttachments, receiverAttachments]) => {
+          .then(([senderAttachments, ...receiverAttachments]) => {
             const senderData = encrypt(keysForSender, JSON.stringify({
               ...mail,
               attachments: senderAttachments,
@@ -291,10 +291,10 @@ class Compose extends Component {
 
             const receiversData = {};
 
-            receiversKeys.forEach((elem) => {
-              receiversData[elem.publicKey] = encrypt(elem, JSON.stringify({
+            receiversKeys.forEach((receiverKey, i) => {
+              receiversData[receiverKey.publicKey] = encrypt(receiverKey, JSON.stringify({
                 ...mail,
-                attachments: receiverAttachments,
+                attachments: receiverAttachments[i],
               }));
             });
 
@@ -362,11 +362,13 @@ class Compose extends Component {
           multiple
           search
           selection
+          icon=""
           closeOnChange
           allowAdditions
-          noResultsMessage=""
+          noResultsMessage="Enter email"
           onChange={this.handleChange}
           onAddItem={this.handleAddition}
+          className="dropdown-src"
         />
 
         <div className="inputs-wrapper">
