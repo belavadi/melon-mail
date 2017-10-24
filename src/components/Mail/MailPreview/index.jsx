@@ -97,6 +97,14 @@ class MailPreview extends Component {
                           content="Reply"
                           onClick={() => this.compose('reply', mailIndex)}
                         />
+                        {
+                          mail.to.length > 1 &&
+                          <Button
+                            icon="reply"
+                            content="Reply all"
+                            onClick={() => this.compose('replyAll', mailIndex)}
+                          />
+                        }
                         <Button
                           icon="mail forward"
                           content="Forward"

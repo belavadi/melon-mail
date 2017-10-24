@@ -23,14 +23,6 @@ class Compose extends Component {
       key: c,
     }));
 
-    const options = [
-      { key: 'English', text: 'English', value: 'English' },
-      { key: 'French', text: 'French', value: 'French' },
-      { key: 'Spanish', text: 'Spanish', value: 'Spanish' },
-      { key: 'German', text: 'German', value: 'German' },
-      { key: 'Chinese', text: 'Chinese', value: 'Chinese' },
-    ];
-
     this.state = {
       to: '',
       subject: '',
@@ -42,6 +34,7 @@ class Compose extends Component {
       editorState: EditorState.createEmpty(),
       selectedBlockType: '',
       recepients,
+      selectedRecepients: [],
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -65,8 +58,11 @@ class Compose extends Component {
 
       if (this.props.compose.special.type === 'reply') {
         this.setState({
-          to: originMail.from,
+          recepients: [...this.state.recepients,
+            { key: originMail.from, text: originMail.from, value: originMail.from }],
+          selectedRecepients: [originMail.from],
           subject: `${originMail.subject}`,
+          recipientExists: 'true',
         });
         if (originMail.subject.substr(0, 4) !== 'Re: ') {
           this.setState({
@@ -101,6 +97,26 @@ class Compose extends Component {
         );
         const newEditorState = EditorState.createWithContent(newContentState);
         this.setState({ editorState: newEditorState });
+      }
+
+      if (this.props.compose.special.type === 'replyAll') {
+        const updatedRecepients = [this.state.recepients,
+          ...originMail.to.map(c =>
+            ({ text: c, value: c, key: c })),
+          { key: originMail.from, text: originMail.from, value: originMail.from }];
+
+        this.setState({
+          recepients: updatedRecepients,
+          selectedRecepients: [originMail.from, ...originMail.to],
+          subject: `${originMail.subject}`,
+          recipientExists: 'true',
+        });
+
+        if (originMail.subject.substr(0, 4) !== 'Re: ') {
+          this.setState({
+            subject: `Re: ${originMail.subject}`,
+          });
+        }
       }
     }
   }
@@ -346,11 +362,11 @@ class Compose extends Component {
           multiple
           search
           selection
+          closeOnChange
           allowAdditions
           noResultsMessage=""
           onChange={this.handleChange}
           onAddItem={this.handleAddition}
-          // onLabelClick={this.handleAddition}
         />
 
         <div className="inputs-wrapper">
