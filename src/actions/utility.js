@@ -123,7 +123,6 @@ export const backupContacts = () => (dispatch, getState) => {
           allMails = allMails.filter(m => m !== userMail);
 
           if (allMails.length === 0) {
-            console.log('No contact to backup');
             dispatch(contactsBackupAlready());
             return;
           }
@@ -152,8 +151,6 @@ export const backupContacts = () => (dispatch, getState) => {
                 });
             } else {
               const ipfsHash = event.args.ipfsHash;
-
-              console.log('IPFS hash: ', ipfsHash);
 
               ipfs.getFileContent(ipfsHash)
                 .then((ipfsContent) => {
@@ -185,7 +182,6 @@ export const backupContacts = () => (dispatch, getState) => {
                       })
                       .catch(err => console.log(err));
                   } else {
-                    console.log('All contacts already backuped!');
                     dispatch(contactsBackupAlready());
                   }
                 });

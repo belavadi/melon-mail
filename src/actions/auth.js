@@ -113,7 +113,6 @@ export const registerUser = mailAddress => (dispatch) => {
           dispatch(registerSuccess(data));
         })
         .catch((error) => {
-          console.log(error);
           dispatch(registerError(error.message));
         }));
 };

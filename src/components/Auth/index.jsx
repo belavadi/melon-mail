@@ -33,7 +33,6 @@ class Auth extends Component {
       this.props.push('/');
     }
     if (nextProps.user.stage !== this.props.user.stage && nextProps.user.stage === 'check') {
-      console.log(nextProps.user.stage, this.props.user.stage);
       this.props.checkRegistration();
     }
   }

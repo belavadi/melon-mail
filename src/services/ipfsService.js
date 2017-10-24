@@ -30,11 +30,6 @@ const ipfsNode = new Ipfs({
 });
 
 const replicate = (hash, type) => {
-  console.log(`Replicating ${type} with hash: ${hash}`);
-  console.log(ipfsNode.bootstrap.list((err, info) => {
-    console.log(err);
-    console.log(info);
-  }));
   let successful = 0;
   const replicationNodes = [
     ...defaultRepNodes,

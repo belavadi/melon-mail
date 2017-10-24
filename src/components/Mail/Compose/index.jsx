@@ -301,9 +301,6 @@ class Compose extends Component {
           });
       })
       .catch((err) => {
-        console.log(`Error in state: ${this.props.compose.sendingState}!`);
-        console.log(err);
-        // this.props.sendError('Couldn\'t fetch public key.');
         this.props.sendError(err.message.toString());
       });
   }

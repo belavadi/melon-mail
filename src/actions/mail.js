@@ -77,7 +77,6 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
                   );
                 })
                 .catch((error) => {
-                  console.log(error);
                   dispatch(mailError(error.message));
                 });
             }))
@@ -87,7 +86,6 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
         }),
     )
     .catch((error) => {
-      console.log(error);
       dispatch(mailError(error.message));
     });
 };
@@ -249,7 +247,6 @@ export const getMails = folder => (dispatch, getState) => {
           dispatch(mailsSuccess(folder, uniqBy(newMailsState, 'threadId'), fromBlock));
         })
         .catch((error) => {
-          console.log(error);
           dispatch(mailsError(folder, error, fromBlock));
         });
     })

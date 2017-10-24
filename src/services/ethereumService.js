@@ -20,7 +20,6 @@ const networks = {
 executeWhenReady(() => {
   try {
     mailContract = web3.eth.contract(config.mailContractAbi).at(config.mailContractAddress);
-    console.log(mailContract);
   } catch (e) {
     console.log(e);
   }
@@ -300,7 +299,6 @@ const listenForMails = callback =>
 
 const getMails = (folder, fetchToBlock, blocksToFetch) =>
   new Promise((resolve, reject) => {
-    console.log(`Fetching emails with batch size of ${blocksToFetch} blocks`);
     getAccount()
       .then((account) => {
         if (!account) {
