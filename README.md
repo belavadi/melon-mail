@@ -1,5 +1,10 @@
 # Melon Mail
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![dependencies](https://david-dm.org/DecenterApps/MelonMail.svg)](https://david-dm.org/DecenterApps/MelonMail)
+
+
+
 Melon Mail is a secure and decentralized email-like system that relies on Ethereum and IPFS.
 
 ## Project structure
