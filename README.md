@@ -49,15 +49,15 @@ Your bundled files will be at the `public/` folder, after that you just need to 
 Follow the instructions for production deploy and proceed. 
 
 Install IPFS [https://ipfs.io/docs/getting-started/](https://ipfs.io/docs/getting-started/)
-```javascript
+```
 ipfs add -r public/
 ```
 You will be given a set of hashes corresponding to the files in the public folder, use the most bottom one for the public folder.
  
- It should look something like this `added QmVN4UWCeqRe9LcqicyNzxnb55yK7sUxBHuHRRFVFt82WN public`
+It should look something like this `added QmVN4UWCeqRe9LcqicyNzxnb55yK7sUxBHuHRRFVFt82WN public`
  
- Visit [http://[insert trusted ipfs gateway]/ipfs/QmVN4UWCeqRe9LcqicyNzxnb55yK7sUxBHuHRRFVFt82WN](https://ipfs.io/ipfs/#your_ipfs_hash#/)
+Visit [http://[insert trusted ipfs gateway]/ipfs/QmVN4UWCeqRe9LcqicyNzxnb55yK7sUxBHuHRRFVFt82WN](https://ipfs.io/ipfs/#your_ipfs_hash#/)
  
- ####  * Note when hosting on IPFS * 
- Hosting on IPFS comes with some disadvantadges, localStorage becomes unsecure because it's available cross domain and other apps hosted on IPFS can interfere with your data, when you host MelonMail on IPFS you should disable local storage
- features by setting `Enable use of local storage` to `false` during the setup wizard, or manually setting `useLocalStorage` to `false` in `config/config.json`
+####  * Note when hosting on IPFS * 
+Hosting on IPFS comes with some disadvantadges, localStorage becomes unsecure because it's available cross domain and other apps hosted on IPFS can interfere with your data, when you host MelonMail on IPFS you should disable local storage
+features by setting `Enable use of local storage` to `false` during the setup wizard, or manually setting `useLocalStorage` to `false` in `config/config.json`
