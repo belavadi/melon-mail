@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import uniqBy from 'lodash/uniqBy';
 import ENS from 'ethjs-ens';
-import config from './config.json';
+import config from '../../config/config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
 import { executeWhenReady, namehash } from './helperService';
 
