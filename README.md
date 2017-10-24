@@ -32,6 +32,9 @@ npm install             Install dependencies
 npm run setup           Setup config parameters
 npm run start           Start the app
 ```
+
+When running `npm run setup` you can provide your custom config parameters, otherwise just skip with <kbd>Enter</kbd> key.  If you need help just use `npm run setup help`.
+
 Then visit [http://localhost:3000/](http://localhost:3300/) to use your app.
 
 ### Production deploy
@@ -51,6 +54,10 @@ ipfs add -r public/
 ```
 You will be given a set of hashes corresponding to the files in the public folder, use the most bottom one for the public folder.
  
- It should look something like this `added #your_ipfs_hash# public`
+ It should look something like this `added QmVN4UWCeqRe9LcqicyNzxnb55yK7sUxBHuHRRFVFt82WN public`
  
- Visit [https://ipfs.io/ipfs/#your_ipfs_hash#](https://ipfs.io/ipfs/#your_ipfs_hash#/)
+ Visit [http://[insert trusted ipfs gateway]/ipfs/QmVN4UWCeqRe9LcqicyNzxnb55yK7sUxBHuHRRFVFt82WN](https://ipfs.io/ipfs/#your_ipfs_hash#/)
+ 
+ ####  * Note when hosting on IPFS * 
+ Hosting on IPFS comes with some disadvantadges, localStorage becomes unsecure because it's available cross domain and other apps hosted on IPFS can interfere with your data, when you host MelonMail on IPFS you should disable local storage
+ features by setting `Enable use of local storage` to `false` during the setup wizard, or manually setting `useLocalStorage` to `false` in `config/config.json`
