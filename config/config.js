@@ -22,6 +22,15 @@ const schema = {
       description: 'Mail contract ABI (default ABI)',
       type: 'string',
     },
+    mailStorageAddress: {
+      description: 'Mail storage contract address',
+      type: 'string',
+      default: config.mailStorageAddress,
+    },
+    mailStorageAbi: {
+      description: 'Mail storage contract ABI (default ABI)',
+      type: 'string',
+    },
     mxResolverAbi: {
       description: 'MX Resolver ABI (default ABI)',
       type: 'string',
@@ -86,6 +95,9 @@ const instructions = () => {
     }
     if (file.mxResolverAbi === '') {
       file.mxResolverAbi = config.mxResolverAbi;
+    }
+    if (file.mailStorageAbi === '') {
+      file.mailStorageAbi = config.mailStorageAbi;
     }
 
     return fs.writeFile(path.join(`${__dirname}/config.json`), JSON.stringify(result, null, '\t'), 'utf-8', (error) => {
