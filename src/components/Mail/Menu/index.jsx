@@ -6,11 +6,14 @@ import { Dropdown, Icon } from 'semantic-ui-react';
 import CustomNodeModal from '../CustomNodeModal';
 import BackupModal from '../BackupModal';
 import * as authActions from '../../../actions/auth';
+import { useLocalStorage } from '../../../../config/config.json';
 
 const Menu = ({ mailAddress, logout }) => (
   <Dropdown text={mailAddress}>
     <Dropdown.Menu>
-      <CustomNodeModal />
+      {
+        useLocalStorage && <CustomNodeModal />
+      }
       <BackupModal />
       <Dropdown.Item onClick={logout}>
         <span role="link" tabIndex="-1">
