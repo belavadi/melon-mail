@@ -5,6 +5,8 @@ import isEqual from 'lodash/isEqual';
 import eth from '../services/ethereumService';
 import ipfs from '../services/ipfsService';
 
+import { useLocalStorage } from '../../config/config.json';
+
 import { encrypt, decrypt } from '../services/cryptoService';
 
 export const updateBalance = balance => ({
@@ -47,7 +49,11 @@ export const initialAppSetup = config => ({
   config,
 });
 
-export const saveContacts = (contactName, mailHash) => (dispatch, getState) => {
+export const saveContactsToLocalStorage = (contactName, mailHash) => (dispatch, getState) => {
+  if (!useLocalStorage) {
+    return;
+  }
+
   const contactsItem = localStorage.getItem(mailHash);
 
   const keys = {
@@ -95,7 +101,10 @@ const fetchContacts = (currUserHash, keys, type) =>
               return '';
             });
 
-            localStorage.setItem(currUserHash, encrypt(keys, JSON.stringify({ contacts: mails })));
+            if (useLocalStorage) {
+              localStorage.setItem(currUserHash, encrypt(keys,
+                JSON.stringify({ contacts: mails })));
+            }
 
             resolve(mails);
           });
@@ -219,9 +228,13 @@ export const importContacts = () => (dispatch, getState) => {
 
           dispatch(contactsImport(JSON.parse(decryptedContacts).contacts));
 
-          localStorage.setItem(currUserHash, encryptedContacts);
+          if (useLocalStorage) localStorage.setItem(currUserHash, encryptedContacts);
         });
     } else {
+      if (!useLocalStorage) {
+        return;
+      }
+
       const contactsItem = localStorage.getItem(currUserHash);
 
       if (contactsItem) {

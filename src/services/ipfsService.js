@@ -1,4 +1,5 @@
 import findIndex from 'lodash/findIndex';
+import { useLocalStorage } from '../../config/config.json';
 
 const concat = require('concat-stream');
 
@@ -8,10 +9,14 @@ const getMultiaddressString = node =>
 const getGatewayAddressString = node =>
   `${node.protocol}${node.host}:${node.gatewayPort}`;
 
-const getUserRepNodes = () => (
-  localStorage.getItem('customNodes') !== null ?
-    [...JSON.parse(localStorage.getItem('customNodes'))] : []
-);
+function getUserRepNodes() {
+  if (!useLocalStorage) {
+    return [];
+  }
+
+  return localStorage.getItem('customNodes') !== null ?
+    [...JSON.parse(localStorage.getItem('customNodes'))] : [];
+}
 
 const ipfsBootstrapNodesList = [
   '/dns4/ipfs.decenter.com/tcp/4443/wss/ipfs/QmNxpsbNJzvXpUbv9Kp9YnNAdgSzNz8DGWay8ie7pyLy5q',
@@ -145,6 +150,10 @@ const uploadToIpfs = data =>
   });
 
 const addCustomNode = (node) => {
+  if (!useLocalStorage) {
+    return '';
+  }
+
   const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
   if (findIndex(nodes, { host: node.host }) !== -1 ||
     findIndex(nodes, { id: node.id }) !== -1) return 'DUPLICATE_NODE';
@@ -158,12 +167,14 @@ const addCustomNode = (node) => {
 };
 
 const removeCustomNode = (node) => {
-  const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
-  nodes.splice(findIndex(nodes, { host: node.host }), 1);
-  localStorage.setItem('customNodes', JSON.stringify(nodes));
-  ipfsNode.swarm.disconnect(getMultiaddressString(node), (err) => {
-    console.log(err);
-  });
+  if (useLocalStorage) {
+    const nodes = JSON.parse(localStorage.getItem('customNodes')) || [];
+    nodes.splice(findIndex(nodes, { host: node.host }), 1);
+    localStorage.setItem('customNodes', JSON.stringify(nodes));
+    ipfsNode.swarm.disconnect(getMultiaddressString(node), (err) => {
+      console.log(err);
+    });
+  }
 };
 
 export default {
