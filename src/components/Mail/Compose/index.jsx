@@ -9,7 +9,7 @@ import { stateToHTML } from 'draft-js-export-html';
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
 import { contactsSuccess } from '../../../actions/auth';
-import { updateContacts, saveContacts } from '../../../actions/utility';
+import { updateContacts, saveContactsToLocalStorage } from '../../../actions/utility';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
 import eth from '../../../services/ethereumService';
 
@@ -235,14 +235,12 @@ class Compose extends Component {
 
     const mailHash = web3.sha3(this.props.user.mailAddress);
 
-    this.props.saveContacts(contactName, mailHash);
+    this.props.saveContactsToLocalStorage(contactName, mailHash);
   }
 
   handleSend() {
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
-    const domain = this.state.selectedRecepients[0].split('@')[1];
-    const isExternalMail = domain !== this.props.config.defaultDomain;
 
     if (fileTooLarge.length > 0) {
       this.props.sendError('Files too large (10mb limit).');
@@ -560,7 +558,7 @@ Compose.propTypes = {
   sendRequest: PropTypes.func.isRequired,
   changeSendState: PropTypes.func.isRequired,
   contactsSuccess: PropTypes.func.isRequired,
-  saveContacts: PropTypes.func.isRequired,
+  saveContactsToLocalStorage: PropTypes.func.isRequired,
 };
 
 Compose.defaultProps = {
@@ -576,7 +574,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   sendMail,
   contactsSuccess,
   updateContacts,
-  saveContacts,
+  saveContactsToLocalStorage,
 }, dispatch);
 
 export default connect(

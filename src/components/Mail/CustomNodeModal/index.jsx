@@ -13,6 +13,7 @@ import {
   Popup,
 } from 'semantic-ui-react';
 import ipfs from '../../../services/ipfsService';
+import { useLocalStorage } from '../../../../config/config.json';
 
 const options = [
   { key: 'http://', text: 'http/ws', value: 'http://' },
@@ -23,11 +24,13 @@ class CustomNodeModal extends Component {
   constructor() {
     super();
 
+    const localNodes = useLocalStorage ? JSON.parse(localStorage.getItem('customNodes')) : [];
+
     this.state = {
       showIp: true,
       error: '',
       protocol: 'http://',
-      nodes: JSON.parse(localStorage.getItem('customNodes')) || [],
+      nodes: localNodes || [],
       status: '',
     };
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
@@ -82,9 +85,12 @@ class CustomNodeModal extends Component {
           });
           if (status === 'OK') {
             document.getElementById('custom-node-form').reset();
+
+            const localNodes = useLocalStorage ? JSON.parse(localStorage.getItem('customNodes')) : [];
+
             this.setState({
               status: '',
-              nodes: JSON.parse(localStorage.getItem('customNodes')) || [],
+              nodes: localNodes || [],
               showIp: true,
             });
           } else {
@@ -101,8 +107,9 @@ class CustomNodeModal extends Component {
   }
 
   removeNode(node) {
+    const localNodes = useLocalStorage ? JSON.parse(localStorage.getItem('customNodes')) : [];
     ipfs.removeCustomNode(node);
-    this.setState({ nodes: JSON.parse(localStorage.getItem('customNodes')) || [] });
+    this.setState({ nodes: localNodes || [] });
   }
 
   render() {
