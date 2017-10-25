@@ -60,7 +60,6 @@ Router.propTypes = {
   router: PropTypes.shape({
     path: PropTypes.string.isRequired,
   }).isRequired,
-  path: PropTypes.string.isRequired,
   logout: PropTypes.func.isRequired,
   changeAccount: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
@@ -68,7 +67,6 @@ Router.propTypes = {
 };
 
 Router.defaultProps = {
-  path: 'auth',
 };
 
 const mapStateToProps = state => state;

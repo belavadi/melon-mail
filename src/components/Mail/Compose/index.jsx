@@ -362,7 +362,7 @@ class Compose extends Component {
           multiple
           search
           selection
-          icon=""
+          icon={false}
           closeOnChange
           allowAdditions
           noResultsMessage="Enter email"

@@ -18,13 +18,15 @@ const Sidebar = ({ openCompose, changeMailsFolder, mails, compose, mail }) => (
         tabIndex="0"
         onClick={() => changeMailsFolder('inbox')}
         className={`inbox ${mails.folder === 'inbox' ? 'active' : ''}`}
-      ><span>Inbox</span></a>
+      ><span>Inbox</span>
+      </a>
       <a
         role="link"
         tabIndex="0"
         onClick={() => changeMailsFolder('outbox')}
         className={`outbox ${mails.folder === 'outbox' ? 'active' : ''}`}
-      ><span>Sent</span></a>
+      ><span>Sent</span>
+      </a>
     </div>
     <div className="status-wrapper">
       {
