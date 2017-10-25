@@ -18,23 +18,23 @@ contract EmailStorage {
         owners[msg.sender] = true;
     }
     
-    function callUserRegistered(bytes32 usernameHash, address addr, string encryptedUsername, string publicKey) public onlyOwners {
+    function userRegistered(bytes32 usernameHash, address addr, string encryptedUsername, string publicKey) public onlyOwners {
         UserRegistered(usernameHash, addr, encryptedUsername, publicKey);
     }
     
-    function callEmailSent(address from, address to, string mailHash, string threadHash, bytes32 threadId) public onlyOwners {
+    function emailSent(address from, address to, string mailHash, string threadHash, bytes32 threadId) public onlyOwners {
         EmailSent(from, to, mailHash, threadHash, threadId);
     }
     
-    function callContactsUpdated(bytes32 usernameHash, string ipfsHash) public onlyOwners {
+    function contactsUpdated(bytes32 usernameHash, string ipfsHash) public onlyOwners {
         ContactsUpdated(usernameHash, ipfsHash);
     }
     
-    function getUsernamHashMapping(bytes32 usernameHash) public constant onlyOwners returns(bool) {
+    function getUsernameHash(bytes32 usernameHash) public constant onlyOwners returns(bool) {
         return usernameHashExists[usernameHash];
     }
     
-    function setUsernamHashMapping(bytes32 usernameHash) public onlyOwners {
+    function setUsernameHash(bytes32 usernameHash) public onlyOwners {
         require(usernameHashExists[usernameHash] == false);
 
         usernameHashExists[usernameHash] = true;

@@ -13,15 +13,15 @@ contract PublicEmail is AbstractEmail {
     }
 
     function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) public {
-        emailStorage.setUsernamHashMapping(usernameHash);
+        emailStorage.setUsernameHash(usernameHash);
 
-        emailStorage.callUserRegistered(usernameHash, msg.sender, encryptedUsername, publicKey);
+        emailStorage.userRegistered(usernameHash, msg.sender, encryptedUsername, publicKey);
     }
 
     function sendEmail(address[] recipients, string mailHash, string threadHash, bytes32 threadId) public {
         
         for(uint i = 0; i < recipients.length; ++i) {
-            emailStorage.callEmailSent(tx.origin, recipients[i], mailHash, threadHash, threadId);
+            emailStorage.emailSent(tx.origin, recipients[i], mailHash, threadHash, threadId);
         }
     }
 
@@ -33,6 +33,6 @@ contract PublicEmail is AbstractEmail {
     }
 
     function updateContacts(bytes32 usernameHash, string ipfsHash) public {
-        emailStorage.callContactsUpdated(usernameHash, ipfsHash);
+        emailStorage.contactsUpdated(usernameHash, ipfsHash);
     }
 }
