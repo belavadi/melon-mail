@@ -21,7 +21,7 @@ const networks = {
 executeWhenReady(() => {
   try {
     mailContract = web3.eth.contract(config.mailContractAbi).at(config.mailContractAddress);
-    mailStorageContract = web3.eth.contract(config.emailStorageAbi).at(config.emailStorageAddress);
+    mailStorageContract = web3.eth.contract(config.mailStorageAbi).at(config.mailStorageAddress);
   } catch (e) {
     console.log(e);
   }
