@@ -1,4 +1,4 @@
-pragma solidity ^0.4.16;
+pragma solidity ^0.4.11;
 
 import './AbstractEmail.sol';
 import './EmailStorage.sol';

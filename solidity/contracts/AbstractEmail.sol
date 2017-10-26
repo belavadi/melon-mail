@@ -1,4 +1,4 @@
-pragma solidity ^0.4.16;
+pragma solidity ^0.4.11;
 
 contract AbstractEmail {
     function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) public;

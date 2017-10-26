@@ -42,6 +42,16 @@ When running `npm run setup` you can provide your custom config parameters, othe
 
 Then visit [http://localhost:3000/](http://localhost:3300/) to use your app.
 
+### Working on solidity contracts
+In the solidity folder you'll find all the contracts as a basic truffle project.
+You need to have truffle installed as a global command and a node running on localhost:8585 (you can run testrpc for easier development)
+
+```
+truffle build
+truffle migrate
+truffle test
+```
+
 ### Production deploy
 ```
 npm install             Install dependencies 
