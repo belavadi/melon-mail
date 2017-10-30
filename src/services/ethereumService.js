@@ -5,6 +5,14 @@ import config from '../../config/config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
 import { executeWhenReady, namehash } from './helperService';
 
+let LocalMailContract;
+let LocalMailStorageContract;
+
+if (config.testContract) {
+  LocalMailContract = require('../../solidity/build/contracts/PublicEmail.json');
+  LocalMailStorageContract = require('../../solidity/build/contracts/EmailStorage.json');
+}
+
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
 
 let mailContract;
@@ -20,8 +28,18 @@ const networks = {
 
 executeWhenReady(() => {
   try {
-    mailContract = web3.eth.contract(config.mailContractAbi).at(config.mailContractAddress);
-    mailStorageContract = web3.eth.contract(config.mailStorageAbi).at(config.mailStorageAddress);
+    if (config.testContract) {
+      mailContract = web3.eth.contract(LocalMailContract.abi)
+        .at(LocalMailContract.networks[Object.keys(LocalMailContract.networks)[0]].address);
+
+      mailContract.emailStorage((err, storageAddress) => {
+        mailStorageContract = web3.eth.contract(LocalMailStorageContract.abi)
+          .at(storageAddress);
+      });
+    } else {
+      mailContract = web3.eth.contract(config.mailContractAbi).at(config.mailContractAddress);
+      mailStorageContract = web3.eth.contract(config.mailStorageAbi).at(config.mailStorageAddress);
+    }
   } catch (e) {
     console.log(e);
   }
@@ -36,7 +54,7 @@ const getWeb3Status = () =>
     }
 
     return web3.version.getNetwork((err, networkId) => {
-      if (networks[networkId] !== config.network) {
+      if (networks[networkId] !== config.network && !config.testContract) {
         return reject({
           message: 'WRONG_NETWORK',
         });
@@ -187,6 +205,17 @@ const _registerUser = (mailAddress, signedString) =>
           });
         }
 
+        console.log('Register user');
+
+        // return mailContract.registerUser(
+        //   web3.sha3(mailAddress),
+        //   encrypt({ privateKey, publicKey }, mailAddress),
+        //   publicKey,
+        //   { from: account },
+        // ).then((res) => {
+        //   console.log(res);
+        // });
+
         return mailContract.registerUser(
           web3.sha3(mailAddress),
           encrypt({ privateKey, publicKey }, mailAddress),
@@ -226,9 +255,10 @@ const _registerUser = (mailAddress, signedString) =>
 
 const _getPublicKey = (email, optionalContract) =>
   new Promise((resolve, reject) => {
-    const contract = optionalContract !== undefined ? optionalContract : mailStorageContract;
+    const selectedContract = optionalContract !== undefined
+      ? optionalContract : mailStorageContract;
 
-    contract.UserRegistered(
+    selectedContract.UserRegistered(
       {
         usernameHash: web3.sha3(email),
       },
@@ -238,7 +268,6 @@ const _getPublicKey = (email, optionalContract) =>
       },
     )
       .get((err, events) => {
-        console.log('Pub', events);
         if (err) {
           reject({
             message: err,
