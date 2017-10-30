@@ -9,7 +9,7 @@ import MailList from '../MailList';
 import MailPreview from '../MailPreview';
 
 import * as routerActions from '../../../actions/router';
-
+import { openCompose } from '../../../actions/compose';
 import { importContacts } from '../../../actions/utility';
 
 
@@ -25,6 +25,11 @@ class App extends Component {
       this.props.push('auth');
     } else {
       this.props.importContacts();
+      if (document.location.hash.indexOf('mailto') >= 0) {
+        const sendTo = document.location.hash.substr(7 + document.location.hash.indexOf('mailto'));
+        this.props.openCompose({ type: 'sendTo', to: sendTo });
+        history.replaceState('', document.title, window.location.pathname);
+      }
     }
   }
 
@@ -54,12 +59,14 @@ App.propTypes = {
   }).isRequired,
   push: PropTypes.func.isRequired,
   importContacts: PropTypes.func.isRequired,
+  openCompose: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => state;
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
     ...routerActions,
+    openCompose,
     importContacts,
   }, dispatch);
 
