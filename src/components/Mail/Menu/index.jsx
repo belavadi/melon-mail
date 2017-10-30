@@ -5,6 +5,7 @@ import { bindActionCreators } from 'redux';
 import { Dropdown, Icon } from 'semantic-ui-react';
 import CustomNodeModal from '../CustomNodeModal';
 import BackupModal from '../BackupModal';
+import AboutModal from '../AboutModal';
 import * as authActions from '../../../actions/auth';
 import { useLocalStorage } from '../../../../config/config.json';
 
@@ -15,6 +16,7 @@ const Menu = ({ mailAddress, logout }) => (
         useLocalStorage && <CustomNodeModal />
       }
       <BackupModal />
+      <AboutModal />
       <Dropdown.Item onClick={logout}>
         <span role="link" tabIndex="-1">
           <Icon name="log out" /> Logout
