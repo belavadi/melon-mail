@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { logout, changeAccount, fetchContacts, setAccount } from '../../actions/auth';
-import { getBalance } from '../../actions/utility';
+import { getBalance, saveLastActiveTimestamp } from '../../actions/utility';
 import eth from '../../services/ethereumService';
 
 import Auth from '../Auth/';
@@ -25,6 +25,7 @@ class Router extends Component {
               this.props.logout();
               this.props.getBalance();
               this.props.changeAccount(account);
+              this.props.saveLastActiveTimestamp();
             }
           }
           if (this.props.user.activeAccount === '') {
@@ -64,6 +65,7 @@ Router.propTypes = {
   changeAccount: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
   setAccount: PropTypes.func.isRequired,
+  saveLastActiveTimestamp: PropTypes.func.isRequired,
 };
 
 Router.defaultProps = {
@@ -76,6 +78,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   fetchContacts,
   getBalance,
   setAccount,
+  saveLastActiveTimestamp,
 }, dispatch);
 
 export default connect(

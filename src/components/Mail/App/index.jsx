@@ -10,7 +10,7 @@ import MailPreview from '../MailPreview';
 
 import * as routerActions from '../../../actions/router';
 import { openCompose } from '../../../actions/compose';
-import { importContacts } from '../../../actions/utility';
+import { importContacts, initializeLastActiveListener } from '../../../actions/utility';
 
 
 class App extends Component {
@@ -30,6 +30,7 @@ class App extends Component {
         this.props.openCompose({ type: 'sendTo', to: sendTo });
         history.replaceState('', document.title, window.location.pathname);
       }
+      this.props.initializeLastActiveListener();
     }
   }
 
@@ -58,8 +59,9 @@ App.propTypes = {
     isAuthenticated: PropTypes.bool.isRequired,
   }).isRequired,
   push: PropTypes.func.isRequired,
-  importContacts: PropTypes.func.isRequired,
   openCompose: PropTypes.func.isRequired,
+  importContacts: PropTypes.func.isRequired,
+  initializeLastActiveListener: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => state;
@@ -68,6 +70,7 @@ const mapDispatchToProps = dispatch => bindActionCreators(
     ...routerActions,
     openCompose,
     importContacts,
+    initializeLastActiveListener,
   }, dispatch);
 
 export default connect(

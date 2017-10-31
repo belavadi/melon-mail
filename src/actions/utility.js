@@ -263,3 +263,20 @@ export const scrollTo = (element, to, duration) => {
     scrollTo(element, to, duration - 10);
   }, 10);
 };
+
+export const saveLastActiveTimestamp = () => (dispatch, getState) => {
+  const currUserHash = web3.sha3(getState().user.mailAddress);
+  localStorage.setItem(`lastactive-${currUserHash}`, Date.now());
+};
+
+export const initializeLastActiveListener = () => (dispatch, getState) => {
+  if (!useLocalStorage) { return; }
+  window.addEventListener('beforeunload', () => {
+    saveLastActiveTimestamp()(dispatch, getState);
+  });
+};
+
+export const getLastActiveTimestamp = () => (dispatch, getState) => {
+  const currUserHash = web3.sha3(getState().user.mailAddress);
+  return localStorage.getItem(`lastactive-${currUserHash}`);
+};

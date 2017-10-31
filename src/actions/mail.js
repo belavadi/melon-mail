@@ -5,6 +5,7 @@ import eth from '../services/ethereumService';
 import { decrypt } from '../services/cryptoService';
 import { changeSendState, sendSuccess, sendSuccessClear } from './compose';
 import { welcomeEmailUnencrypted } from '../services/helperService';
+import { getLastActiveTimestamp } from './utility';
 
 export const mailRequest = threadId => ({
   type: 'MAIL_REQUEST',
@@ -202,11 +203,14 @@ export const getMails = folder => (dispatch, getState) => {
               const mailToDecrypt = JSON.parse(mail);
               const mailBody = folder === 'inbox' ? mailToDecrypt.receiversData[keys.publicKey] : mailToDecrypt.senderData;
               const decryptedBody = decrypt(keys, mailBody);
+              const parsedBody = JSON.parse(decryptedBody);
+              const lastActiveTimestamp = getLastActiveTimestamp()(dispatch, getState);
               return {
                 transactionHash: mailEvents[index].transactionHash,
                 blockNumber: mailEvents[index].blockNumber,
                 ...mailEvents[index].args,
-                ...JSON.parse(decryptedBody),
+                ...parsedBody,
+                new: Date.parse(parsedBody.time) > lastActiveTimestamp,
                 fromEth: mailEvents[index].args.from,
               };
             } catch (error) {
