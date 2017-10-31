@@ -205,17 +205,6 @@ const _registerUser = (mailAddress, signedString) =>
           });
         }
 
-        console.log('Register user');
-
-        // return mailContract.registerUser(
-        //   web3.sha3(mailAddress),
-        //   encrypt({ privateKey, publicKey }, mailAddress),
-        //   publicKey,
-        //   { from: account },
-        // ).then((res) => {
-        //   console.log(res);
-        // });
-
         return mailContract.registerUser(
           web3.sha3(mailAddress),
           encrypt({ privateKey, publicKey }, mailAddress),
