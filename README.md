@@ -40,7 +40,7 @@ npm run start           Start the app
 
 When running `npm run setup` you can provide your custom config parameters, otherwise just skip with <kbd>Enter</kbd> key.  If you need help just use `npm run setup help`.
 
-Then visit [http://localhost:3000/](http://localhost:3300/) to use your app.
+Then visit [http://localhost:3300/](http://localhost:3300/) to use your app.
 
 ### Production deploy
 ```
