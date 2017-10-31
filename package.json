@@ -2,6 +2,7 @@
   "name": "melon-mail",
   "version": "1.0.0",
   "description": "Decentralized ethereum based email system",
+  "repository": "https://github.com/melonproject/MelonMail",
   "scripts": {
     "setup": "node ./config/config.js",
     "start": "webpack-dev-server --host 127.0.0.1 --port 3300",
