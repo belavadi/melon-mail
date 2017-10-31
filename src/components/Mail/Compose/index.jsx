@@ -51,6 +51,19 @@ class Compose extends Component {
 
   componentWillMount() {
     if (this.props.compose.special) {
+      if (this.props.compose.special.type === 'sendTo') {
+        const to = this.props.compose.special.to;
+        this.setState({
+          recepients: [
+            ...this.state.recepients,
+            { key: to, text: to, value: to }],
+          selectedRecepients: [to],
+          subject: this.props.compose.special.title,
+        });
+
+        return;
+      }
+
       const originThread = this.props.mail.thread;
       const { indexInThread } = this.props.compose.special;
       const originMail = indexInThread !== undefined ?
@@ -80,12 +93,6 @@ class Compose extends Component {
             subject: `Fw: ${originMail.subject}`,
           });
         }
-      }
-
-      if (this.props.compose.special.type === 'forward') {
-        this.setState({
-          subject: `Fw: ${originMail.subject}`,
-        });
         const bodyMarkup = `
           <p>-----<br><span>Forwarding mail from ${originMail.from}</span>
             <blockquote>${originMail.body}</blockquote>
@@ -533,6 +540,8 @@ Compose.propTypes = {
     special: PropTypes.shape({
       type: PropTypes.string,
       indexInThread: PropTypes.number,
+      to: PropTypes.string,
+      title: PropTypes.string,
     }),
     sendingState: PropTypes.string.isRequired,
     isSending: PropTypes.bool.isRequired,
