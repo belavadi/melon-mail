@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
+import uniqueId from 'lodash/uniqueId';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Button, Dropdown } from 'semantic-ui-react';
+import { Button, Dropdown, Label, Icon } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 
@@ -17,10 +18,10 @@ class Compose extends Component {
   constructor(props) {
     super(props);
 
-    const recepients = props.user.contacts.map(c => ({
-      text: c,
-      value: c,
-      key: c,
+    const recepients = props.user.contacts.map(contact => ({
+      text: contact,
+      value: contact,
+      key: uniqueId('id-'),
     }));
 
     this.state = {
@@ -39,6 +40,7 @@ class Compose extends Component {
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSend = this.handleSend.bind(this);
+    this.handleRemove = this.handleRemove.bind(this);
     this.checkRecipient = this.checkRecipient.bind(this);
     this.resetRecipient = this.resetRecipient.bind(this);
     this.removeFile = this.removeFile.bind(this);
@@ -72,7 +74,7 @@ class Compose extends Component {
       if (this.props.compose.special.type === 'reply') {
         this.setState({
           recepients: [...this.state.recepients,
-            { key: originMail.from, text: originMail.from, value: originMail.from }],
+            { key: uniqueId('id-'), text: originMail.from, value: originMail.from }],
           selectedRecepients: [originMail.from],
           subject: `${originMail.subject}`,
           recipientExists: 'true',
@@ -108,8 +110,8 @@ class Compose extends Component {
 
       if (this.props.compose.special.type === 'replyAll') {
         const updatedRecepients = [this.state.recepients,
-          ...originMail.to.map(c =>
-            ({ text: c, value: c, key: c })),
+          ...originMail.to.map(contact =>
+            ({ text: contact, value: contact, key: uniqueId('id-') })),
           { key: originMail.from, text: originMail.from, value: originMail.from }];
 
         this.setState({
@@ -216,6 +218,7 @@ class Compose extends Component {
   }
 
   checkRecipient(recipient, callback) {
+    if (recipient === undefined) return;
     const username = recipient.toLowerCase().trim() || this.state.to.toLowerCase().trim();
     const domain = username.split('@')[1];
     const isExternalMail = domain !== this.props.config.defaultDomain;
@@ -279,7 +282,6 @@ class Compose extends Component {
           publicKey: d.publicKey,
         }));
 
-
         const attachments = [
           encryptAttachments(files, keysForSender),
           ...receiversKeys.map(key => encryptAttachments(files, key)),
@@ -327,31 +329,61 @@ class Compose extends Component {
   }
 
   handleAddition(e, { value }) {
-    this.checkRecipient(value, (validRecipient) => {
+    const isBlurEvent = typeof value !== 'string';
+    const username = isBlurEvent ? e.target.value : value;
+    this.checkRecipient(username, (validRecipient) => {
       if (validRecipient) {
         this.setState({
-          recepients: [{ text: value, value }, ...this.state.recepients],
+          recepients: [...this.state.recepients,
+            {
+              key: uniqueId('id-') + Date.now(),
+              text: username,
+              value: username,
+            }],
         });
 
+        if (isBlurEvent && !this.state.selectedRecepients.includes(username)) {
+          this.setState({
+            selectedRecepients: [
+              ...this.state.selectedRecepients,
+              username,
+            ],
+          });
+        }
         // add the contact to the list
-        if (this.props.user.contacts.indexOf(value) === -1) {
+        if (this.props.user.contacts.indexOf(username) === -1) {
           this.props.contactsSuccess([
-            value,
+            username,
             ...this.props.user.contacts,
           ]);
-        }
 
-        this.saveContact(value);
+          this.saveContact(username);
+        }
       }
     });
   }
 
-
   handleChange(e, { value }) {
-    this.checkRecipient(value[value.length - 1], (validRecipient) => {
-      if (validRecipient) {
-        this.setState({ selectedRecepients: value });
+    const username = value[value.length - 1] || '';
+    this.checkRecipient(username, (validRecipient) => {
+      if (validRecipient && !this.state.selectedRecepients.includes(username)) {
+        console.log(!this.state.selectedRecepients.includes(value), this.state.selectedRecepients);
+        this.setState({
+          selectedRecepients: [
+            ...this.state.selectedRecepients,
+            username,
+          ],
+        });
       }
+    });
+  }
+
+  handleRemove(index) {
+    this.setState({
+      selectedRecepients: [
+        ...this.state.selectedRecepients.slice(0, index),
+        ...this.state.selectedRecepients.slice(index + 1),
+      ],
     });
   }
 
@@ -360,20 +392,27 @@ class Compose extends Component {
       <div className="compose-wrapper">
 
         <Dropdown
+          className="dropdown-src"
           placeholder="To"
-          options={this.state.recepients}
-          value={this.state.selectedRecepients}
+          noResultsMessage="Enter email"
           fluid
           multiple
           search
           selection
-          icon={false}
           closeOnChange
           allowAdditions
-          noResultsMessage="Enter email"
-          onChange={this.handleChange}
+          icon={false}
+          options={this.state.recepients}
+          value={this.state.selectedRecepients}
+          onBlur={this.handleAddition}
           onAddItem={this.handleAddition}
-          className="dropdown-src"
+          onChange={this.handleChange}
+          renderLabel={({ text }, index) =>
+            (<Label size="small">
+              {text}
+              <Icon name="delete" onClick={() => this.handleRemove(index)} />
+            </Label>)
+          }
         />
 
         <div className="inputs-wrapper">
