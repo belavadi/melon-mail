@@ -7,8 +7,8 @@ contract EmailStorage {
         _;
     }
     
-    mapping(bytes32 => bool) usernameHashExists;
-    mapping(address => bool) owners;
+    mapping(bytes32 => bool) public usernameHashExists;
+    mapping(address => bool) public owners;
     
     event UserRegistered(bytes32 indexed usernameHash, address indexed addr, string encryptedUsername, string publicKey);
     event EmailSent(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
@@ -28,10 +28,6 @@ contract EmailStorage {
     
     function contactsUpdated(bytes32 usernameHash, string ipfsHash) public onlyOwners {
         ContactsUpdated(usernameHash, ipfsHash);
-    }
-    
-    function getUsernameHash(bytes32 usernameHash) public constant onlyOwners returns(bool) {
-        return usernameHashExists[usernameHash];
     }
     
     function setUsernameHash(bytes32 usernameHash) public onlyOwners {

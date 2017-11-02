@@ -103,10 +103,10 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.4.11;\n\ncontract AbstractEmail {\n    function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) public;\n    function sendEmail(address[] recipients, string mailHash, string threadHash, bytes32 threadId) public;\n    function sendExternalEmail(AbstractEmail externalContractAddress, address[] recipients, string mailHash, string threadHash, bytes32 threadId) public;\n    function updateContacts(bytes32 usernameHash, string ipfsHash) public;\n}",
-  "sourcePath": "/home/nenad/Desktop/web/blockchain/MelonMail/solidity/contracts/AbstractEmail.sol",
+  "sourcePath": "/Users/nenadpalinkasevic/Desktop/blockchain/MelonMail/solidity/contracts/AbstractEmail.sol",
   "ast": {
     "attributes": {
-      "absolutePath": "/home/nenad/Desktop/web/blockchain/MelonMail/solidity/contracts/AbstractEmail.sol",
+      "absolutePath": "/Users/nenadpalinkasevic/Desktop/blockchain/MelonMail/solidity/contracts/AbstractEmail.sol",
       "exportedSymbols": {
         "AbstractEmail": [
           124
@@ -709,5 +709,5 @@
   },
   "networks": {},
   "schemaVersion": "1.0.1",
-  "updatedAt": "2017-11-01T12:03:01.544Z"
+  "updatedAt": "2017-11-02T14:29:44.695Z"
 }

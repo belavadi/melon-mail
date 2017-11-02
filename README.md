@@ -48,12 +48,11 @@ You need to have truffle 4 installed as a global command and can use the built i
 
 ```truffle develop``` - to start the development blockchain (you have to be in /solidity folder)
 
-After that in the truffle console that truffle develop prompted you can build, migrate and test your contracts.
+After that in the truffle console that truffle develop prompted you can migrate and test your contracts.
 
 * Tests will require Node version that is greater than Node 7.0
 
 ```
-build
 migrate
 test
 ```
