@@ -332,7 +332,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1025,
+                              "referencedDeclaration": 1270,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -397,7 +397,7 @@
                                           "overloadedDeclarations": [
                                             null
                                           ],
-                                          "referencedDeclaration": 1022,
+                                          "referencedDeclaration": 1267,
                                           "type": "msg",
                                           "value": "msg"
                                         },
@@ -998,7 +998,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 1022,
+                                      "referencedDeclaration": 1267,
                                       "type": "msg",
                                       "value": "msg"
                                     },
@@ -1983,7 +1983,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1025,
+                              "referencedDeclaration": 1270,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -2548,9 +2548,9 @@
     "4447": {
       "events": {},
       "links": {},
-      "address": "0x933c6f4851a30e22d0f0f44e198a865e9e9608a7"
+      "address": "0x17d93ce3291891e3ca16f72f534f6449bf0c5023"
     }
   },
   "schemaVersion": "1.0.1",
-  "updatedAt": "2017-11-02T14:29:45.097Z"
+  "updatedAt": "2017-11-02T16:11:03.952Z"
 }
