@@ -5,13 +5,8 @@ import config from '../../config/config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
 import { executeWhenReady, namehash } from './helperService';
 
-let LocalMailContract;
-let LocalMailStorageContract;
-
-if (config.testContract) {
-  LocalMailContract = require('../../solidity/build/contracts/PublicEmail.json');
-  LocalMailStorageContract = require('../../solidity/build/contracts/EmailStorage.json');
-}
+const LocalMailContract = require('../../solidity/build/contracts/PublicEmail.json');
+const LocalMailStorageContract = require('../../solidity/build/contracts/EmailStorage.json');
 
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
 
@@ -28,18 +23,10 @@ const networks = {
 
 executeWhenReady(() => {
   try {
-    if (config.testContract) {
-      mailContract = web3.eth.contract(LocalMailContract.abi)
-        .at(LocalMailContract.networks[Object.keys(LocalMailContract.networks)[0]].address);
-
-      mailContract.emailStorage((err, storageAddress) => {
-        mailStorageContract = web3.eth.contract(LocalMailStorageContract.abi)
-          .at(storageAddress);
-      });
-    } else {
-      mailContract = web3.eth.contract(config.mailContractAbi).at(config.mailContractAddress);
-      mailStorageContract = web3.eth.contract(config.mailStorageAbi).at(config.mailStorageAddress);
-    }
+    mailContract = web3.eth.contract(LocalMailContract.abi || config.mailContractAbi)
+      .at(LocalMailContract.networks['42'].address || config.mailContractAddress);
+    mailStorageContract = web3.eth.contract(LocalMailStorageContract.abi || config.abi)
+      .at(LocalMailStorageContract.networks['42'].address || config.address);
   } catch (e) {
     console.log(e);
   }
