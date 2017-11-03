@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { Button, Dropdown, Label, Icon } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
+import { Creatable } from 'react-select';
 
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
@@ -19,9 +20,8 @@ class Compose extends Component {
     super(props);
 
     const recepients = props.user.contacts.map(contact => ({
-      text: contact,
+      label: contact,
       value: contact,
-      key: uniqueId('id-'),
     }));
 
     this.state = {
@@ -36,11 +36,12 @@ class Compose extends Component {
       selectedBlockType: '',
       recepients,
       selectedRecepients: [],
+      search: '',
+      anchor: null,
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSend = this.handleSend.bind(this);
-    this.handleRemove = this.handleRemove.bind(this);
     this.checkRecipient = this.checkRecipient.bind(this);
     this.resetRecipient = this.resetRecipient.bind(this);
     this.removeFile = this.removeFile.bind(this);
@@ -251,15 +252,23 @@ class Compose extends Component {
   handleSend() {
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
+    const invalidRecepients = this.state.selectedRecepients.filter(recipient => recipient.invalid);
 
     if (fileTooLarge.length > 0) {
       this.props.sendError('Files too large (10mb limit).');
       return;
     }
 
+    if (invalidRecepients.length > 0) {
+      this.props.sendError('All recipients must be valid registered users.');
+      return;
+    }
+
+    const recepients = this.state.selectedRecepients.map(item => item.value);
+
     const mail = {
       from: this.props.user.mailAddress,
-      to: this.state.selectedRecepients,
+      to: recepients,
       subject: this.state.subject ? this.state.subject : '(No subject)',
       body: stateToHTML(this.state.editorState.getCurrentContent()).toString(),
       time: new Date().toString(),
@@ -267,7 +276,7 @@ class Compose extends Component {
 
     this.props.sendRequest('Fetching public key...');
 
-    const resolveUserPromises = this.state.selectedRecepients.map(r =>
+    const resolveUserPromises = recepients.map(r =>
       eth.resolveUser(r, r.split('@')[1], r.split('@')[1] !== this.props.config.defaultDomain));
 
     Promise.all(resolveUserPromises)
@@ -328,25 +337,16 @@ class Compose extends Component {
       });
   }
 
-  handleAddition(e, { value }) {
-    const isBlurEvent = typeof value !== 'string';
-    const username = isBlurEvent ? e.target.value : value;
+  handleAddition(input, callback) {
+    console.log(input);
+    const username = input.value;
     this.checkRecipient(username, (validRecipient) => {
       if (validRecipient) {
-        this.setState({
-          recepients: [...this.state.recepients,
-            {
-              key: uniqueId('id-') + Date.now(),
-              text: username,
-              value: username,
-            }],
-        });
-
-        if (isBlurEvent && !this.state.selectedRecepients.includes(username)) {
+        if (!this.state.recepients.find(item => item.value === username)) {
           this.setState({
-            selectedRecepients: [
-              ...this.state.selectedRecepients,
-              username,
+            recepients: [
+              ...this.state.recepients,
+              input,
             ],
           });
         }
@@ -361,58 +361,70 @@ class Compose extends Component {
         }
       }
     });
+    return true;
   }
 
-  handleChange(e, { value }) {
-    const username = value[value.length - 1] || '';
-    this.checkRecipient(username, (validRecipient) => {
-      if (validRecipient && !this.state.selectedRecepients.includes(username)) {
-        console.log(!this.state.selectedRecepients.includes(value), this.state.selectedRecepients);
+  handleChange(values) {
+    console.log('change');
+    if (values.length === 0) {
+      return this.setState({
+        selectedRecepients: [],
+      });
+    }
+
+    const recepient = values[values.length - 1] || '';
+
+    return this.checkRecipient(recepient.value, (validRecipient) => {
+      console.log(validRecipient);
+      if (validRecipient && !this.state.selectedRecepients.includes(recepient.value)) {
         this.setState({
-          selectedRecepients: [
-            ...this.state.selectedRecepients,
-            username,
-          ],
+          selectedRecepients: values,
         });
+
+        // add the contact to the list
+        if (this.props.user.contacts.indexOf(recepient.value) === -1) {
+          this.props.contactsSuccess([
+            recepient.value,
+            ...this.props.user.contacts,
+          ]);
+
+          this.saveContact(recepient.value);
+        }
+      } else {
+        const invalidValues = values;
+        invalidValues[invalidValues.length - 1].invalid = true;
+        this.setState({
+          recepients: this.state.recepients.slice(1),
+          selectedRecepients: invalidValues,
+        });
+        this.handleInvalidValue(invalidValues);
       }
     });
   }
 
-  handleRemove(index) {
-    this.setState({
-      selectedRecepients: [
-        ...this.state.selectedRecepients.slice(0, index),
-        ...this.state.selectedRecepients.slice(index + 1),
-      ],
-    });
+  handleInvalidValue(values) {
+    const indexes = values
+      .map((item, i) => (item.invalid ? i : null))
+      .filter(item => item !== null);
+
+    const selectValues = document.getElementsByClassName('Select-value');
+    for (let i = 0; i < selectValues.length; i += 1) {
+      if (indexes.includes(i) && selectValues[i].className.indexOf('error') < 0) {
+        selectValues[i].className += ' error';
+      }
+    }
   }
 
   render() {
     return (
       <div className="compose-wrapper">
-
-        <Dropdown
-          className="dropdown-src"
+        <Creatable
           placeholder="To"
-          noResultsMessage="Enter email"
-          fluid
-          multiple
-          search
-          selection
-          closeOnChange
-          allowAdditions
-          icon={false}
+          multi
+          autofocus
           options={this.state.recepients}
           value={this.state.selectedRecepients}
-          onBlur={this.handleAddition}
-          onAddItem={this.handleAddition}
           onChange={this.handleChange}
-          renderLabel={({ text }, index) =>
-            (<Label size="small">
-              {text}
-              <Icon name="delete" onClick={() => this.handleRemove(index)} />
-            </Label>)
-          }
         />
 
         <div className="inputs-wrapper">

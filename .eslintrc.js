@@ -8,6 +8,7 @@ module.exports = {
     "browser": true
   },
   rules: {
+    'class-methods-use-this': 0,
     'jsx-a11y/href-no-hash': 'off',
     'react/jsx-tag-spacing': 1,
     'no-unused-vars': 1,
