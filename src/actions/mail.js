@@ -91,6 +91,10 @@ export const getThread = (threadId, afterBlock) => (dispatch, getState) => {
     });
 };
 
+export const clearThread = () => ({
+  type: 'MAIL_CLEAR',
+});
+
 export const sendMail = (mail, threadId, externalMailContract) => (dispatch, getState) => {
   dispatch(changeSendState('Uploading...', 3));
   return ipfs.uploadData(mail)

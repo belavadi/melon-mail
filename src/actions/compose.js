@@ -1,3 +1,5 @@
+import { clearThread } from './mail';
+
 export const openCompose = special => ({
   type: special ? 'COMPOSE_BOX_OPEN_SPECIAL' : 'COMPOSE_BOX_OPEN',
   special,
@@ -14,6 +16,15 @@ export const minimizeCompose = () => ({
 export const maximizeCompose = () => ({
   type: 'COMPOSE_BOX_SHOW',
 });
+
+export const sendMailTo = (to, title) => (dispatch) => {
+  dispatch(clearThread());
+  dispatch(openCompose({
+    type: 'sendTo',
+    to,
+    title,
+  }));
+};
 
 export const sendRequest = sendingState => ({
   type: 'SEND_REQUEST',
