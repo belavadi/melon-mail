@@ -48,7 +48,7 @@ You need to have truffle 4 installed as a global command and can use the built i
 
 ```truffle develop``` - to start the development blockchain (you have to be in /solidity folder)
 
-After that in the truffle console that truffle develop prompted you can migrate and test your contracts.
+After that in the truffle console you can migrate and test your contracts.
 
 * Tests will require Node version that is greater than Node 7.0
 
@@ -57,7 +57,9 @@ migrate
 test
 ```
 
-If you want to use the build contracts in the frontend, you'll need to enable `testContract: true` in /config/config.json by default it will be false and contracts deployed on kovan will be used
+If you want to deploy the contracts to kovan use ```migrate --network kovan ``` in solidity/truffle.js you have
+the deployment config for the network you can use your own local node or infura.io (supply the mnemonic 12 keyword seed of your wallet to deploy with infura)
+Add the new abi and contract address to the config.json file if you want to test your changes in the frontend.
 
 ### Production deploy
 ```

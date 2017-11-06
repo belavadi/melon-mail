@@ -13,7 +13,9 @@ module.exports = {
       provider: new HDWalletProvider(mnemonic, "https://kovan.infura.io/"),
       network_id: 42,
       // host: "localhost",
-      // port: 8545
+      // port: 8545,
+       gas: 1700000,
+      // gasPrice: 100000000000
     }
   }
 };

@@ -62,3 +62,4 @@ typings/
 .DS_STORE
 public
 config/config.json
+solidity/build/
