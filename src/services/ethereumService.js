@@ -21,6 +21,8 @@ executeWhenReady(() => {
   try {
     mailContract = web3.eth.contract(config.mailContractAbi)
       .at(config.mailContractAddress);
+
+    console.log(mailContract);
   } catch (e) {
     console.log(e);
   }
