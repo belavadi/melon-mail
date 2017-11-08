@@ -2,8 +2,6 @@ const bitcore = require('bitcore-lib');
 const ecies = require('bitcore-ecies');
 
 const PublicEmail = artifacts.require("./PublicEmail.sol");
-const EmailStorage =  artifacts.require("./EmailStorage.sol");
-
 const Random = bitcore.crypto.Random;
 
 function generateKeys() {
@@ -23,18 +21,5 @@ function encrypt(keys, data) {
   return receiver.encrypt(data, Random.getRandomBuffer(16)).toString('hex');
 };
 
- async function getContracts() {
-    const publicEmail = await PublicEmail.deployed();
-
-    const storageAddr = await publicEmail.emailStorage();
-    const emailStorage = await EmailStorage.at(storageAddr);
-
-    return {
-      publicEmail,
-      emailStorage
-    };
-  }
-
 module.exports.generateKeys = generateKeys;
 module.exports.encrypt = encrypt;
-module.exports.getContracts = getContracts;

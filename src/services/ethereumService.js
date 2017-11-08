@@ -8,7 +8,6 @@ import { executeWhenReady, namehash } from './helperService';
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
 
 let mailContract;
-let mailStorageContract;
 
 const networks = {
   3: 'ropsten',
@@ -22,9 +21,6 @@ executeWhenReady(() => {
   try {
     mailContract = web3.eth.contract(config.mailContractAbi)
       .at(config.mailContractAddress);
-
-    mailStorageContract = web3.eth.contract(config.mailStorageAbi)
-      .at(config.mailStorageAddress);
   } catch (e) {
     console.log(e);
   }
@@ -86,7 +82,7 @@ const checkRegistration = () =>
         });
       }
 
-      return mailStorageContract.UserRegistered(
+      return mailContract.UserRegistered(
         {
           addr: account,
         },
@@ -147,7 +143,7 @@ const getBlockNumber = () =>
 
 const checkMailAddress = email =>
   new Promise((resolve, reject) => {
-    mailStorageContract.UserRegistered(
+    mailContract.UserRegistered(
       {
         usernameHash: web3.sha3(email),
       },
@@ -230,7 +226,7 @@ const _registerUser = (mailAddress, signedString) =>
 const _getPublicKey = (email, optionalContract) =>
   new Promise((resolve, reject) => {
     const selectedContract = optionalContract !== undefined
-      ? optionalContract : mailStorageContract;
+      ? optionalContract : mailContract;
 
     selectedContract.UserRegistered(
       {
@@ -273,7 +269,7 @@ const listenForMails = callback =>
       }
       return getBlockNumber()
         .then((startingBlock) => {
-          mailStorageContract.EmailSent(
+          mailContract.EmailSent(
             {
               to: account,
             },
@@ -287,7 +283,7 @@ const listenForMails = callback =>
               else callback(event, 'inbox');
             });
 
-          mailStorageContract.EmailSent(
+          mailContract.EmailSent(
             {
               from: account,
             },
@@ -316,7 +312,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
           .then((currentBlock) => {
             const filter = folder === 'inbox' ? { to: account } : { from: account };
             const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
-            mailStorageContract.EmailSent(
+            mailContract.EmailSent(
               filter,
               {
                 fromBlock: fetchTo - blocksToFetch,
@@ -342,7 +338,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
 
 const getThread = (threadId, afterBlock) =>
   new Promise((resolve, reject) => {
-    mailStorageContract.EmailSent(
+    mailContract.EmailSent(
       {
         threadId,
       },
@@ -434,7 +430,7 @@ const fetchAllEvents = folder =>
           });
         }
         const filter = folder === 'inbox' ? { to: account } : { from: account };
-        return mailStorageContract.EmailSent(
+        return mailContract.EmailSent(
           filter,
           {
             fromBlock: 0,
@@ -456,7 +452,7 @@ const fetchAllEvents = folder =>
 
 const getAddressInfo = address =>
   new Promise((resolve) => {
-    mailStorageContract.UserRegistered(
+    mailContract.UserRegistered(
       {
         addr: address,
       },
@@ -490,7 +486,7 @@ const updateContactsEvent = (hashName, ipfsHash) =>
 
 const getContactsForUser = userHash =>
   new Promise((resolve, reject) => {
-    mailStorageContract.ContactsUpdated(
+    mailContract.ContactsUpdated(
       {
         usernameHash: userHash,
       },

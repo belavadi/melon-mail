@@ -1,27 +1,26 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.16;
 
 import './AbstractEmail.sol';
-import './EmailStorage.sol';
 
 contract PublicEmail is AbstractEmail {
-
-    EmailStorage public emailStorage;
-
-    function PublicEmail() public {
-        emailStorage = new EmailStorage();
-        emailStorage.addOwner(msg.sender);
-    }
+    mapping (bytes32 => bool) usernameHashExists;
+    
+    event UserRegistered(bytes32 indexed usernameHash, address indexed addr, string encryptedUsername, string publicKey);
+    event EmailSent(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
+    event ContactsUpdated(bytes32 indexed usernameHash, string ipfsHash);
 
     function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) public {
-        emailStorage.setUsernameHash(usernameHash);
+        require(usernameHashExists[usernameHash] == false);
 
-        emailStorage.userRegistered(usernameHash, msg.sender, encryptedUsername, publicKey);
+        usernameHashExists[usernameHash] = true;
+
+        UserRegistered(usernameHash, msg.sender, encryptedUsername, publicKey);
     }
 
     function sendEmail(address[] recipients, string mailHash, string threadHash, bytes32 threadId) public {
         
-        for(uint i = 0; i < recipients.length; ++i) {
-            emailStorage.emailSent(tx.origin, recipients[i], mailHash, threadHash, threadId);
+        for (uint i = 0; i < recipients.length; ++i) {
+            EmailSent(tx.origin, recipients[i], mailHash, threadHash, threadId);
         }
     }
 
@@ -33,6 +32,6 @@ contract PublicEmail is AbstractEmail {
     }
 
     function updateContacts(bytes32 usernameHash, string ipfsHash) public {
-        emailStorage.contactsUpdated(usernameHash, ipfsHash);
+        ContactsUpdated(usernameHash, ipfsHash);
     }
 }
