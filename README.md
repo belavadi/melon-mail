@@ -42,6 +42,25 @@ When running `npm run setup` you can provide your custom config parameters, othe
 
 Then visit [http://localhost:3300/](http://localhost:3300/) to use your app.
 
+### Working on solidity contracts
+In the solidity folder you'll find all the contracts as a truffle project (we are using truffle 4).
+You need to have truffle 4 installed as a global command and can use the built in truffle development blockchain.
+
+```truffle develop``` - to start the development blockchain (you have to be in /solidity folder)
+
+After that in the truffle console you can migrate and test your contracts.
+
+* Tests will require Node version that is greater than Node 7.0
+
+```
+migrate
+test
+```
+
+If you want to deploy the contracts to kovan use ```migrate --network kovan ``` in solidity/truffle.js you have
+the deployment config for the network you can use your own local node or infura.io (supply the mnemonic 12 keyword seed of your wallet to deploy with infura)
+Add the new abi and contract address to the config.json file if you want to test your changes in the frontend.
+
 ### Production deploy
 ```
 npm install             Install dependencies 
