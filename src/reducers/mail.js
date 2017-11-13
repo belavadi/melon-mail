@@ -29,6 +29,15 @@ export default (state = {
         isFetching: false,
         error: action.error,
       };
+    case 'MAIL_CLEAR':
+      return {
+        ...state,
+        isFetching: false,
+        thread: [],
+        threadId: null,
+        threadHash: null,
+        error: '',
+      };
     case 'ATTACHMENT_REQUEST':
       return {
         ...state,

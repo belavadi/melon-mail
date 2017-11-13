@@ -19,7 +19,10 @@ const networks = {
 
 executeWhenReady(() => {
   try {
-    mailContract = web3.eth.contract(config.mailContractAbi).at(config.mailContractAddress);
+    mailContract = web3.eth.contract(config.mailContractAbi)
+      .at(config.mailContractAddress);
+
+    console.log(mailContract);
   } catch (e) {
     console.log(e);
   }
@@ -34,7 +37,7 @@ const getWeb3Status = () =>
     }
 
     return web3.version.getNetwork((err, networkId) => {
-      if (networks[networkId] !== config.network) {
+      if (networks[networkId] !== config.network && !config.testContract) {
         return reject({
           message: 'WRONG_NETWORK',
         });
@@ -224,9 +227,10 @@ const _registerUser = (mailAddress, signedString) =>
 
 const _getPublicKey = (email, optionalContract) =>
   new Promise((resolve, reject) => {
-    const contract = optionalContract !== undefined ? optionalContract : mailContract;
+    const selectedContract = optionalContract !== undefined
+      ? optionalContract : mailContract;
 
-    contract.UserRegistered(
+    selectedContract.UserRegistered(
       {
         usernameHash: web3.sha3(email),
       },

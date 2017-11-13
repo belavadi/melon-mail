@@ -61,7 +61,7 @@ class Compose extends Component {
             ...this.state.recepients,
             { key: to, text: to, value: to }],
           selectedRecepients: [to],
-          subject: this.props.compose.special.title,
+          subject: this.props.compose.special.title || '',
         });
 
         return;

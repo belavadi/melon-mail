@@ -45,11 +45,7 @@ class AboutModal extends Component {
             positive
             content="Send Feedback"
             onClick={() => {
-              this.props.openCompose({
-                type: 'sendTo',
-                to: 'decenter@melon-mail.eth',
-                title: 'Feedback',
-              });
+              this.props.sendMailTo('decenter@melon-mail.eth', 'Feedback');
               this.close();
             }}
           />
@@ -61,7 +57,7 @@ class AboutModal extends Component {
 
 
 AboutModal.propTypes = {
-  openCompose: PropTypes.func.isRequired,
+  sendMailTo: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => state;
