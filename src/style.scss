@@ -15,6 +15,7 @@
   @import "style/config/fonts";
 
   @import "style/components/forms";
+  @import "style/components/react-select";
 
   @import "components/Mail/App/index";
   @import "components/Mail/Header/index";
@@ -26,3 +27,4 @@
 }
 
 @import "style/components/modal";
+@import "../node_modules/react-select/dist/react-select.min.css";

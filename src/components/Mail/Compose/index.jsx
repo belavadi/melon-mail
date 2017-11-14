@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
+import uniqueId from 'lodash/uniqueId';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Button, Dropdown } from 'semantic-ui-react';
+import { Button, Dropdown, Label, Icon } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
+import { Creatable } from 'react-select';
 
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
@@ -17,10 +19,9 @@ class Compose extends Component {
   constructor(props) {
     super(props);
 
-    const recepients = props.user.contacts.map(c => ({
-      text: c,
-      value: c,
-      key: c,
+    const recepients = props.user.contacts.map(contact => ({
+      label: contact,
+      value: contact,
     }));
 
     this.state = {
@@ -35,6 +36,8 @@ class Compose extends Component {
       selectedBlockType: '',
       recepients,
       selectedRecepients: [],
+      search: '',
+      anchor: null,
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -72,7 +75,7 @@ class Compose extends Component {
       if (this.props.compose.special.type === 'reply') {
         this.setState({
           recepients: [...this.state.recepients,
-            { key: originMail.from, text: originMail.from, value: originMail.from }],
+            { key: uniqueId('id-'), text: originMail.from, value: originMail.from }],
           selectedRecepients: [originMail.from],
           subject: `${originMail.subject}`,
           recipientExists: 'true',
@@ -108,8 +111,8 @@ class Compose extends Component {
 
       if (this.props.compose.special.type === 'replyAll') {
         const updatedRecepients = [this.state.recepients,
-          ...originMail.to.map(c =>
-            ({ text: c, value: c, key: c })),
+          ...originMail.to.map(contact =>
+            ({ text: contact, value: contact, key: uniqueId('id-') })),
           { key: originMail.from, text: originMail.from, value: originMail.from }];
 
         this.setState({
@@ -216,6 +219,7 @@ class Compose extends Component {
   }
 
   checkRecipient(recipient, callback) {
+    if (recipient === undefined) return;
     const username = recipient.toLowerCase().trim() || this.state.to.toLowerCase().trim();
     const domain = username.split('@')[1];
     const isExternalMail = domain !== this.props.config.defaultDomain;
@@ -248,15 +252,23 @@ class Compose extends Component {
   handleSend() {
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
+    const invalidRecepients = this.state.selectedRecepients.filter(recipient => recipient.invalid);
 
     if (fileTooLarge.length > 0) {
       this.props.sendError('Files too large (10mb limit).');
       return;
     }
 
+    if (invalidRecepients.length > 0) {
+      this.props.sendError('All recipients must be valid registered users.');
+      return;
+    }
+
+    const recepients = this.state.selectedRecepients.map(item => item.value);
+
     const mail = {
       from: this.props.user.mailAddress,
-      to: this.state.selectedRecepients,
+      to: recepients,
       subject: this.state.subject ? this.state.subject : '(No subject)',
       body: stateToHTML(this.state.editorState.getCurrentContent()).toString(),
       time: new Date().toString(),
@@ -264,7 +276,7 @@ class Compose extends Component {
 
     this.props.sendRequest('Fetching public key...');
 
-    const resolveUserPromises = this.state.selectedRecepients.map(r =>
+    const resolveUserPromises = recepients.map(r =>
       eth.resolveUser(r, r.split('@')[1], r.split('@')[1] !== this.props.config.defaultDomain));
 
     Promise.all(resolveUserPromises)
@@ -278,7 +290,6 @@ class Compose extends Component {
           privateKey: this.props.user.privateKey,
           publicKey: d.publicKey,
         }));
-
 
         const attachments = [
           encryptAttachments(files, keysForSender),
@@ -326,54 +337,94 @@ class Compose extends Component {
       });
   }
 
-  handleAddition(e, { value }) {
-    this.checkRecipient(value, (validRecipient) => {
+  handleAddition(input, callback) {
+    console.log(input);
+    const username = input.value;
+    this.checkRecipient(username, (validRecipient) => {
       if (validRecipient) {
+        if (!this.state.recepients.find(item => item.value === username)) {
+          this.setState({
+            recepients: [
+              ...this.state.recepients,
+              input,
+            ],
+          });
+        }
+        // add the contact to the list
+        if (this.props.user.contacts.indexOf(username) === -1) {
+          this.props.contactsSuccess([
+            username,
+            ...this.props.user.contacts,
+          ]);
+
+          this.saveContact(username);
+        }
+      }
+    });
+    return true;
+  }
+
+  handleChange(values) {
+    console.log('change');
+    if (values.length === 0) {
+      return this.setState({
+        selectedRecepients: [],
+      });
+    }
+
+    const recepient = values[values.length - 1] || '';
+
+    return this.checkRecipient(recepient.value, (validRecipient) => {
+      console.log(validRecipient);
+      if (validRecipient && !this.state.selectedRecepients.includes(recepient.value)) {
         this.setState({
-          recepients: [{ text: value, value }, ...this.state.recepients],
+          selectedRecepients: values,
         });
 
         // add the contact to the list
-        if (this.props.user.contacts.indexOf(value) === -1) {
+        if (this.props.user.contacts.indexOf(recepient.value) === -1) {
           this.props.contactsSuccess([
-            value,
+            recepient.value,
             ...this.props.user.contacts,
           ]);
-        }
 
-        this.saveContact(value);
+          this.saveContact(recepient.value);
+        }
+      } else {
+        const invalidValues = values;
+        invalidValues[invalidValues.length - 1].invalid = true;
+        this.setState({
+          recepients: this.state.recepients.slice(1),
+          selectedRecepients: invalidValues,
+        });
+        this.handleInvalidValue(invalidValues);
       }
     });
   }
 
+  handleInvalidValue(values) {
+    const indexes = values
+      .map((item, i) => (item.invalid ? i : null))
+      .filter(item => item !== null);
 
-  handleChange(e, { value }) {
-    this.checkRecipient(value[value.length - 1], (validRecipient) => {
-      if (validRecipient) {
-        this.setState({ selectedRecepients: value });
+    const selectValues = document.getElementsByClassName('Select-value');
+    for (let i = 0; i < selectValues.length; i += 1) {
+      if (indexes.includes(i) && selectValues[i].className.indexOf('error') < 0) {
+        selectValues[i].className += ' error';
       }
-    });
+    }
   }
 
   render() {
     return (
       <div className="compose-wrapper">
-
-        <Dropdown
+        <Creatable
           placeholder="To"
+          multi
+          autofocus
           options={this.state.recepients}
           value={this.state.selectedRecepients}
-          fluid
-          multiple
-          search
-          selection
-          icon={false}
-          closeOnChange
-          allowAdditions
-          noResultsMessage="Enter email"
           onChange={this.handleChange}
-          onAddItem={this.handleAddition}
-          className="dropdown-src"
         />
 
         <div className="inputs-wrapper">
