@@ -338,7 +338,6 @@ class Compose extends Component {
   }
 
   handleAddition(input, callback) {
-    console.log(input);
     const username = input.value;
     this.checkRecipient(username, (validRecipient) => {
       if (validRecipient) {
@@ -365,7 +364,6 @@ class Compose extends Component {
   }
 
   handleChange(values) {
-    console.log('change');
     if (values.length === 0) {
       return this.setState({
         selectedRecepients: [],
@@ -375,7 +373,6 @@ class Compose extends Component {
     const recepient = values[values.length - 1] || '';
 
     return this.checkRecipient(recepient.value, (validRecipient) => {
-      console.log(validRecipient);
       if (validRecipient && !this.state.selectedRecepients.includes(recepient.value)) {
         this.setState({
           selectedRecepients: values,

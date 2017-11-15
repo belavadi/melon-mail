@@ -69,7 +69,7 @@ export const contactsSuccess = contacts => ({
 });
 
 export const checkRegistration = () => (dispatch) => {
-  if (!window.isSecureContext) {
+  if (!window.isSecureContext && window.isSecureContext !== undefined) {
     dispatch(unsecureContext());
     return;
   }

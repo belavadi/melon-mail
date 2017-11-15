@@ -26,13 +26,17 @@ const ipfsBootstrapNodesList = [
 const defaultRepNodes = [
   'https://ipfs.decenter.com',
 ];
-
-const ipfsNode = new Ipfs({
-  repo: 'ipfs-melon',
-  config: {
-    Bootstrap: ipfsBootstrapNodesList,
-  },
-});
+let ipfsNode = null;
+try {
+  ipfsNode = new Ipfs({
+    repo: 'ipfs-melon',
+    config: {
+      Bootstrap: ipfsBootstrapNodesList,
+    },
+  });
+} catch (e) {
+  console.error('Could not load IPFS library!');
+}
 
 const replicate = (hash, type) => {
   let successful = 0;
