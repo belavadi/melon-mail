@@ -1,32 +1,33 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.4.18;
 
 contract Manager {
 
-    modifier onlyOwner {
-        require(msg.sender == owner);
+    modifier onlyAdmins {
+        require(admins[msg.sender] == true);
         _;
     }
 
-    mapping(bytes32 => address) public contracts;
+    mapping(address => bool) public admins;
 
-    address public owner;
-    bytes32 public activeContract;
+    address public activeContract;
 
     function Manager() public {
-        owner = msg.sender;
+        admins[msg.sender] = true;
     }
 
-    function setActiveContract(bytes32 contractVersion) public onlyOwner {
-        require(contracts[contractVersion] != 0x0);
-        activeContract = contractVersion;
+    function setActiveContract(address newContract) public onlyAdmins {
+        require(newContract != 0x0);
+
+        activeContract = newContract;
     }
 
-    function addContract(bytes32 contractVersion, address contractAddress) public onlyOwner {
-        contracts[contractVersion] = contractAddress;
+    // handle the admin logic 
+    function addAdmin(address adminAddress) public onlyAdmins {
+        admins[adminAddress] = true;
     }
 
-    function getActiveContract() public constant returns(address) {
-        return contracts[activeContract];
+    function removeAdmin(address adminAddress) public onlyAdmins {
+        admins[adminAddress] = false;
     }
 
 }

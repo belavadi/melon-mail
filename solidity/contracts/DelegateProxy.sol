@@ -1,9 +1,7 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.4.18;
 
 contract DelegateProxy {
-    bool constant IS_BYZANTIUM = false;
-
-    // TODO: Remove pre-byzantium logic after tools have new opcodes
+    bool IS_BYZANTIUM = false;
 
     /**
     * @dev Performs a delegatecall and returns whatever the delegatecall returned (entire context execution will return!)
