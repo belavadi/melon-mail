@@ -16,10 +16,7 @@ contract('PublicEmail', async (accounts) => {
     const manager = await Manager.deployed();
     const publicEmail = await PublicEmail.deployed();
 
-    const version = parseInt("v1.0.0", 16);
-
-    await manager.addContract(version, publicEmail.address);
-    await manager.setActiveContract(version);
+    await manager.setActiveContract(publicEmail.address);
 
     const relay = await Relay.new(manager.address);
 

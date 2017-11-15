@@ -1,4 +1,4 @@
-pragma solidity ^0.4.16;
+pragma solidity 0.4.18;
 
 import './AbstractEmail.sol';
 
@@ -7,7 +7,7 @@ contract PublicEmail is AbstractEmail {
     
     event UserRegistered(bytes32 indexed usernameHash, address indexed addr, string encryptedUsername, string publicKey);
     event EmailSent(address indexed from, address indexed to, string mailHash, string threadHash, bytes32 indexed threadId);
-    event ContactsUpdated(bytes32 indexed usernameHash, string ipfsHash);
+    event ContactsUpdated(bytes32 indexed usernameHash, string fileHash);
 
     function registerUser(bytes32 usernameHash, string encryptedUsername, string publicKey) public {
         require(usernameHashExists[usernameHash] == false);
@@ -31,7 +31,7 @@ contract PublicEmail is AbstractEmail {
         externalEmailContract.sendEmail(recipients, mailHash, threadHash, threadId);
     }
 
-    function updateContacts(bytes32 usernameHash, string ipfsHash) public {
-        ContactsUpdated(usernameHash, ipfsHash);
+    function updateContacts(bytes32 usernameHash, string fileHash) public {
+        ContactsUpdated(usernameHash, fileHash);
     }
 }
