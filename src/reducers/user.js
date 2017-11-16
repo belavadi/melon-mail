@@ -14,6 +14,7 @@ export default (state = {
   contacts: [],
   backupDone: false,
   backupAlreadyDone: false,
+  network: '',
 }, action) => {
   switch (action.type) {
     case 'REGISTER_REQUEST':
@@ -93,6 +94,11 @@ export default (state = {
         ethAddress: '',
         startingBlock: 0,
         isAuthenticated: false,
+      };
+    case 'NETWORK_CHANGE':
+      return {
+        ...state,
+        network: action.network,
       };
     case 'UPDATE_BALANCE':
       return {
