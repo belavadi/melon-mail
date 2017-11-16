@@ -31,6 +31,9 @@ const ipfsNode = new Ipfs({
   repo: 'ipfs-melon',
   config: {
     Bootstrap: ipfsBootstrapNodesList,
+    Addresses: {
+      Swarm: [],
+    },
   },
 });
 

@@ -4,10 +4,12 @@ import ENS from 'ethjs-ens';
 import config from '../../config/config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
 import { executeWhenReady, namehash } from './helperService';
+import zeroClientProvider from './../modules/ZeroClientProvider';
 
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
 
 let mailContract;
+let eventContract;
 
 const networks = {
   3: 'ropsten',
@@ -19,10 +21,24 @@ const networks = {
 
 executeWhenReady(() => {
   try {
+    const web3Infura = new Web3(zeroClientProvider({
+      static: {
+        eth_syncing: false,
+        web3_clientVersion: 'ZeroClientProvider',
+      },
+      pollingInterval: 1,
+      rpcUrl: 'https://kovan.decenter.com',
+      getAccounts: () => {},
+    }));
+    // const web3Infura = new Web3(new web3.providers.HttpProvider('https://kovan.decenter.com'));
+
     mailContract = web3.eth.contract(config.mailContractAbi)
       .at(config.mailContractAddress);
 
-    console.log(mailContract);
+    // we need a separate web3 instance for contract listening because metamask has problems when
+    // switching networks while using the app (it stops listening to events)
+    eventContract = web3Infura.eth.contract(config.mailContractAbi)
+      .at(config.mailContractAddress);
   } catch (e) {
     console.log(e);
   }
@@ -84,7 +100,7 @@ const checkRegistration = () =>
         });
       }
 
-      return mailContract.UserRegistered(
+      return eventContract.UserRegistered(
         {
           addr: account,
         },
@@ -145,7 +161,7 @@ const getBlockNumber = () =>
 
 const checkMailAddress = email =>
   new Promise((resolve, reject) => {
-    mailContract.UserRegistered(
+    eventContract.UserRegistered(
       {
         usernameHash: web3.sha3(email),
       },
@@ -228,7 +244,7 @@ const _registerUser = (mailAddress, signedString) =>
 const _getPublicKey = (email, optionalContract) =>
   new Promise((resolve, reject) => {
     const selectedContract = optionalContract !== undefined
-      ? optionalContract : mailContract;
+      ? optionalContract : eventContract;
 
     selectedContract.UserRegistered(
       {
@@ -271,7 +287,7 @@ const listenForMails = callback =>
       }
       return getBlockNumber()
         .then((startingBlock) => {
-          mailContract.EmailSent(
+          eventContract.EmailSent(
             {
               to: account,
             },
@@ -285,7 +301,7 @@ const listenForMails = callback =>
               else callback(event, 'inbox');
             });
 
-          mailContract.EmailSent(
+          eventContract.EmailSent(
             {
               from: account,
             },
@@ -314,7 +330,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
           .then((currentBlock) => {
             const filter = folder === 'inbox' ? { to: account } : { from: account };
             const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
-            mailContract.EmailSent(
+            eventContract.EmailSent(
               filter,
               {
                 fromBlock: fetchTo - blocksToFetch,
@@ -340,7 +356,7 @@ const getMails = (folder, fetchToBlock, blocksToFetch) =>
 
 const getThread = (threadId, afterBlock) =>
   new Promise((resolve, reject) => {
-    mailContract.EmailSent(
+    eventContract.EmailSent(
       {
         threadId,
       },
@@ -382,6 +398,8 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
               return resolve(result);
             });
         }
+
+        console.log(toAddress, mailHash, threadHash, threadId);
 
         return mailContract.sendEmail(toAddress, mailHash, threadHash, threadId,
           { from: account }, (error, result) => {
@@ -432,7 +450,7 @@ const fetchAllEvents = folder =>
           });
         }
         const filter = folder === 'inbox' ? { to: account } : { from: account };
-        return mailContract.EmailSent(
+        return eventContract.EmailSent(
           filter,
           {
             fromBlock: 0,
@@ -454,7 +472,7 @@ const fetchAllEvents = folder =>
 
 const getAddressInfo = address =>
   new Promise((resolve) => {
-    mailContract.UserRegistered(
+    eventContract.UserRegistered(
       {
         addr: address,
       },
@@ -488,7 +506,7 @@ const updateContactsEvent = (hashName, ipfsHash) =>
 
 const getContactsForUser = userHash =>
   new Promise((resolve, reject) => {
-    mailContract.ContactsUpdated(
+    eventContract.ContactsUpdated(
       {
         usernameHash: userHash,
       },
