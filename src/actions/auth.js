@@ -1,6 +1,11 @@
 import eth from '../services/ethereumService';
 import config from '../../config/config.json';
 
+export const changeNetwork = network => ({
+  type: 'NETWORK_CHANGE',
+  network,
+});
+
 export const setAccount = account => ({
   type: 'SET_ACCOUNT',
   account,

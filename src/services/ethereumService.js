@@ -45,6 +45,19 @@ const getWeb3Status = () =>
     });
   });
 
+const getNetwork = () =>
+  new Promise((resolve, reject) => {
+    web3.version.getNetwork((err, networkId) => {
+      if (err) {
+        return reject({
+          message: err,
+        });
+      }
+
+      return resolve(networks[networkId]);
+    });
+  });
+
 const getAccount = () =>
   new Promise((resolve, reject) => {
     web3.eth.getAccounts((err, accounts) => {
@@ -619,4 +632,5 @@ export default {
   getAddressInfo,
   updateContactsEvent,
   getContactsForUser,
+  getNetwork,
 };
