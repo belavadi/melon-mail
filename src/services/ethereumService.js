@@ -249,36 +249,66 @@ const _getPublicKey = (email, optionalContract) =>
     const selectedContract = optionalContract !== undefined
       ? optionalContract : eventContract;
 
-    selectedContract.UserRegistered(
-      {
-        usernameHash: web3.sha3(email),
-      },
-      {
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          reject({
-            message: err,
-            events: null,
-          });
-        }
+    try {
+      selectedContract.UserRegistered(
+        {
+          usernameHash: web3.sha3(email),
+        },
+        {
+          fromBlock: 0,
+          toBlock: 'latest',
+        },
+      )
+        .get((err, events) => {
+          if (err) {
+            reject({
+              message: err,
+              events: null,
+            });
+          }
 
-        if (!events.length) {
-          return reject({
-            message: 'User not found!',
-            events,
+          if (!events.length) {
+            return reject({
+              message: 'User not found!',
+              events,
+            });
+          }
+          return resolve({
+            externalMailContract: optionalContract,
+            address: events[0].args.addr,
+            publicKey: events[0].args.publicKey,
           });
-        }
-        return resolve({
-          externalMailContract: optionalContract,
-          address: events[0].args.addr,
-          publicKey: events[0].args.publicKey,
         });
-      });
+    } catch (e) {
+      reject(e);
+    }
   });
+
+/* Subscribes to the register event */
+const listenUserRegistered = callback =>
+  getAccount()
+    .then((account) => {
+      if (!account) {
+        return null;
+      }
+
+      return getBlockNumber()
+        .then((startingBlock) => {
+          eventContract.UserRegistered(
+            {
+              addr: account,
+            },
+            {
+              fromBlock: startingBlock,
+              toBlock: 'latest',
+            },
+          )
+            .watch((err, event) => {
+              if (err) return;
+              callback(event);
+            });
+        });
+    });
 
 /* Subscribes to the mail send event */
 
@@ -628,6 +658,7 @@ export default {
   signString,
   getAccount,
   listenForMails,
+  listenUserRegistered,
   _registerUser,
   _getPublicKey,
   _sendEmail,

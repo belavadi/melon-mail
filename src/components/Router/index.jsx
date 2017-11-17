@@ -14,39 +14,44 @@ class Router extends Component {
     super();
 
     this.state = {};
+
+    this.getCurrentInfo = this.getCurrentInfo.bind(this);
   }
 
   componentWillMount() {
-    setInterval(() => {
-      eth.getAccount()
-        .then((account) => {
-          if (this.props.user.activeAccount === '') {
-            this.props.setAccount(account);
-            return;
-          }
-          if (this.props.user.activeAccount !== account && account) {
-            this.props.logout();
-            this.props.getBalance();
-            this.props.changeAccount(account);
-            this.props.saveLastActiveTimestamp();
-          }
-        })
-        .catch(() => {
-          console.log('Log in to metamask.');
-        });
-      eth.getNetwork()
-        .then((network) => {
-          if (this.props.user.network === '') {
-            this.props.changeNetwork(network);
-            return;
-          }
-          if (this.props.user.network !== network) {
-            this.props.logout();
-            this.props.changeNetwork(network);
-            this.props.getBalance();
-          }
-        });
-    }, 1000, true);
+    this.getCurrentInfo();
+    setInterval(this.getCurrentInfo, 1000);
+  }
+
+  getCurrentInfo() {
+    eth.getAccount()
+      .then((account) => {
+        if (this.props.user.activeAccount === '') {
+          this.props.setAccount(account);
+          return;
+        }
+        if (this.props.user.activeAccount !== account && account) {
+          this.props.logout();
+          this.props.getBalance();
+          this.props.changeAccount(account);
+          this.props.saveLastActiveTimestamp();
+        }
+      })
+      .catch(() => {
+        console.log('Log in to metamask.');
+      });
+    eth.getNetwork()
+      .then((network) => {
+        if (this.props.user.network === '') {
+          this.props.changeNetwork(network);
+          return;
+        }
+        if (this.props.user.network !== network) {
+          this.props.logout();
+          this.props.changeNetwork(network);
+          this.props.getBalance();
+        }
+      });
   }
 
   render() {
