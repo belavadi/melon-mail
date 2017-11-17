@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import Web3 from 'web3';
 import {
   Button,
   Dropdown,
@@ -27,8 +28,6 @@ class EthereumNodeModal extends Component {
       node = JSON.parse(localStorage.getItem('customEthNode'));
     }
 
-    console.log(node);
-
     this.state = {
       host: node.ipAddress,
       protocol: node.protocol,
@@ -45,12 +44,21 @@ class EthereumNodeModal extends Component {
     const protocol = this.state.protocol;
     const ipAddress = this.state.host;
 
-    localStorage.setItem('customEthNode', JSON.stringify({ protocol, ipAddress }));
+    const web3Custom = new Web3(new web3.providers.HttpProvider(protocol + ipAddress));
 
-    this.setState({
-      nodeAdded: true,
-      error: false,
-    });
+    if (web3Custom.isConnected()) {
+      localStorage.setItem('customEthNode', JSON.stringify({ protocol, ipAddress }));
+
+      this.setState({
+        nodeAdded: true,
+        error: false,
+      });
+    } else {
+      this.setState({
+        error: true,
+        nodeAdded: false,
+      });
+    }
   }
 
   removeNode() {
