@@ -6,6 +6,7 @@ import { Dropdown, Icon } from 'semantic-ui-react';
 import CustomNodeModal from '../CustomNodeModal';
 import BackupModal from '../BackupModal';
 import AboutModal from '../AboutModal';
+import EthereumNodeModal from '../EthereumNodeModal';
 import * as authActions from '../../../actions/auth';
 import { useLocalStorage } from '../../../../config/config.json';
 
@@ -14,6 +15,9 @@ const Menu = ({ mailAddress, logout }) => (
     <Dropdown.Menu>
       {
         useLocalStorage && <CustomNodeModal />
+      }
+      {
+        useLocalStorage && <EthereumNodeModal />
       }
       <BackupModal />
       <AboutModal />

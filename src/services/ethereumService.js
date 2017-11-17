@@ -4,7 +4,6 @@ import ENS from 'ethjs-ens';
 import config from '../../config/config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
 import { executeWhenReady, namehash } from './helperService';
-import zeroClientProvider from './../modules/ZeroClientProvider';
 
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
 
@@ -21,23 +20,14 @@ const networks = {
 
 executeWhenReady(() => {
   try {
-    const web3Infura = new Web3(zeroClientProvider({
-      static: {
-        eth_syncing: false,
-        web3_clientVersion: 'ZeroClientProvider',
-      },
-      pollingInterval: 1,
-      rpcUrl: 'https://kovan.decenter.com',
-      getAccounts: () => {},
-    }));
-    // const web3Infura = new Web3(new web3.providers.HttpProvider('https://kovan.decenter.com'));
-
     mailContract = web3.eth.contract(config.mailContractAbi)
       .at(config.mailContractAddress);
 
-    // we need a separate web3 instance for contract listening because metamask has problems when
-    // switching networks while using the app (it stops listening to events)
-    eventContract = web3Infura.eth.contract(config.mailContractAbi)
+    const url = localStorage.getItem('customEthNode') || 'https://kovan.decenter.com';
+
+    const web3Custom = new Web3(new web3.providers.HttpProvider(url));
+
+    eventContract = web3Custom.eth.contract(config.mailContractAbi)
       .at(config.mailContractAddress);
   } catch (e) {
     console.log(e);
