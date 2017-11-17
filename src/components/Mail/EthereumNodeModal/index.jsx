@@ -2,15 +2,14 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
-  List,
   Button,
   Dropdown,
   Modal,
   Icon,
   Form,
-  Checkbox,
   Input,
   Popup,
+  Divider,
 } from 'semantic-ui-react';
 
 const options = [
@@ -22,15 +21,21 @@ class EthereumNodeModal extends Component {
   constructor() {
     super();
 
-    const localNodes = localStorage.getItem('customEthNode');
+    let node = localStorage.getItem('customEthNode') || { ipAddress: '', protocol: 'https://' };
+
+    if (localStorage.getItem('customEthNode')) {
+      node = JSON.parse(localStorage.getItem('customEthNode'));
+    }
+
+    console.log(node);
 
     this.state = {
-      showIp: true,
-      error: '',
-      protocol: 'http://',
-      nodes: localNodes || [],
-      status: '',
+      host: node.ipAddress,
+      protocol: node.protocol,
+      nodeAdded: false,
+      error: false,
     };
+
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
   }
 
@@ -38,16 +43,17 @@ class EthereumNodeModal extends Component {
     e.preventDefault();
 
     const protocol = this.state.protocol;
-    const ipAddress = this.host.inputRef.value;
+    const ipAddress = this.state.host;
 
-    console.log(protocol, ipAddress);
+    localStorage.setItem('customEthNode', JSON.stringify({ protocol, ipAddress }));
 
-    localStorage.setItem('customEthNode', protocol + ipAddress);
-
-    // opalimo refresh
+    this.setState({
+      nodeAdded: true,
+      error: false,
+    });
   }
 
-  removeNode(node) {
+  removeNode() {
     localStorage.removeItem('customEthNode');
   }
 
@@ -64,24 +70,12 @@ class EthereumNodeModal extends Component {
             <Form.Group widths="equal">
               <Form.Field>
                 {
-                  !this.state.showIp &&
                   <Input
                     ref={(input) => { this.host = input; }}
+                    value={this.state.host}
+                    onChange={(e, data) => this.setState({ host: data.value })}
                     label={<Dropdown
-                      defaultValue="http://"
-                      onChange={(e, data) => this.setState({ protocol: data.value })}
-                      options={options}
-                    />}
-                    type="text"
-                    placeholder="Server address"
-                  />
-                }
-                {
-                  this.state.showIp &&
-                  <Input
-                    ref={(input) => { this.host = input; }}
-                    label={<Dropdown
-                      defaultValue="http://"
+                      defaultValue="https://"
                       onChange={(e, data) => this.setState({ protocol: data.value })}
                       options={options}
                     />}
@@ -96,43 +90,24 @@ class EthereumNodeModal extends Component {
 
             <Popup
               trigger={<Icon color="blue" size="big" name="help circle outline" />}
-              flowing
               hoverable
             >
               <h2>Help</h2>
-              You can add custom IPFS nodes that you trust.
-              They will be added to the bootstrap nodes
-              list in the browser and therefore used as additional backup option for your emails.
-              Some useful tips:
-              <ul>
-                <li>
-                  Make sure your node is
-                  <a
-                    href="https://github.com/ipfs/js-ipfs/tree/master/examples/exchange-files-in-browser#2-make-your-daemons-listen-on-websockets"
-                  >&nbsp;listening on a WebSocket
-                  </a> first.
-                </li>
-                <li>
-                  <b>Swarm WebSocket port</b> is the port you set in your config
-                  (9999 in the guide above).
-                </li>
-                <li>
-                  <b>Gateway port</b> is the port used by the IPFS gateway, AKA the public API
-                  (usually 8080).
-                </li>
-                <li>
-                  <b>Node ID</b> can be found by running <code>ipfs id</code>.
-                </li>
-              </ul>
-              Note: if the mail service is using https, your nodes must be
-              using https (and wss) too. Currently the simplest way to do this is by
-              proxying traffic to your IPFS node through nginx or Apache.
-              A more detailed guide can be found
-              Note: If this Melon Mail service is served over HTTPS, the IPFS node must also be
-              using HTTPS and WSS. The simplest way to do this is by
-              proxying traffic to your IPFS node through nginx or Apache.
-              A more detailed guide can be found <a rel="noopener noreferrer" target="_blank" href="https://ipfs.decenter.com/ipfs/QmVtByCvRQsibrKy6HKtNUnxddJY3H5aVjz2djDQjnsBFz">here</a>.
+              <Divider />
+              We are fetching events from our own node (because of and Metamask issue).<br />
+              If you don&apos;t want to trust our node you can set
+              your own node in the following dialog.
             </Popup>
+
+            {
+              this.state.nodeAdded &&
+                <span> Ethereum node successfuly added</span>
+            }
+
+            {
+              this.state.error &&
+                <span> Not a valid Ethereum node!</span>
+            }
 
             {this.state.status}
             {
@@ -148,32 +123,10 @@ class EthereumNodeModal extends Component {
               content="Add"
               labelPosition="right"
               className="pull-right"
-              disabled={this.state.status !== '' && this.state.status !== 'ERROR'}
             />
           </div>
 
         </Modal.Content>
-        {
-          this.state.nodes.length > 0 &&
-          <Modal.Actions>
-            <div className="node-list">
-              <List divided>
-                {
-                  this.state.nodes.map(node => (
-                    <List.Item className="node-list-item" key={Math.random() * Date.now()}>
-                      <Icon name="remove" onClick={() => this.removeNode()} />
-                      <List.Content>
-                        <List.Header>
-                          {`${node}`}
-                        </List.Header>
-                      </List.Content>
-                    </List.Item>
-                  ))
-                }
-              </List>
-            </div>
-          </Modal.Actions>
-        }
       </Modal>
     );
   }

@@ -23,7 +23,14 @@ executeWhenReady(() => {
     mailContract = web3.eth.contract(config.mailContractAbi)
       .at(config.mailContractAddress);
 
-    const url = localStorage.getItem('customEthNode') || 'https://kovan.decenter.com';
+    let url = 'https://kovan.decenter.com';
+    const customNode = localStorage.getItem('customEthNode');
+
+    if (customNode) {
+      url = JSON.parse(customNode).protocol + JSON.parse(customNode).ipAddress;
+    }
+
+    console.log('URL: ', url);
 
     const web3Custom = new Web3(new web3.providers.HttpProvider(url));
 
