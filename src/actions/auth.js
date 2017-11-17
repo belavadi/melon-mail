@@ -73,14 +73,26 @@ export const contactsSuccess = contacts => ({
   contacts,
 });
 
+export const userIsRegistering = (account) => {
+  localStorage.setItem(`isregistering-${account}`, true);
+};
+
+export const userRegistrationMined = (account) => {
+  localStorage.removeItem(`isregistering-${account}`);
+};
+
 export const checkRegistration = () => (dispatch) => {
   if (!window.isSecureContext && window.isSecureContext !== undefined) {
     dispatch(unsecureContext());
     return;
   }
+
   eth.getWeb3Status()
     .then(() => eth.checkRegistration())
     .then((data) => {
+      if (config.useLocalStorage) {
+        userRegistrationMined(data.address);
+      }
       dispatch(userIsRegistered(data));
       return eth.signIn(data.mail);
     })
@@ -108,13 +120,25 @@ export const checkRegistration = () => (dispatch) => {
     });
 };
 
-export const registerUser = mailAddress => (dispatch) => {
+export const startListener = () => (dispatch) => {
+  if (config.useLocalStorage) {
+    eth.listenUserRegistered((event) => {
+      userRegistrationMined(event.args.addr);
+      dispatch(checkRegistration());
+    });
+  }
+};
+
+export const registerUser = mailAddress => (dispatch, getState) => {
   eth.getAccount()
     .then(account =>
       eth.checkMailAddress(mailAddress)
         .then(() => eth.signString(account, config.stringToSign))
         .then(signedString => eth._registerUser(mailAddress, signedString))
         .then((data) => {
+          if (config.useLocalStorage) {
+            userIsRegistering(getState().user.activeAccount);
+          }
           dispatch(registerSuccess(data));
         })
         .catch((error) => {

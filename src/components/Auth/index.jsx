@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Grid, Header, Button, Divider } from 'semantic-ui-react';
+import { Grid, Header, Button, Divider, Loader } from 'semantic-ui-react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import AuthHeader from '../Mail/Header';
@@ -24,6 +24,8 @@ class Auth extends Component {
       this.props.checkRegistration();
       this.props.getBalance();
     }
+
+    this.props.startListener();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -49,6 +51,17 @@ class Auth extends Component {
           <Header as="h2" className="form-title">Please log in to metamask first.</Header>
           <Divider />
           <p>You need to open your metamask extension and log in.</p>
+        </div>
+      );
+    }
+
+    if (localStorage.getItem(`isregistering-${this.props.user.activeAccount}`)) {
+      return (
+        <div>
+          <Header as="h2" className="form-title">Your registration is being processed...</Header>
+          <Divider />
+          <p>Please wait while your transaction is being mined.</p>
+          <Loader />
         </div>
       );
     }
@@ -203,12 +216,14 @@ Auth.propTypes = {
     registerError: PropTypes.string,
     stage: PropTypes.string,
     balance: PropTypes.number,
+    isBeingRegistered: PropTypes.bool,
   }).isRequired,
   config: PropTypes.shape({
     defaultDomain: PropTypes.string.isRequired,
   }).isRequired,
   registerUser: PropTypes.func.isRequired,
   checkRegistration: PropTypes.func.isRequired,
+  startListener: PropTypes.func.isRequired,
   getBalance: PropTypes.func.isRequired,
   push: PropTypes.func.isRequired,
 };
