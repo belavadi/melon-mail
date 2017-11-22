@@ -27,15 +27,21 @@ const defaultRepNodes = [
   'https://ipfs.decenter.com',
 ];
 
-const ipfsNode = new Ipfs({
-  repo: 'ipfs-melon',
-  config: {
-    Bootstrap: ipfsBootstrapNodesList,
-    Addresses: {
-      Swarm: [],
+let ipfsNode;
+
+try {
+  ipfsNode = new Ipfs({
+    repo: 'ipfs-melon',
+    config: {
+      Bootstrap: ipfsBootstrapNodesList,
+      Addresses: {
+        Swarm: [],
+      },
     },
-  },
-});
+  });
+} catch (e) {
+  console.error(e);
+}
 
 const replicate = (hash, type) => {
   let successful = 0;

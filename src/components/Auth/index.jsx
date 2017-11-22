@@ -154,7 +154,7 @@ class Auth extends Component {
             <p className="regular-text">
               It seems like you don&#39;t have&nbsp;
               <a href="https://metamask.io/" target="_blank" rel="noopener noreferrer">MetaMask </a>
-              extension installed.
+              extension installed. You also need to use a metamask supported browser.
               <a
                 href="https://metamask.io/"
                 target="_blank"
