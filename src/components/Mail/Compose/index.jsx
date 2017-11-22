@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux';
 import uniqueId from 'lodash/uniqueId';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Button, Dropdown, Label, Icon } from 'semantic-ui-react';
+import { Button } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 import { Creatable } from 'react-select';
@@ -11,7 +11,7 @@ import { Creatable } from 'react-select';
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
 import { contactsSuccess } from '../../../actions/auth';
-import { updateContacts, saveContactsToLocalStorage } from '../../../actions/utility';
+import { saveContactsToLocalStorage } from '../../../actions/utility';
 import { encrypt, encryptAttachments } from '../../../services/cryptoService';
 import eth from '../../../services/ethereumService';
 
@@ -59,7 +59,7 @@ class Compose extends Component {
         this.setState({
           recepients: [
             ...this.state.recepients,
-            { key: to, text: to, value: to }],
+            { label: to, value: to }],
           selectedRecepients: [to],
           subject: this.props.compose.special.title || '',
         });
@@ -75,7 +75,7 @@ class Compose extends Component {
       if (this.props.compose.special.type === 'reply') {
         this.setState({
           recepients: [...this.state.recepients,
-            { key: uniqueId('id-'), text: originMail.from, value: originMail.from }],
+            { label: originMail.from, value: originMail.from }],
           selectedRecepients: [originMail.from],
           subject: `${originMail.subject}`,
           recipientExists: 'true',
@@ -112,8 +112,8 @@ class Compose extends Component {
       if (this.props.compose.special.type === 'replyAll') {
         const updatedRecepients = [this.state.recepients,
           ...originMail.to.map(contact =>
-            ({ text: contact, value: contact, key: uniqueId('id-') })),
-          { key: originMail.from, text: originMail.from, value: originMail.from }];
+            ({ label: contact, value: contact })),
+          { label: originMail.from, value: originMail.from }];
 
         this.setState({
           recepients: updatedRecepients,
@@ -337,7 +337,7 @@ class Compose extends Component {
       });
   }
 
-  handleAddition(input, callback) {
+  handleAddition(input) {
     const username = input.value;
     this.checkRecipient(username, (validRecipient) => {
       if (validRecipient) {
@@ -630,7 +630,6 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   ...composeActions,
   sendMail,
   contactsSuccess,
-  updateContacts,
   saveContactsToLocalStorage,
 }, dispatch);
 

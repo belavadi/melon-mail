@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const config = {
@@ -96,6 +97,13 @@ const config = {
       filename: 'index.html',
       favicon: 'src/favicon.ico',
     }),
+    /*
+    new CopyWebpackPlugin([
+      {
+        from: 'notifications/onesignal/lib',
+      },
+    ]),
+     */
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('production'),
