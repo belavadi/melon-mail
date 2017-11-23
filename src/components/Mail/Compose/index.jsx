@@ -325,7 +325,8 @@ class Compose extends Component {
             });
 
             let threadId = null;
-            if (this.props.compose.special && this.props.compose.special.type === 'reply') {
+            if (this.props.compose.special && (this.props.compose.special.type === 'reply'
+              || this.props.compose.special.type === 'replyAll')) {
               threadId = this.props.mail.threadId;
             }
 
