@@ -20,6 +20,8 @@ const networks = {
 
 executeWhenReady(() => {
   try {
+    window.web3 = new Web3(web3.currentProvider);
+
     mailContract = web3.eth.contract(config.mailContractAbi)
       .at(config.mailContractAddress);
 
@@ -29,8 +31,6 @@ executeWhenReady(() => {
     if (customNode) {
       url = JSON.parse(customNode).protocol + JSON.parse(customNode).ipAddress;
     }
-
-    console.log('URL: ', url);
 
     const web3Custom = new Web3(new web3.providers.HttpProvider(url));
 
@@ -76,6 +76,11 @@ const getNetwork = () =>
 const getAccount = () =>
   new Promise((resolve, reject) => {
     web3.eth.getAccounts((err, accounts) => {
+      if (err) {
+        return reject({
+          message: err,
+        });
+      }
       if (accounts.length === 0) {
         return reject({
           message: 'Account not found.',

@@ -51,7 +51,7 @@ class Router extends Component {
           this.props.changeNetwork(network);
           this.props.getBalance();
         }
-      });
+      }).catch((err) => {});
   }
 
   render() {

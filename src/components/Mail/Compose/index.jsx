@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
-import uniqueId from 'lodash/uniqueId';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Button } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 import { Creatable } from 'react-select';
+import uniqBy from 'lodash/uniqBy';
 
 import * as composeActions from '../../../actions/compose';
 import { sendMail } from '../../../actions/mail';
@@ -60,7 +60,7 @@ class Compose extends Component {
           recepients: [
             ...this.state.recepients,
             { label: to, value: to }],
-          selectedRecepients: [to],
+          selectedRecepients: [{ label: to, value: to }],
           subject: this.props.compose.special.title || '',
         });
 
@@ -76,7 +76,8 @@ class Compose extends Component {
         this.setState({
           recepients: [...this.state.recepients,
             { label: originMail.from, value: originMail.from }],
-          selectedRecepients: [originMail.from],
+          selectedRecepients: [
+            { label: originMail.from, value: originMail.from }],
           subject: `${originMail.subject}`,
           recipientExists: 'true',
         });
@@ -115,9 +116,18 @@ class Compose extends Component {
             ({ label: contact, value: contact })),
           { label: originMail.from, value: originMail.from }];
 
+        let selectedRecepients = [...originMail.to].map(contact =>
+          ({ label: contact, value: contact }));
+        selectedRecepients = uniqBy([
+          { label: originMail.from, value: originMail.from },
+          ...selectedRecepients,
+        ], 'value');
+
+        console.log(selectedRecepients);
+
         this.setState({
           recepients: updatedRecepients,
-          selectedRecepients: [originMail.from, ...originMail.to],
+          selectedRecepients,
           subject: `${originMail.subject}`,
           recipientExists: 'true',
         });

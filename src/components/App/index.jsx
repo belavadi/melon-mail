@@ -16,13 +16,13 @@ class App extends Component {
   componentWillMount() {
     executeWhenReady(() => {
       try {
-        this.setState({
-          loaded: true,
-        });
         window.web3 = new Web3(web3.currentProvider);
       } catch (e) {
         console.log(e);
       }
+      this.setState({
+        loaded: true,
+      });
     });
   }
 
