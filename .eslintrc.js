@@ -27,5 +27,6 @@ module.exports = {
     fetch: true,
     localStorage: true,
     Ipfs: true,
+    OneSignal: true,
   },
 };

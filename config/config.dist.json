@@ -8,5 +8,6 @@
   "stringToSign": "By signing THIS MESSAGE you are generating your keys used for Melon Mail encryption.",
   "useLocalStorage": true,
   "defaultDomain": "melon-mail.eth",
-  "testContract": false
+  "pushNotifications": false,
+  "pushNotifApiKey": ""
 }

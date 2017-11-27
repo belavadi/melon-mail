@@ -56,6 +56,16 @@ const schema = {
       type: 'string',
       default: config.defaultDomain,
     },
+    pushNotifications: {
+      description: 'Push notifications',
+      type: 'boolean',
+      default: config.pushNotifications,
+    },
+    pushNotifApiKey: {
+      description: 'OneSignal API Key (push notifications)',
+      type: 'string',
+      default: config.pushNotifApiKey,
+    },
   },
 };
 
@@ -71,6 +81,8 @@ const help = () => {
   console.log('String to sign              - String that is signed when generating keys for encryption / decryption. It\'s recommended that you leave this as is, once you set it ensure that you never change it again, because all users will need to generate new keys.\n');
   console.log('Enable use of local storage - Boolean which sets if the app should use localStorage or not for some additional features.\n');
   console.log('Default domain              - The registered domain that resolves to the current PublicEmail contract.\n');
+  console.log('Push notifications          - Enables push notification subscriptions (Note: If you\'re hosting your own instance, you need to host the notification server as well)');
+  console.log('OneSignal API KEY           - If you are using push notifications you need to provide an API key for OneSignal.');
 };
 
 const instructions = () => {

@@ -96,6 +96,7 @@ const config = {
       template: 'src/index.html',
       filename: 'index.html',
       favicon: 'src/favicon.ico',
+      hash: true,
     }),
     /*
     new CopyWebpackPlugin([

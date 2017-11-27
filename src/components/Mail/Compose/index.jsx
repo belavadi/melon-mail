@@ -48,8 +48,8 @@ class Compose extends Component {
     this.handleEditorChange = this.handleEditorChange.bind(this);
     this.getRecipientSuggestions = this.getRecipientSuggestions.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
-    this.handleAddition = this.handleAddition.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.handleBlur = this.handleBlur.bind(this);
   }
 
   componentWillMount() {
@@ -122,8 +122,6 @@ class Compose extends Component {
           { label: originMail.from, value: originMail.from },
           ...selectedRecepients,
         ], 'value');
-
-        console.log(selectedRecepients);
 
         this.setState({
           recepients: updatedRecepients,
@@ -326,7 +324,7 @@ class Compose extends Component {
 
             let threadId = null;
             if (this.props.compose.special && (this.props.compose.special.type === 'reply'
-              || this.props.compose.special.type === 'replyAll')) {
+                || this.props.compose.special.type === 'replyAll')) {
               threadId = this.props.mail.threadId;
             }
 
@@ -348,34 +346,10 @@ class Compose extends Component {
       });
   }
 
-  handleAddition(input) {
-    const username = input.value;
-    this.checkRecipient(username, (validRecipient) => {
-      if (validRecipient) {
-        if (!this.state.recepients.find(item => item.value === username)) {
-          this.setState({
-            recepients: [
-              ...this.state.recepients,
-              input,
-            ],
-          });
-        }
-        // add the contact to the list
-        if (this.props.user.contacts.indexOf(username) === -1) {
-          this.props.contactsSuccess([
-            username,
-            ...this.props.user.contacts,
-          ]);
-
-          this.saveContact(username);
-        }
-      }
-    });
-    return true;
-  }
-
   handleChange(values) {
+    console.log(values);
     if (values.length === 0) {
+      this.resetRecipient();
       return this.setState({
         selectedRecepients: [],
       });
@@ -423,16 +397,32 @@ class Compose extends Component {
     }
   }
 
+  handleBlur(event) {
+    if (event.target.value.trim() === '') return;
+    this.handleChange([
+      ...this.state.selectedRecepients,
+      { label: event.target.value, value: event.target.value },
+    ]);
+    const alterableEvent = event;
+    alterableEvent.target.value = '';
+    this.to.select.handleInputChange(alterableEvent);
+    console.log(this.to);
+  }
+
   render() {
     return (
       <div className="compose-wrapper">
         <Creatable
           placeholder="To"
+          ref={(input) => { this.to = input; }}
           multi
           autofocus
+          onBlur={this.handleBlur}
+          onBlurResetsInput={false}
           options={this.state.recepients}
           value={this.state.selectedRecepients}
           onChange={this.handleChange}
+          promptTextCreator={label => `Add recipient ${label}`}
         />
 
         <div className="inputs-wrapper">
