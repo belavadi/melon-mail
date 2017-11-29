@@ -420,8 +420,10 @@ class Compose extends Component {
           options={this.state.recepients}
           value={this.state.selectedRecepients}
           onChange={this.handleChange}
+          shouldKeyDownEventCreateNewOption={({ keyCode }) =>
+            [32, 13, 9, 188].indexOf(keyCode) >= 0
+          }
           promptTextCreator={label => `Add recipient ${label}`}
-          shouldKeyDownEventCreateNewOption={({ keyCode }) => keyCode === 32}
         />
 
         <div className="inputs-wrapper">
