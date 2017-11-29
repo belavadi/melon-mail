@@ -139,7 +139,7 @@ const checkRegistration = () =>
             });
           }
           return resolve({
-            mail: events[0].args.encryptedUsername,
+            mailAddress: events[0].args.encryptedUsername,
             address: events[0].args.addr,
             startingBlock: events[0].blockNumber,
           });
@@ -155,11 +155,26 @@ const checkRegistration = () =>
 
 const signString = (account, stringToSign) =>
   new Promise((resolve, reject) => {
-    web3.personal.sign(web3.fromUtf8(stringToSign), account, (error, result) => {
-      if (error) {
-        return reject(error);
-      }
-      return resolve(result);
+    // Deprecated sign function
+    //
+    // web3.personal.sign(web3.fromUtf8(stringToSign), account, (error, result) => {
+    //   if (error) {
+    //     return reject(error);
+    //   }
+    //   return resolve(result);
+    // });
+    const msgParams = [{
+      type: 'string',
+      name: 'Message',
+      value: stringToSign,
+    }];
+    web3.currentProvider.sendAsync({
+      method: 'eth_signTypedData',
+      params: [msgParams, account],
+      from: account,
+    }, (err, data) => {
+      if (err || data.error) return reject(err);
+      return resolve(data.result);
     });
   });
 
@@ -306,7 +321,7 @@ const listenUserRegistered = callback =>
 
       return getBlockNumber()
         .then((startingBlock) => {
-          eventContract.UserRegistered(
+          const listener = eventContract.UserRegistered(
             {
               addr: account,
             },
@@ -318,6 +333,7 @@ const listenUserRegistered = callback =>
             .watch((err, event) => {
               if (err) return;
               callback(event);
+              listener.stopWatching();
             });
         });
     });
@@ -444,8 +460,6 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
             });
         }
 
-        console.log(toAddress, mailHash, threadHash, threadId);
-
         return mailContract.sendEmail(toAddress, mailHash, threadHash, threadId,
           { from: account }, (error, result) => {
             if (error) {
@@ -459,7 +473,7 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
       });
   });
 
-const signIn = mail => new Promise((resolve, reject) => {
+const signIn = mailAddress => new Promise((resolve, reject) => {
   getAccount()
     .then((account) => {
       if (!account) {
@@ -474,7 +488,7 @@ const signIn = mail => new Promise((resolve, reject) => {
             status: true,
             privateKey,
             publicKey,
-            mail: decrypt({ privateKey, publicKey }, mail),
+            mailAddress: decrypt({ privateKey, publicKey }, mailAddress),
           });
         })
         .catch((error) => {

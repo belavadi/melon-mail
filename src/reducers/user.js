@@ -48,7 +48,7 @@ export default (state = {
         isAuthenticated: true,
         privateKey: action.data.privateKey,
         publicKey: action.data.publicKey,
-        mailAddress: action.data.mail,
+        mailAddress: action.data.mailAddress,
         authError: '',
       };
     case 'USER_NOT_REGISTERED':
@@ -61,7 +61,7 @@ export default (state = {
         ...state,
         stage: action.stage,
         startingBlock: action.data.startingBlock,
-        mailAddress: action.data.mail,
+        mailAddress: action.data.mailAddress,
         ethAddress: action.data.address,
         authError: '',
       };

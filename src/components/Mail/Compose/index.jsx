@@ -347,7 +347,6 @@ class Compose extends Component {
   }
 
   handleChange(values) {
-    console.log(values);
     if (values.length === 0) {
       this.resetRecipient();
       return this.setState({
@@ -406,7 +405,6 @@ class Compose extends Component {
     const alterableEvent = event;
     alterableEvent.target.value = '';
     this.to.select.handleInputChange(alterableEvent);
-    console.log(this.to);
   }
 
   render() {
@@ -423,6 +421,7 @@ class Compose extends Component {
           value={this.state.selectedRecepients}
           onChange={this.handleChange}
           promptTextCreator={label => `Add recipient ${label}`}
+          shouldKeyDownEventCreateNewOption={({ keyCode }) => keyCode === 32}
         />
 
         <div className="inputs-wrapper">

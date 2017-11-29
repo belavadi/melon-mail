@@ -94,7 +94,7 @@ export const checkRegistration = () => (dispatch) => {
         userRegistrationMined(data.address);
       }
       dispatch(userIsRegistered(data));
-      return eth.signIn(data.mail);
+      return eth.signIn(data.mailAddress);
     })
     .then((result) => {
       if (result.status) {
@@ -120,11 +120,13 @@ export const checkRegistration = () => (dispatch) => {
     });
 };
 
-export const startListener = () => (dispatch) => {
+export const startListener = () => (dispatch, getState) => {
   if (config.useLocalStorage) {
     eth.listenUserRegistered((event) => {
       userRegistrationMined(event.args.addr);
-      dispatch(checkRegistration());
+      if (getState().router.path === 'auth') {
+        dispatch(checkRegistration());
+      }
     });
   }
 };
