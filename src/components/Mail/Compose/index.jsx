@@ -25,7 +25,8 @@ class Compose extends Component {
     }));
 
     this.state = {
-      to: '',
+      selectedRecepients: [],
+      recepients,
       subject: '',
       files: {
         value: '',
@@ -34,8 +35,6 @@ class Compose extends Component {
       recipientExists: 'undetermined',
       editorState: EditorState.createEmpty(),
       selectedBlockType: '',
-      recepients,
-      selectedRecepients: [],
       search: '',
       anchor: null,
     };
@@ -46,7 +45,6 @@ class Compose extends Component {
     this.resetRecipient = this.resetRecipient.bind(this);
     this.removeFile = this.removeFile.bind(this);
     this.handleEditorChange = this.handleEditorChange.bind(this);
-    this.getRecipientSuggestions = this.getRecipientSuggestions.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleBlur = this.handleBlur.bind(this);
@@ -139,25 +137,6 @@ class Compose extends Component {
     }
   }
 
-  componentDidMount() {
-    if (this.state.to !== '') this.checkRecipient();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.to !== this.state.to) {
-      this.getRecipientSuggestions();
-    }
-  }
-
-  getRecipientSuggestions() {
-    this.setState({
-      contactSuggestions: this.props.user.contacts
-        .filter(c => c.indexOf(this.state.to) !== -1)
-        .sort((a, b) => a.indexOf(this.state.to) - b.indexOf(this.state.to))
-        .map(c => ({ title: c })),
-    });
-  }
-
   handleInputChange(event, clean) {
     const target = event.target;
     let value = '';
@@ -228,7 +207,7 @@ class Compose extends Component {
 
   checkRecipient(recipient, callback) {
     if (recipient === undefined) return;
-    const username = recipient.toLowerCase().trim() || this.state.to.toLowerCase().trim();
+    const username = recipient.toLowerCase().trim();
     const domain = username.split('@')[1];
     const isExternalMail = domain !== this.props.config.defaultDomain;
 
@@ -414,7 +393,7 @@ class Compose extends Component {
           placeholder="To"
           ref={(input) => { this.to = input; }}
           multi
-          autofocus
+          autoFocus
           onBlur={this.handleBlur}
           onBlurResetsInput={false}
           options={this.state.recepients}

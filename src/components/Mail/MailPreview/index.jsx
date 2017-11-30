@@ -21,7 +21,7 @@ class MailPreview extends Component {
   componentDidUpdate(prevProps) {
     if (this.props.mail.thread.length !== 0 &&
       (prevProps.mail.threadId !== this.props.mail.threadId ||
-       prevProps.mail.thread.length !== this.props.mail.thread.length)
+        prevProps.mail.thread.length !== this.props.mail.thread.length)
     ) {
       const mailWrappers = document.querySelectorAll('.mail-wrapper');
       if (mailWrappers.length) {
@@ -51,7 +51,9 @@ class MailPreview extends Component {
             <h1>Your mail has been sent!</h1>
           </div>
         }
-        <div className={`mail-preview ${this.props.mail.showSendConfirmation ? 'hide-overflow' : ''}`}>
+        <div
+          className={`mail-preview ${this.props.mail.showSendConfirmation ? 'hide-overflow' : ''}`}
+        >
           {
             this.props.mail.isFetching &&
             <div className="loader-wrapper">
@@ -91,26 +93,29 @@ class MailPreview extends Component {
                   <div className="title-wrapper">
                     <h1>{mail.subject}</h1>
                     <div className="mail-actions">
-                      <Button.Group basic>
-                        <Button
-                          icon="reply"
-                          content="Reply"
-                          onClick={() => this.compose('reply', mailIndex)}
-                        />
-                        {
-                          mail.to.length > 1 &&
+                      {
+                        mail.hash !== 'welcome' &&
+                        <Button.Group basic>
                           <Button
                             icon="reply"
-                            content="Reply all"
-                            onClick={() => this.compose('replyAll', mailIndex)}
+                            content="Reply"
+                            onClick={() => this.compose('reply', mailIndex)}
                           />
-                        }
-                        <Button
-                          icon="mail forward"
-                          content="Forward"
-                          onClick={() => this.compose('forward', mailIndex)}
-                        />
-                      </Button.Group>
+                          {
+                            mail.to.length > 1 &&
+                            <Button
+                              icon="reply"
+                              content="Reply all"
+                              onClick={() => this.compose('replyAll', mailIndex)}
+                            />
+                          }
+                          <Button
+                            icon="mail forward"
+                            content="Forward"
+                            onClick={() => this.compose('forward', mailIndex)}
+                          />
+                        </Button.Group>
+                      }
                     </div>
                   </div>
                   <div className="meta">
@@ -129,14 +134,14 @@ class MailPreview extends Component {
                       {formatDate(Date.parse(mail.time))}
                     </span>
                     <span className="from">
-                      From <span className="from">{
-                        mail.from !== this.props.user.mailAddress ?
-                          mail.from : 'Me'
-                      } </span>
-                      to <span className="to">{
-                        mail.to !== this.props.user.mailAddress ?
-                          mail.to.join(', ') : 'Me'
-                      } </span>
+                      From&nbsp;
+                      <span className="from">
+                        {mail.from !== this.props.user.mailAddress ? mail.from : 'Me'}
+                      </span>
+                      to&nbsp;
+                      <span className="to">
+                        {mail.to !== this.props.user.mailAddress ? mail.to.join(', ') : 'Me'}
+                      </span>
                     </span>
                   </div>
                   <div>
