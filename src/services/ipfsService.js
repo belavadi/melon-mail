@@ -1,3 +1,4 @@
+import Ipfs from 'ipfs';
 import findIndex from 'lodash/findIndex';
 import { useLocalStorage } from '../../config/config.json';
 
