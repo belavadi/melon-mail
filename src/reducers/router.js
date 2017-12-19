@@ -1,5 +1,5 @@
 export default (state = {
-  path: 'auth',
+  path: 'wallet',
 }, action) => {
   switch (action.type) {
     case 'ROUTE_CHANGE':

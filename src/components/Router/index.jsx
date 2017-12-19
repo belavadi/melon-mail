@@ -8,6 +8,7 @@ import eth from '../../services/ethereumService';
 
 import Auth from '../Auth/';
 import App from '../Mail/App/';
+import Wallet from '../Wallet/';
 
 class Router extends Component {
   constructor() {
@@ -64,6 +65,10 @@ class Router extends Component {
         {
           this.props.router.path === 'auth' &&
           <Auth />
+        }
+        {
+          this.props.router.path === 'wallet' &&
+          <Wallet />
         }
       </div>
     );
