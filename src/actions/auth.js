@@ -1,19 +1,10 @@
 import eth from '../services/ethereumService';
 import config from '../../config/config.json';
 
-export const changeNetwork = network => ({
-  type: 'NETWORK_CHANGE',
-  network,
-});
-
-export const setAccount = account => ({
-  type: 'SET_ACCOUNT',
-  account,
-});
-
-export const changeAccount = account => ({
-  type: 'ACCOUNT_CHANGE',
-  account,
+export const addWallet = wallet => ({
+  type: 'ADD_WALLET',
+  stage: 'check',
+  wallet,
 });
 
 export const userNotRegistered = () => ({
@@ -44,19 +35,9 @@ export const authError = error => ({
   error,
 });
 
-export const wrongNetwork = () => ({
-  type: 'WRONG_NETWORK',
-  stage: 'wrongNetwork',
-});
-
 export const loginSuccess = data => ({
   type: 'LOGIN_SUCCESS',
   data,
-});
-
-export const noConnection = () => ({
-  type: 'NO_CONNECTION',
-  stage: 'noConnection',
 });
 
 export const unsecureContext = () => ({
@@ -81,14 +62,13 @@ export const userRegistrationMined = (account) => {
   localStorage.removeItem(`isregistering-${account}`);
 };
 
-export const checkRegistration = () => (dispatch) => {
+export const checkRegistration = wallet => (dispatch) => {
   if (!window.isSecureContext && window.isSecureContext !== undefined) {
     dispatch(unsecureContext());
     return;
   }
 
-  eth.getWeb3Status()
-    .then(() => eth.checkRegistration())
+  eth.checkRegistration(wallet)
     .then((data) => {
       if (config.useLocalStorage) {
         userRegistrationMined(data.address);
@@ -105,14 +85,8 @@ export const checkRegistration = () => (dispatch) => {
     })
     .catch((result) => {
       console.error(result);
-      if (window.web3 === undefined) {
-        return dispatch(noConnection());
-      }
       if (!result.error && result.notRegistered) {
         return dispatch(userNotRegistered());
-      }
-      if (result.message === 'WRONG_NETWORK') {
-        return dispatch(wrongNetwork());
       }
       return dispatch(authError(
         'Something went wrong or you didn\'t accept the signing process.',
@@ -122,29 +96,26 @@ export const checkRegistration = () => (dispatch) => {
 
 export const startListener = () => (dispatch, getState) => {
   if (config.useLocalStorage) {
-    eth.listenUserRegistered((event) => {
-      userRegistrationMined(event.args.addr);
-      if (getState().router.path === 'auth') {
-        dispatch(checkRegistration());
-      }
-    });
+    // eth.listenUserRegistered((event) => {
+    //   userRegistrationMined(event.args.addr);
+    //   if (getState().router.path === 'auth') {
+    //     dispatch(checkRegistration());
+    //   }
+    // });
   }
 };
 
-export const registerUser = mailAddress => (dispatch, getState) => {
-  eth.getAccount()
-    .then(account =>
-      eth.checkMailAddress(mailAddress)
-        .then(() => eth.signString(account, config.stringToSign))
-        .then(signedString => eth._registerUser(mailAddress, signedString))
-        .then((data) => {
-          if (config.useLocalStorage) {
-            userIsRegistering(getState().user.activeAccount);
-          }
-          dispatch(registerSuccess(data));
-        })
-        .catch((error) => {
-          dispatch(registerError(error.message));
-        }));
+export const registerUser = (mailAddress, wallet) => (dispatch, getState) => {
+  eth.checkMailAddress(mailAddress)
+    .then(() => eth._registerUser(mailAddress, wallet))
+    .then((data) => {
+      if (config.useLocalStorage) {
+        userIsRegistering(getState().user.activeAccount);
+      }
+      dispatch(registerSuccess(data));
+    })
+    .catch((error) => {
+      dispatch(registerError(error.message));
+    });
 };
 

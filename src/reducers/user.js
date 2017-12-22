@@ -3,20 +3,21 @@ export default (state = {
   isAuthenticated: false,
   authError: '',
   registerError: '',
-  stage: 'check',
-  activeAccount: '',
-  privateKey: null,
-  publicKey: null,
+  stage: 'wallet',
   mailAddress: '',
-  ethAddress: '',
   startingBlock: 0,
   balance: 0,
   contacts: [],
   backupDone: false,
   backupAlreadyDone: false,
-  network: '',
+  wallet: null,
 }, action) => {
   switch (action.type) {
+    case 'ADD_WALLET':
+      return {
+        wallet: action.wallet,
+        stage: action.stage,
+      };
     case 'REGISTER_REQUEST':
     case 'LOGIN_REQUEST':
       return {

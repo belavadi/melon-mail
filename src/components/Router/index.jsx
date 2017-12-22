@@ -8,7 +8,6 @@ import eth from '../../services/ethereumService';
 
 import Auth from '../Auth/';
 import App from '../Mail/App/';
-import Wallet from '../Wallet/';
 
 class Router extends Component {
   constructor() {
@@ -25,34 +24,6 @@ class Router extends Component {
   }
 
   getCurrentInfo() {
-    eth.getAccount()
-      .then((account) => {
-        if (this.props.user.activeAccount === '') {
-          this.props.setAccount(account);
-          return;
-        }
-        if (this.props.user.activeAccount !== account && account) {
-          this.props.logout();
-          this.props.getBalance();
-          this.props.changeAccount(account);
-          this.props.saveLastActiveTimestamp();
-        }
-      })
-      .catch(() => {
-        console.log('Log in to metamask.');
-      });
-    eth.getNetwork()
-      .then((network) => {
-        if (this.props.user.network === '') {
-          this.props.changeNetwork(network);
-          return;
-        }
-        if (this.props.user.network !== network) {
-          this.props.logout();
-          this.props.changeNetwork(network);
-          this.props.getBalance();
-        }
-      }).catch((err) => {});
   }
 
   render() {
@@ -66,29 +37,15 @@ class Router extends Component {
           this.props.router.path === 'auth' &&
           <Auth />
         }
-        {
-          this.props.router.path === 'wallet' &&
-          <Wallet />
-        }
       </div>
     );
   }
 }
 
 Router.propTypes = {
-  user: PropTypes.shape({
-    activeAccount: PropTypes.string.isRequired,
-    network: PropTypes.string.isRequired,
-  }).isRequired,
   router: PropTypes.shape({
     path: PropTypes.string.isRequired,
   }).isRequired,
-  logout: PropTypes.func.isRequired,
-  changeAccount: PropTypes.func.isRequired,
-  changeNetwork: PropTypes.func.isRequired,
-  getBalance: PropTypes.func.isRequired,
-  setAccount: PropTypes.func.isRequired,
-  saveLastActiveTimestamp: PropTypes.func.isRequired,
 };
 
 Router.defaultProps = {};

@@ -1,15 +1,14 @@
 import Web3 from 'web3';
+import util from 'ethereumjs-util';
 import uniqBy from 'lodash/uniqBy';
-import ethers from 'ethers';
+import Ethers from 'ethers';
+import bip39 from 'bip39';
 import ENS from 'ethjs-ens';
 import config from '../../config/config.json';
 import { generateKeys, encrypt, decrypt } from './cryptoService';
-import { executeWhenReady, namehash } from './helperService';
+import { namehash } from './helperService';
 
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
-
-let mailContract;
-let eventContract;
 
 const networks = {
   3: 'ropsten',
@@ -19,140 +18,78 @@ const networks = {
   1: 'mainnet',
 };
 
-executeWhenReady(() => {
-  try {
-    window.web3 = new Web3(web3.currentProvider);
+const filterLogs = (logs, filter) =>
+  logs.filter(log => Object.keys(filter).filter(key => log[key] === filter[key]).length > 0);
 
-    mailContract = web3.eth.contract(config.mailContractAbi)
-      .at(config.mailContractAddress);
-
-    let url = 'https://kovan.decenter.com';
-    const customNode = localStorage.getItem('customEthNode');
-
-    if (customNode) {
-      url = JSON.parse(customNode).protocol + JSON.parse(customNode).ipAddress;
-    }
-
-    const web3Custom = new Web3(new web3.providers.HttpProvider(url));
-
-    eventContract = web3Custom.eth.contract(config.mailContractAbi)
-      .at(config.mailContractAddress);
-  } catch (e) {
-    console.log(e);
-  }
-});
-
-const getWeb3Status = () =>
+const checkRegistration = wallet =>
   new Promise((resolve, reject) => {
-    if (!web3) {
+    if (!wallet) {
       return reject({
-        message: 'NOT_FOUND',
+        message: 'No wallet provided!',
       });
     }
+    const event = wallet.mailContract.interface.events.UserRegistered();
 
-    return web3.version.getNetwork((err, networkId) => {
-      if (networks[networkId] !== config.network && !config.testContract) {
-        return reject({
-          message: 'WRONG_NETWORK',
-        });
-      }
+    return wallet.provider.getLogs({
+      fromBlock: 0,
+      address: wallet.mailContract.address,
+      topics: event.topics,
+    })
+      .then((logs) => {
+        const parsedEvents = logs.map(log => ({
+          ...event.parse(log.topics, log.data),
+          blockNumber: log.blockNumber,
+        }));
+        const filteredEvents = filterLogs(parsedEvents, { addr: wallet.address });
 
-      return resolve();
-    });
-  });
-
-const getNetwork = () =>
-  new Promise((resolve, reject) => {
-    web3.version.getNetwork((err, networkId) => {
-      if (err) {
-        return reject({
-          message: err,
-        });
-      }
-
-      return resolve(networks[networkId]);
-    });
-  });
-
-const getAccount = () =>
-  new Promise((resolve, reject) => {
-    web3.eth.getAccounts((err, accounts) => {
-      if (err) {
-        return reject({
-          message: err,
-        });
-      }
-      if (accounts.length === 0) {
-        return reject({
-          message: 'Account not found.',
-        });
-      }
-      return resolve(accounts[0]);
-    });
-  });
-
-const getBalance = () => new Promise((resolve, reject) => {
-  getAccount()
-    .then((account) => {
-      web3.eth.getBalance(account, (error, balance) => {
-        if (error) {
+        if (filteredEvents.length === 0) {
           return reject({
-            message: error,
+            notRegistered: true,
+            message: 'User not registered!',
           });
         }
-
-        return resolve(parseFloat(web3.fromWei(balance)));
-      });
-    });
-});
-
-const checkRegistration = () =>
-  new Promise((resolve, reject) => {
-    getAccount().then((account) => {
-      if (!account) {
-        return reject({
-          error: true,
-          message: 'Account not found.',
+        console.log(filteredEvents);
+        return resolve({
+          mailAddress: filteredEvents[0].encryptedUsername,
+          address: filteredEvents[0].address,
+          startingBlock: filteredEvents[0].startingBlock,
         });
-      }
-
-      return eventContract.UserRegistered(
-        {
-          addr: account,
-        },
-        {
-          fromBlock: 0,
-          toBlock: 'latest',
-        })
-        .get((err, events) => {
-          if (err) {
-            reject({
-              error: true,
-              message: err,
-            });
-          }
-
-          if (!events.length) {
-            return reject({
-              error: false,
-              notRegistered: true,
-              message: 'User not registered.',
-            });
-          }
-          return resolve({
-            mailAddress: events[0].args.encryptedUsername,
-            address: events[0].args.addr,
-            startingBlock: events[0].blockNumber,
-          });
-        });
-    })
-      .catch((error) => {
-        reject({
-          error: true,
-          message: error,
-        });
-      });
+      })
+      .catch(error => reject(error));
   });
+
+const createWallet = (importedMnemonic) => {
+  const mnemonic = importedMnemonic || bip39.generateMnemonic();
+  const wallet = new Ethers.Wallet.fromMnemonic(mnemonic);
+  const decenterProvider = new Ethers.providers.JsonRpcProvider('https://kovan.decenter.com', 'kovan');
+  const melonProvider = new Ethers.providers.JsonRpcProvider('https://kovan.melonport.com', 'kovan');
+  const localProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', 'kovan');
+
+  wallet.provider = new Ethers.providers.FallbackProvider([
+    decenterProvider,
+    melonProvider,
+    localProvider,
+  ]);
+
+  wallet.publicKey = util.bufferToHex(util.privateToPublic(wallet.privateKey));
+
+  const mailContract = new Ethers.Contract(
+    config.mailContractAddress,
+    config.mailContractAbi,
+    wallet,
+  );
+
+  return {
+    ...wallet,
+    mailContract,
+  };
+};
+
+const getBalance = wallet => new Promise((resolve, reject) => {
+  wallet.provider.getBalance(wallet.address)
+    .then(balance => resolve(Ethers.utils.formatEther(balance)))
+    .catch(error => reject(error));
+});
 
 const signString = (account, stringToSign) =>
   new Promise((resolve, reject) => {
@@ -223,49 +160,34 @@ const checkMailAddress = email =>
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = (mailAddress, signedString) =>
+const _registerUser = (mailAddress, wallet) =>
   new Promise((resolve, reject) => {
-    const { privateKey, publicKey } = generateKeys(signedString);
-
-    getAccount()
-      .then((account) => {
-        if (!account) {
+    wallet.mailContract.registerUser(
+      Ethers.utils.keccak256(mailAddress),
+      encrypt({
+        privateKey: wallet.privateKey,
+        publicKey: wallet.publicKey,
+      }, mailAddress),
+      wallet.publicKey)
+      .then((error) => {
+        if (error) {
           return reject({
-            message: 'Account not found.',
+            message: error,
           });
         }
 
-        return mailContract.registerUser(
-          web3.sha3(mailAddress),
-          encrypt({ privateKey, publicKey }, mailAddress),
-          publicKey,
-          { from: account },
-          (error) => {
-            if (error) {
-              return reject({
-                message: error,
-              });
-            }
-
-            return getBlockNumber()
-              .then((startingBlock) => {
-                resolve({
-                  publicKey,
-                  privateKey,
-                  mailAddress,
-                  address: account,
-                  startingBlock,
-                });
-              })
-              .catch(() => {
-                resolve({
-                  publicKey,
-                  privateKey,
-                  mailAddress,
-                  address: account,
-                  startingBlock: 0,
-                });
-              });
+        return getBlockNumber()
+          .then((startingBlock) => {
+            resolve({
+              mailAddress,
+              startingBlock,
+            });
+          })
+          .catch(() => {
+            resolve({
+              mailAddress,
+              startingBlock: 0,
+            });
           });
       });
   });
@@ -681,9 +603,8 @@ const resolveUser = (email, domain, isExternalMail) => {
 };
 
 export default {
-  getWeb3Status,
+  createWallet,
   signString,
-  getAccount,
   listenForMails,
   listenUserRegistered,
   _registerUser,
@@ -700,5 +621,4 @@ export default {
   getAddressInfo,
   updateContactsEvent,
   getContactsForUser,
-  getNetwork,
 };
