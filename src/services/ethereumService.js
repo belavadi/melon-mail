@@ -21,42 +21,40 @@ const networks = {
 const filterLogs = (logs, filter) =>
   logs.filter(log => Object.keys(filter).filter(key => log[key] === filter[key]).length > 0);
 
-const checkRegistration = wallet =>
-  new Promise((resolve, reject) => {
-    if (!wallet) {
-      return reject({
-        message: 'No wallet provided!',
-      });
-    }
-    const event = wallet.mailContract.interface.events.UserRegistered();
-
-    return wallet.provider.getLogs({
+const checkRegistration = async (wallet) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.UserRegistered();
+  try {
+    const logs = await wallet.provider.getLogs({
       fromBlock: 0,
       address: wallet.mailContract.address,
       topics: event.topics,
-    })
-      .then((logs) => {
-        const parsedEvents = logs.map(log => ({
-          ...event.parse(log.topics, log.data),
-          blockNumber: log.blockNumber,
-        }));
-        const filteredEvents = filterLogs(parsedEvents, { addr: wallet.address });
+    });
+    const parsedEvents = logs.map(log => ({
+      ...event.parse(log.topics, log.data),
+      blockNumber: log.blockNumber,
+    }));
+    const filteredEvents = filterLogs(parsedEvents, { addr: wallet.address });
 
-        if (filteredEvents.length === 0) {
-          return reject({
-            notRegistered: true,
-            message: 'User not registered!',
-          });
-        }
-        console.log(filteredEvents);
-        return resolve({
-          mailAddress: filteredEvents[0].encryptedUsername,
-          address: filteredEvents[0].address,
-          startingBlock: filteredEvents[0].startingBlock,
-        });
-      })
-      .catch(error => reject(error));
-  });
+    if (filteredEvents.length === 0) {
+      return {
+        notRegistered: true,
+        message: 'User not registered!',
+      };
+    }
+    console.log(filteredEvents);
+    return {
+      mailAddress: filteredEvents[0].encryptedUsername,
+      address: filteredEvents[0].address,
+      startingBlock: filteredEvents[0].startingBlock,
+    };
+  } catch (err) {
+    console.error(err);
+    throw Error('Event fetching failed.');
+  }
+};
 
 const createWallet = (importedMnemonic) => {
   const mnemonic = importedMnemonic || bip39.generateMnemonic();

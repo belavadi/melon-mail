@@ -62,36 +62,46 @@ export const userRegistrationMined = (account) => {
   localStorage.removeItem(`isregistering-${account}`);
 };
 
-export const checkRegistration = wallet => (dispatch) => {
+export const checkRegistration = wallet => async (dispatch) => {
   if (!window.isSecureContext && window.isSecureContext !== undefined) {
-    dispatch(unsecureContext());
-    return;
+    return dispatch(unsecureContext());
   }
 
-  eth.checkRegistration(wallet)
-    .then((data) => {
-      if (config.useLocalStorage) {
-        userRegistrationMined(data.address);
-      }
-      dispatch(userIsRegistered(data));
-      return eth.signIn(data.mailAddress);
-    })
-    .then((result) => {
-      if (result.status) {
-        return dispatch(loginSuccess(result));
-      }
-      console.error(result.error);
-      return dispatch(authError('You need to sign the string in order to login.'));
-    })
-    .catch((result) => {
-      console.error(result);
-      if (!result.error && result.notRegistered) {
-        return dispatch(userNotRegistered());
-      }
-      return dispatch(authError(
-        'Something went wrong or you didn\'t accept the signing process.',
-      ));
-    });
+  try {
+    const user = await eth.checkRegistration(wallet);
+
+    if (!user.error && user.notRegistered) {
+      return dispatch(userNotRegistered());
+    }
+
+    eth.signIn(user.mailAddress);
+  } catch (e) {
+    return console.error(e);
+  }
+  // eth.checkRegistration(wallet)
+  //   .then((data) => {
+  //     if (config.useLocalStorage) {
+  //       userRegistrationMined(data.address);
+  //     }
+  //     dispatch(userIsRegistered(data));
+  //     return eth.signIn(data.mailAddress);
+  //   })
+  //   .then((result) => {
+  //     if (result.status) {
+  //       return dispatch(loginSuccess(result));
+  //     }
+  //     console.error(result.error);
+  //     return dispatch(authError('You need to sign the string in order to login.'));
+  //   })
+  //   .catch((result) => {
+  //     console.error(result);
+  //     if (!result.error && result.notRegistered) {
+  //       return dispatch(userNotRegistered());
+  //     }
+  //     return dispatch(authError(
+  //       'Something went wrong or you didn\'t accept the signing process.',
+  //     ));
+  //   });
 };
 
 export const startListener = () => (dispatch, getState) => {
