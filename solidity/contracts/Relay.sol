@@ -13,11 +13,6 @@ contract Relay is DelegateProxy {
         owner = msg.sender;
     }
 
-    function byzantiumUpgraded() public {
-        require(msg.sender == owner);
-        IS_BYZANTIUM = true;
-    }
-
     function () payable public {
         delegatedFwd(manager.activeContract(), msg.data);
     }
