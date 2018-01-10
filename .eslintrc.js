@@ -19,6 +19,7 @@ module.exports = {
     'new-cap': 0,
     'eol-last': 1,
     'jsx-a11y/label-has-for': 0,
+    'linebreak-style': 0,
 },
   globals: {
     window: true,

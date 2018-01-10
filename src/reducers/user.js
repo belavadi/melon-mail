@@ -30,10 +30,7 @@ export default (state = {
         isFetching: action.isFetching,
         isAuthenticated: true,
         registerError: '',
-        privateKey: action.data.privateKey,
-        publicKey: action.data.publicKey,
         startingBlock: action.data.startingBlock,
-        ethAddress: action.data.address,
         mailAddress: action.data.mailAddress,
       };
     case 'REGISTER_ERROR':
@@ -45,12 +42,10 @@ export default (state = {
     case 'LOGIN_SUCCESS':
       return {
         ...state,
-        isFetching: action.isFetching,
-        isAuthenticated: true,
-        privateKey: action.data.privateKey,
-        publicKey: action.data.publicKey,
-        mailAddress: action.data.mailAddress,
         authError: '',
+        isAuthenticated: true,
+        isFetching: action.isFetching,
+        mailAddress: action.data.mailAddress,
       };
     case 'USER_NOT_REGISTERED':
       return {

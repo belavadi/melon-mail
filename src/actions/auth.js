@@ -1,5 +1,6 @@
 import eth from '../services/ethereumService';
 import config from '../../config/config.json';
+import { decrypt } from '../services/cryptoService';
 
 export const addWallet = wallet => ({
   type: 'ADD_WALLET',
@@ -37,6 +38,7 @@ export const authError = error => ({
 
 export const loginSuccess = data => ({
   type: 'LOGIN_SUCCESS',
+  isFetching: false,
   data,
 });
 
@@ -74,7 +76,12 @@ export const checkRegistration = wallet => async (dispatch) => {
       return dispatch(userNotRegistered());
     }
 
-    eth.signIn(user.mailAddress);
+    return dispatch(loginSuccess({
+      mailAddress: decrypt({
+        privateKey: wallet.privateKey,
+        publicKey: wallet.publicKey,
+      }, user.mailAddress),
+    }));
   } catch (e) {
     return console.error(e.message);
   }
@@ -117,10 +124,10 @@ export const startListener = () => (dispatch, getState) => {
 
 export const registerUser = (mailAddress, wallet) => async (dispatch, getState) => {
   try {
-    const isAvailable = await eth.checkMailAddress(mailAddress, wallet);
+    const isAvailable = await eth.checkMailAddress(wallet, mailAddress);
     if (isAvailable) {
-      const data = eth._registerUser(mailAddress, wallet);
-      // dispatch(registerSuccess(data));
+      const data = eth._registerUser(wallet, mailAddress);
+      dispatch(registerSuccess(data));
     }
   } catch (e) {
     console.error(e);

@@ -64,8 +64,8 @@ const createWallet = (importedMnemonic) => {
   const localProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', 'kovan');
 
   wallet.provider = new Ethers.providers.FallbackProvider([
-    decenterProvider,
     melonProvider,
+    decenterProvider,
     localProvider,
   ]);
 
@@ -122,7 +122,7 @@ const getBlockNumber = async (wallet) => {
   }
 };
 
-const checkMailAddress = async (mailAddress, wallet) => {
+const checkMailAddress = async (wallet, mailAddress) => {
   if (!wallet) {
     throw Error('No wallet provided!');
   }
@@ -160,11 +160,11 @@ const checkMailAddress = async (mailAddress, wallet) => {
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = async (mailAddress, wallet) => {
+const _registerUser = async (wallet, mailAddress) => {
   const { keccak256, toUtf8Bytes } = Ethers.utils;
   const encryptedUsername = encrypt({
     privateKey: wallet.privateKey,
-    publicKey: wallet.publicKey.substr(2),
+    publicKey: wallet.publicKey,
   }, mailAddress);
 
   try {
@@ -396,32 +396,6 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
       });
   });
 
-const signIn = mailAddress => new Promise((resolve, reject) => {
-  getAccount()
-    .then((account) => {
-      if (!account) {
-        return reject({
-          message: 'Account not found.',
-        });
-      }
-      return signString(account, config.stringToSign)
-        .then((signedString) => {
-          const { privateKey, publicKey } = generateKeys(signedString);
-          resolve({
-            status: true,
-            privateKey,
-            publicKey,
-            mailAddress: decrypt({ privateKey, publicKey }, mailAddress),
-          });
-        })
-        .catch((error) => {
-          reject({
-            message: error,
-          });
-        });
-    });
-});
-
 const fetchAllEvents = folder =>
   new Promise((resolve, reject) => {
     getAccount()
@@ -512,9 +486,7 @@ const getContactsForUser = userHash =>
 
 const getResolverForDomain = domain =>
   new Promise((resolve, reject) => {
-    const provider = config.network === config.resolverNetwork ?
-      web3.currentProvider :
-      new web3.providers.HttpProvider(`https://${config.resolverNetwork}.infura.io`);
+    const provider = config.network === config.resolverNetwork ? web3.currentProvider : new web3.providers.HttpProvider(`https://${config.resolverNetwork}.infura.io`);
     const ens = new ENS({
       provider,
       network: Object.keys(networks).find(key => networks[key] === config.resolverNetwork),
@@ -536,8 +508,7 @@ const resolveMx = (resolverAddr, domain) =>
   new Promise((resolve, reject) => {
     getAccount()
       .then((account) => {
-        const _web3 = config.network === config.resolverNetwork ?
-          web3 : new Web3(new web3.providers.HttpProvider(`https://${config.resolverNetwork}.infura.io`));
+        const _web3 = config.network === config.resolverNetwork ? web3 : new Web3(new web3.providers.HttpProvider(`https://${config.resolverNetwork}.infura.io`));
         const mxResolverContract = _web3.eth.contract(config.mxResolverAbi).at(resolverAddr);
         mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID, { from: account }, (err, res) => {
           if (err) reject(err);
@@ -612,7 +583,6 @@ export default {
   _sendEmail,
   checkRegistration,
   checkMailAddress,
-  signIn,
   getMails,
   getThread,
   getBalance,
