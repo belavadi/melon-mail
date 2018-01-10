@@ -265,7 +265,9 @@ export const getMails = folder => (dispatch, getState) => {
 };
 
 export const listenForMails = () => (dispatch, getState) => {
-  eth.listenForMails((mailEvent, mailType) => {
+  const wallet = getState().user.wallet;
+
+  eth.listenForMails(wallet, (mailEvent, mailType) => {
     if (!mailEvent) {
       return;
     }

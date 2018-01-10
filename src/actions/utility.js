@@ -73,45 +73,45 @@ export const saveContactsToLocalStorage = (contactName, mailHash) => (dispatch, 
   }
 };
 
-const fetchContacts = (currUserHash, keys, type) =>
-  new Promise((resolve) => {
-    eth.fetchAllEvents(type)
-      .then((inboxEvents) => {
-        const allEvents = uniq([
-          ...inboxEvents.map(event => event.args.mailHash),
-        ]);
+const fetchContacts = async (wallet, currUserHash, folder) => {
+  const keys = {
+    publicKey: wallet.publicKey,
+    privateKey: wallet.privateKey,
+  };
+  const events = await eth.fetchAllEvents(wallet, folder);
+  const uniqueEvents = uniq([
+    ...events.map(event => event.mailHash),
+  ]);
 
-        const ipfsPromises = allEvents.map(hash => ipfs.getFileContent(hash));
+  const ipfsPromises = uniqueEvents.map(hash => ipfs.getFileContent(hash));
+  const mails = await Promise.all(ipfsPromises);
 
-        Promise.all(ipfsPromises)
-          .then((mailsData) => {
-            const mails = mailsData.map((mail) => {
-              if (type === 'inbox') {
-                const receiverData = JSON.parse(mail).receiverData;
-                const receiversMail = decrypt(keys, receiverData);
-                return JSON.parse(receiversMail).from;
-              }
+  const contacts = mails.map((mail) => {
+    if (folder === 'inbox') {
+      const receiverData = JSON.parse(mail).receiverData;
+      const receiversMail = decrypt(keys, receiverData);
+      return JSON.parse(receiversMail).from;
+    }
 
-              if (type === 'outbox') {
-                const sendersData = JSON.parse(mail).senderData;
-                const sendersMail = decrypt(keys, sendersData);
-                return JSON.parse(sendersMail).to;
-              }
+    if (folder === 'outbox') {
+      const sendersData = JSON.parse(mail).senderData;
+      const sendersMail = decrypt(keys, sendersData);
+      return JSON.parse(sendersMail).to;
+    }
 
-              return '';
-            });
-
-            if (useLocalStorage) {
-              localStorage.setItem(currUserHash, encrypt(keys,
-                JSON.stringify({ contacts: mails })));
-            }
-
-            resolve(mails);
-          });
-      });
+    return '';
   });
 
-export const backupContacts = () => (dispatch, getState) => {
+  if (useLocalStorage) {
+    localStorage.setItem(currUserHash, encrypt(keys,
+      JSON.stringify({ contacts })));
+  }
+
+  return contacts;
+};
+
+export const backupContacts = () => async (dispatch, getState) => {
+  const wallet = getState().user.wallet;
   const userMail = getState().user.mailAddress;
   const currUserHash = web3.sha3(userMail);
 
@@ -120,88 +120,58 @@ export const backupContacts = () => (dispatch, getState) => {
     privateKey: getState().user.privateKey,
   };
 
-  fetchContacts(currUserHash, keys, 'inbox')
-    .then((inboxMails) => {
-      fetchContacts(currUserHash, keys, 'outbox')
-        .then((outboxMails) => {
-          let allMails = uniq([
-            ...inboxMails,
-            ...outboxMails,
-          ]);
+  const inboxContacts = await fetchContacts(wallet, currUserHash, 'inbox');
+  const outboxContacts = await fetchContacts(wallet, currUserHash, 'inbox');
 
-          allMails = allMails.filter(m => m !== userMail);
+  let contacts = uniq([
+    ...inboxContacts,
+    ...outboxContacts,
+  ]);
 
-          if (allMails.length === 0) {
-            dispatch(contactsBackupAlready());
-            return;
-          }
+  contacts = contacts.filter(m => m !== userMail);
 
-          const storedContacts = { contacts: allMails };
+  if (contacts.length === 0) {
+    dispatch(contactsBackupAlready());
+    return;
+  }
 
-          eth.getContactsForUser(currUserHash).then((event) => {
-            if (!event) {
-              const newContact = storedContacts;
-              // encrypt the contacts
-              const encryptedData = encrypt(keys, JSON.stringify(newContact));
+  const storedContacts = { contacts };
 
-              ipfs.uploadData(encryptedData)
-                .then((contactLink) => {
-                  const ipfsHash = contactLink.length > 0 ? contactLink[0].hash : contactLink;
+  try {
+    const event = await eth.getContactsForUser(wallet, currUserHash);
+    if (!event) {
+      const newContact = storedContacts;
+      // encrypt the contacts
+      const encryptedData = encrypt(keys, JSON.stringify(newContact));
+      const contactLink = await ipfs.uploadData(encryptedData);
+      const ipfsHash = contactLink.length > 0 ? contactLink[0].hash : contactLink;
 
-                  console.log('IPFS hash for the contacts: ', ipfsHash);
-                  eth.updateContactsEvent(currUserHash, ipfsHash)
-                    .then(() => {
-                      dispatch(contactsUpdated(newContact.contacts));
-                    })
-                    .catch(err => console.log(err));
-                })
-                .catch((err) => {
-                  console.log(err);
-                });
-            } else {
-              const ipfsHash = event.args.ipfsHash;
+      console.log('IPFS hash for the contacts: ', ipfsHash);
+      await eth._updateContacts(wallet, currUserHash, ipfsHash);
+      dispatch(contactsUpdated(newContact.contacts));
+    } else {
+      const ipfsContent = await ipfs.getFileContent(event.fileHash);
+      const decryptedContacts = decrypt(keys, JSON.parse(ipfsContent));
 
-              ipfs.getFileContent(ipfsHash)
-                .then((ipfsContent) => {
-                  const encryptedContacts = JSON.parse(ipfsContent);
+      const joinedContacts = union(storedContacts.contacts, JSON.parse(decryptedContacts).contacts);
 
-                  const decryptedContacts = decrypt(keys, encryptedContacts);
+      // only write to ipfs if we have some new data and add it to the list of contacts
+      if (!isEqual(joinedContacts.sort(), JSON.parse(decryptedContacts).contacts.sort())) {
+        const updatedContacts = encrypt(keys, JSON.stringify({ contacts: joinedContacts }));
 
-                  const joinedContacts = union(storedContacts.contacts,
-                    JSON.parse(decryptedContacts).contacts);
+        const contactLink = await ipfs.uploadData(updatedContacts);
+        const newIpfsHash = contactLink.length > 0 ? contactLink[0].hash : contactLink;
 
-                  // only write to ipfs if we have some new data and add it to the list of contacts
-                  if (!isEqual(joinedContacts.sort(),
-                    JSON.parse(decryptedContacts).contacts.sort())) {
-                    const updatedContacts = encrypt(keys,
-                      JSON.stringify({ contacts: joinedContacts }));
-
-                    ipfs.uploadData(updatedContacts)
-                      .then((contactLink) => {
-                        const newIpfsHash = contactLink.length > 0 ?
-                          contactLink[0].hash : contactLink;
-
-                        console.log('IPFS hash for the contacts: ', ipfsHash);
-
-                        eth.updateContactsEvent(currUserHash, newIpfsHash)
-                          .then(() => {
-                            dispatch(contactsUpdated(storedContacts.contacts));
-                          })
-                          .catch(err => console.log(err));
-                      })
-                      .catch(err => console.log(err));
-                  } else {
-                    dispatch(contactsBackupAlready());
-                  }
-                });
-            }
-          })
-            .catch((err) => {
-              console.log(err);
-              dispatch(contactsBackupFailed());
-            });
-        });
-    });
+        await eth._updateContacts(wallet, currUserHash, newIpfsHash);
+        dispatch(contactsUpdated(storedContacts.contacts));
+      } else {
+        dispatch(contactsBackupAlready());
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    dispatch(contactsBackupFailed());
+  }
 };
 
 export const importContacts = () => (dispatch, getState) => {
@@ -249,7 +219,6 @@ export const importContacts = () => (dispatch, getState) => {
 export const backupProgressReset = () => (dispatch) => {
   dispatch(resetBackupState());
 };
-
 
 export const scrollTo = (element, to, duration) => {
   if (duration <= 0) return;

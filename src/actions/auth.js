@@ -64,10 +64,11 @@ export const userRegistrationMined = (account) => {
   localStorage.removeItem(`isregistering-${account}`);
 };
 
-export const checkRegistration = wallet => async (dispatch) => {
+export const checkRegistration = () => async (dispatch, getState) => {
   if (!window.isSecureContext && window.isSecureContext !== undefined) {
     return dispatch(unsecureContext());
   }
+  const wallet = getState().user.wallet;
 
   try {
     const user = await eth.checkRegistration(wallet);
@@ -122,7 +123,8 @@ export const startListener = () => (dispatch, getState) => {
   }
 };
 
-export const registerUser = (mailAddress, wallet) => async (dispatch, getState) => {
+export const registerUser = mailAddress => async (dispatch, getState) => {
+  const wallet = getState().user.wallet;
   try {
     const isAvailable = await eth.checkMailAddress(wallet, mailAddress);
     if (isAvailable) {

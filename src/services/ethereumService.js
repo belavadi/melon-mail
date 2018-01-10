@@ -161,6 +161,10 @@ const checkMailAddress = async (wallet, mailAddress) => {
 /* Calls registerUser function from the contract code */
 
 const _registerUser = async (wallet, mailAddress) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+
   const { keccak256, toUtf8Bytes } = Ethers.utils;
   const encryptedUsername = encrypt({
     privateKey: wallet.privateKey,
@@ -175,7 +179,7 @@ const _registerUser = async (wallet, mailAddress) => {
   } catch (e) {
     console.log('FAILED EXECUTING FUNCTION.');
     console.log(e);
-    throw Error(e.toString());
+    throw Error(e.message);
   }
 
   try {
@@ -263,43 +267,40 @@ const listenUserRegistered = callback =>
 
 /* Subscribes to the mail send event */
 
-const listenForMails = callback =>
-  getAccount()
-    .then((account) => {
-      if (!account) {
-        return null;
-      }
-      return getBlockNumber()
-        .then((startingBlock) => {
-          eventContract.EmailSent(
-            {
-              to: account,
-            },
-            {
-              fromBlock: startingBlock,
-              toBlock: 'latest',
-            },
-          )
-            .watch((err, event) => {
-              if (err) console.log(err);
-              else callback(event, 'inbox');
-            });
-
-          eventContract.EmailSent(
-            {
-              from: account,
-            },
-            {
-              fromBlock: startingBlock,
-              toBlock: 'latest',
-            },
-          )
-            .watch((err, event) => {
-              if (err) console.log(err);
-              else callback(event, 'outbox');
-            });
-        });
+const listenForMails = async (wallet, callback) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.EmailSent();
+  const startingBlock = await getBlockNumber(wallet);
+  eventContract.EmailSent(
+    {
+      to: account,
+    },
+    {
+      fromBlock: startingBlock,
+      toBlock: 'latest',
+    },
+  )
+    .watch((err, event) => {
+      if (err) console.log(err);
+      else callback(event, 'inbox');
     });
+
+  eventContract.EmailSent(
+    {
+      from: account,
+    },
+    {
+      fromBlock: startingBlock,
+      toBlock: 'latest',
+    },
+  )
+    .watch((err, event) => {
+      if (err) console.log(err);
+      else callback(event, 'outbox');
+    });
+};
 
 const getMails = (folder, fetchToBlock, blocksToFetch) =>
   new Promise((resolve, reject) => {
@@ -396,35 +397,33 @@ const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContr
       });
   });
 
-const fetchAllEvents = folder =>
-  new Promise((resolve, reject) => {
-    getAccount()
-      .then((account) => {
-        if (!account) {
-          return reject({
-            message: 'Account not found.',
-          });
-        }
-        const filter = folder === 'inbox' ? { to: account } : { from: account };
-        return eventContract.EmailSent(
-          filter,
-          {
-            fromBlock: 0,
-            toBlock: 'latest',
-          },
-        )
-          .get((err, events) => {
-            if (err) {
-              reject({
-                message: err,
-              });
-            }
+const fetchAllEvents = async (wallet, folder) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const filter = folder === 'inbox' ? { to: wallet.address } : { from: wallet.address };
+  const event = wallet.mailContract.interface.events.EmailSent();
 
-            const filteredEvents = uniqBy(events, folder === 'inbox' ? 'args.from' : 'args.to');
-            return resolve(filteredEvents);
-          });
-      });
-  });
+  try {
+    const logs = await wallet.provider.getLogs({
+      fromBlock: 0,
+      address: wallet.mailContract.address,
+      topics: event.topics,
+    });
+
+    const parsedEvents = logs.map(log => ({
+      ...event.parse(log.topics, log.data),
+      blockNumber: log.blockNumber,
+    }));
+
+    return uniqBy(
+      filterLogs(parsedEvents, filter),
+      folder === 'inbox' ? 'from' : 'to',
+    );
+  } catch (e) {
+    throw Error('Could not fetch logs.');
+  }
+};
 
 const getAddressInfo = address =>
   new Promise((resolve) => {
@@ -446,43 +445,40 @@ const getAddressInfo = address =>
       });
   });
 
-const updateContactsEvent = (hashName, ipfsHash) =>
-  new Promise((resolve, reject) => {
-    getAccount()
-      .then((account) => {
-        mailContract.updateContacts(hashName, ipfsHash, { from: account }, (err, resp) => {
-          if (err) {
-            reject(err);
-          }
+const _updateContacts = async (wallet, hashName, ipfsHash) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  try {
+    return await wallet.mailContract.updateContacts(hashName, ipfsHash);
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
 
-          return resolve(resp);
-        });
-      });
-  });
+const getContactsForUser = async (wallet, usernameHash) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.ContactsUpdated();
+  try {
+    const logs = await wallet.provider.getLogs({
+      fromBlock: 0,
+      address: wallet.mailContract.address,
+      topics: event.topics,
+    });
+    const parsedEvents = logs.map(log => ({
+      ...event.parse(log.topics, log.data),
+      blockNumber: log.blockNumber,
+    }));
+    const filteredEvents = filterLogs(parsedEvents, { usernameHash });
 
-const getContactsForUser = userHash =>
-  new Promise((resolve, reject) => {
-    eventContract.ContactsUpdated(
-      {
-        usernameHash: userHash,
-      },
-      {
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          reject(err);
-        }
-
-        if (events.length > 0) {
-          resolve(events.pop());
-        } else {
-          resolve(null);
-        }
-      });
-  });
+    return filteredEvents.length > 0 ? filteredEvents.pop() : null;
+  } catch (err) {
+    console.error(err);
+    throw Error('Event fetching failed.');
+  }
+};
 
 const getResolverForDomain = domain =>
   new Promise((resolve, reject) => {
@@ -578,17 +574,17 @@ export default {
   signString,
   listenForMails,
   listenUserRegistered,
+  checkRegistration,
+  checkMailAddress,
+  fetchAllEvents,
+  resolveUser,
+  getMails,
+  getBalance,
+  getThread,
+  getAddressInfo,
+  getContactsForUser,
   _registerUser,
   _getPublicKey,
   _sendEmail,
-  checkRegistration,
-  checkMailAddress,
-  getMails,
-  getThread,
-  getBalance,
-  fetchAllEvents,
-  resolveUser,
-  getAddressInfo,
-  updateContactsEvent,
-  getContactsForUser,
+  _updateContacts,
 };

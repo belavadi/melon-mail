@@ -19,7 +19,7 @@ class Register extends Component {
     e.preventDefault();
     const mailAddress = `${this.username.value.toLowerCase().replace(/\s/g, '')}@${this.props.config.defaultDomain}`;
 
-    this.props.registerUser(mailAddress, this.props.user.wallet);
+    this.props.registerUser(mailAddress);
   }
 
   render() {
