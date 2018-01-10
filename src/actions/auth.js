@@ -76,7 +76,7 @@ export const checkRegistration = wallet => async (dispatch) => {
 
     eth.signIn(user.mailAddress);
   } catch (e) {
-    return console.error(e);
+    return console.error(e.message);
   }
   // eth.checkRegistration(wallet)
   //   .then((data) => {
@@ -115,17 +115,28 @@ export const startListener = () => (dispatch, getState) => {
   }
 };
 
-export const registerUser = (mailAddress, wallet) => (dispatch, getState) => {
-  eth.checkMailAddress(mailAddress)
-    .then(() => eth._registerUser(mailAddress, wallet))
-    .then((data) => {
-      if (config.useLocalStorage) {
-        userIsRegistering(getState().user.activeAccount);
-      }
-      dispatch(registerSuccess(data));
-    })
-    .catch((error) => {
-      dispatch(registerError(error.message));
-    });
+export const registerUser = (mailAddress, wallet) => async (dispatch, getState) => {
+  try {
+    const isAvailable = await eth.checkMailAddress(mailAddress, wallet);
+    if (isAvailable) {
+      const data = eth._registerUser(mailAddress, wallet);
+      // dispatch(registerSuccess(data));
+    }
+  } catch (e) {
+    console.error(e);
+    dispatch(registerError(e.message));
+  }
+
+  // eth.checkMailAddress(mailAddress, wallet)
+  //   .then(() => eth._registerUser(mailAddress, wallet))
+  //   .then((data) => {
+  //     if (config.useLocalStorage) {
+  //       userIsRegistering(getState().user.activeAccount);
+  //     }
+  //     dispatch(registerSuccess(data));
+  //   })
+  //   .catch((error) => {
+  //     dispatch(registerError(error.message));
+  //   });
 };
 

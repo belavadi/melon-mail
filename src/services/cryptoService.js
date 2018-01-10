@@ -15,8 +15,9 @@ export const generateKeys = (data) => {
 };
 
 export const encrypt = (keys, data) => {
-  const privateKey = new bitcore.PrivateKey(keys.privateKey);
-  const receiver = ecies().privateKey(privateKey).publicKey(new bitcore.PublicKey(keys.publicKey));
+  const privateKey = new bitcore.PrivateKey(keys.privateKey.substr(2));
+  const publicKey = new bitcore.PublicKey(`04${keys.privateKey.substr(2)}`);
+  const receiver = ecies().privateKey(privateKey).publicKey(publicKey);
 
   return receiver.encrypt(data, Random.getRandomBuffer(16)).toString('hex');
 };

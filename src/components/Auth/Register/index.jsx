@@ -17,7 +17,9 @@ class Register extends Component {
 
   register(e) {
     e.preventDefault();
-    this.props.registerUser(`${this.username.value.toLowerCase().replace(/\s/g, '')}@${this.props.config.defaultDomain}`);
+    const mailAddress = `${this.username.value.toLowerCase().replace(/\s/g, '')}@${this.props.config.defaultDomain}`;
+
+    this.props.registerUser(mailAddress, this.props.user.wallet);
   }
 
   render() {
@@ -88,6 +90,7 @@ Register.propTypes = {
     stage: PropTypes.string,
     balance: PropTypes.number,
     isBeingRegistered: PropTypes.bool,
+    wallet: PropTypes.object,
   }).isRequired,
   config: PropTypes.shape({
     defaultDomain: PropTypes.string.isRequired,

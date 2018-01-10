@@ -114,81 +114,83 @@ const signString = (account, stringToSign) =>
     });
   });
 
-const getBlockNumber = () =>
-  new Promise((resolve, reject) => {
-    web3.eth.getBlockNumber((error, latestBlock) => {
-      if (error) {
-        return reject(error);
-      }
+const getBlockNumber = async (wallet) => {
+  try {
+    return await wallet.provider.getBlockNumber();
+  } catch (e) {
+    throw Error('Could not fetch block number.');
+  }
+};
 
-      return resolve(latestBlock);
+const checkMailAddress = async (mailAddress, wallet) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  let logs;
+  const { keccak256, toUtf8Bytes } = Ethers.utils;
+  const event = wallet.mailContract.interface.events.UserRegistered();
+
+  try {
+    logs = await wallet.provider.getLogs({
+      fromBlock: 0,
+      address: wallet.mailContract.address,
+      topics: event.topics,
     });
+  } catch (e) {
+    throw Error('Could not get events from the blockchain.');
+  }
+  const parsedEvents = logs.map(log => ({
+    ...event.parse(log.topics, log.data),
+    blockNumber: log.blockNumber,
+  }));
+  console.log(Ethers);
+  const filteredEvents = filterLogs(parsedEvents, {
+    usernameHash: keccak256(toUtf8Bytes(mailAddress)),
   });
 
-const checkMailAddress = email =>
-  new Promise((resolve, reject) => {
-    eventContract.UserRegistered(
-      {
-        usernameHash: web3.sha3(email),
-      },
-      {
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          reject({
-            message: err,
-            events: null,
-          });
-        }
+  if (filteredEvents.length > 0) {
+    throw Error('Username is already taken.');
+  }
 
-        if (events.length > 0) {
-          return reject({
-            message: 'Username is already taken.',
-          });
-        }
-
-        return resolve({
-          message: 'Username is available.',
-        });
-      });
-  });
+  return {
+    isAvailable: true,
+    message: 'Username is available',
+  };
+};
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = (mailAddress, wallet) =>
-  new Promise((resolve, reject) => {
-    wallet.mailContract.registerUser(
-      Ethers.utils.keccak256(mailAddress),
-      encrypt({
-        privateKey: wallet.privateKey,
-        publicKey: wallet.publicKey,
-      }, mailAddress),
-      wallet.publicKey)
-      .then((error) => {
-        if (error) {
-          return reject({
-            message: error,
-          });
-        }
+const _registerUser = async (mailAddress, wallet) => {
+  const { keccak256, toUtf8Bytes } = Ethers.utils;
+  const encryptedUsername = encrypt({
+    privateKey: wallet.privateKey,
+    publicKey: wallet.publicKey.substr(2),
+  }, mailAddress);
 
-        return getBlockNumber()
-          .then((startingBlock) => {
-            resolve({
-              mailAddress,
-              startingBlock,
-            });
-          })
-          .catch(() => {
-            resolve({
-              mailAddress,
-              startingBlock: 0,
-            });
-          });
-      });
-  });
+  try {
+    await wallet.mailContract.registerUser(
+      keccak256(toUtf8Bytes(mailAddress)),
+      encryptedUsername,
+      wallet.publicKey);
+  } catch (e) {
+    console.log('FAILED EXECUTING FUNCTION.');
+    console.log(e);
+    throw Error(e.toString());
+  }
+
+  try {
+    const startingBlock = await getBlockNumber();
+    return {
+      mailAddress,
+      startingBlock,
+    };
+  } catch (e) {
+    return {
+      mailAddress,
+      startingBlock: 0,
+    };
+  }
+};
 
 /* Scans the blockchain to find the public key for a user */
 
