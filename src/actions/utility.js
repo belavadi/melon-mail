@@ -1,6 +1,7 @@
 import union from 'lodash/union';
 import uniq from 'lodash/uniq';
 import isEqual from 'lodash/isEqual';
+import Ethers from 'ethers';
 
 import eth from '../services/ethereumService';
 import ipfs from '../services/ipfsService';
@@ -174,46 +175,37 @@ export const backupContacts = () => async (dispatch, getState) => {
   }
 };
 
-export const importContacts = () => (dispatch, getState) => {
-  const currUserHash = web3.sha3(getState().user.mailAddress);
+export const importContacts = () => async (dispatch, getState) => {
+  const wallet = getState().user.wallet;
+  const { keccak256, toUtf8Bytes } = Ethers.utils;
+  const currUserHash = keccak256(toUtf8Bytes(getState().user.mailAddress));
 
   const keys = {
-    publicKey: getState().user.publicKey,
-    privateKey: getState().user.privateKey,
+    publicKey: wallet.publicKey,
+    privateKey: wallet.privateKey,
   };
 
-  eth.getContactsForUser(currUserHash).then((event) => {
-    if (event) {
-      const ipfsHash = event.args.ipfsHash;
+  const event = await eth.getContactsForUser(wallet, currUserHash);
+  if (event && event.fileHash) {
+    const ipfsContent = await ipfs.getFileContent(event.fileHash);
+    const decryptedContacts = decrypt(keys, JSON.parse(ipfsContent));
 
-      if (!ipfsHash) {
-        return;
-      }
+    dispatch(contactsImport(JSON.parse(decryptedContacts).contacts));
 
-      ipfs.getFileContent(ipfsHash)
-        .then((ipfsContent) => {
-          const encryptedContacts = JSON.parse(ipfsContent);
-
-          const decryptedContacts = decrypt(keys, encryptedContacts);
-
-          dispatch(contactsImport(JSON.parse(decryptedContacts).contacts));
-
-          if (useLocalStorage) localStorage.setItem(currUserHash, encryptedContacts);
-        });
-    } else {
-      if (!useLocalStorage) {
-        return;
-      }
-
-      const contactsItem = localStorage.getItem(currUserHash);
-
-      if (contactsItem) {
-        const contactObject = JSON.parse(decrypt(keys, contactsItem));
-
-        dispatch(contactsImport(contactObject.contacts));
-      }
+    if (useLocalStorage) localStorage.setItem(currUserHash, JSON.parse(ipfsContent));
+  } else {
+    if (!useLocalStorage) {
+      return;
     }
-  });
+
+    const contactsItem = localStorage.getItem(currUserHash);
+
+    if (contactsItem) {
+      const contactObject = JSON.parse(decrypt(keys, contactsItem));
+
+      dispatch(contactsImport(contactObject.contacts));
+    }
+  }
 };
 
 export const backupProgressReset = () => (dispatch) => {

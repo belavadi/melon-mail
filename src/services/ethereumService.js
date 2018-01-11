@@ -21,34 +21,53 @@ const networks = {
 const filterLogs = (logs, filter) =>
   logs.filter(log => Object.keys(filter).filter(key => log[key] === filter[key]).length > 0);
 
-const checkRegistration = async (wallet) => {
-  if (!wallet) {
-    throw Error('No wallet provided!');
-  }
-  const event = wallet.mailContract.interface.events.UserRegistered();
+const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock = 'latest') => {
   try {
     const logs = await wallet.provider.getLogs({
-      fromBlock: 0,
-      address: wallet.mailContract.address,
+      fromBlock,
+      toBlock,
+      address,
       topics: event.topics,
     });
     const parsedEvents = logs.map(log => ({
       ...event.parse(log.topics, log.data),
       blockNumber: log.blockNumber,
     }));
-    const filteredEvents = filterLogs(parsedEvents, { addr: wallet.address });
 
-    if (filteredEvents.length === 0) {
+    if (!filter) return parsedEvents;
+
+    return filterLogs(parsedEvents, filter);
+  } catch (err) {
+    console.error(err);
+    throw Error('Event fetching failed.');
+  }
+};
+
+const listenEvent = (wallet, event, callback) => {
+  wallet.provider.on(event.topics, log => callback(event.parse(log.topics, log.data)));
+};
+
+const checkRegistration = async (wallet) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.UserRegistered();
+  try {
+    const events = await getEvents(wallet, event, wallet.mailContract.address, {
+      addr: wallet.address,
+    });
+
+    if (events.length === 0) {
       return {
         notRegistered: true,
         message: 'User not registered!',
       };
     }
-    console.log(filteredEvents);
+    console.log(events);
     return {
-      mailAddress: filteredEvents[0].encryptedUsername,
-      address: filteredEvents[0].address,
-      startingBlock: filteredEvents[0].startingBlock,
+      mailAddress: events[0].encryptedUsername,
+      address: events[0].address,
+      startingBlock: events[0].startingBlock,
     };
   } catch (err) {
     console.error(err);
@@ -76,7 +95,10 @@ const createWallet = (importedMnemonic) => {
     config.mailContractAbi,
     wallet,
   );
-
+  console.log({
+    ...wallet,
+    mailContract,
+  });
   return {
     ...wallet,
     mailContract,
@@ -126,29 +148,19 @@ const checkMailAddress = async (wallet, mailAddress) => {
   if (!wallet) {
     throw Error('No wallet provided!');
   }
-  let logs;
+  let events;
   const { keccak256, toUtf8Bytes } = Ethers.utils;
   const event = wallet.mailContract.interface.events.UserRegistered();
 
   try {
-    logs = await wallet.provider.getLogs({
-      fromBlock: 0,
-      address: wallet.mailContract.address,
-      topics: event.topics,
+    events = await getEvents(wallet, event, wallet.mailContract.address, {
+      usernameHash: keccak256(toUtf8Bytes(mailAddress)),
     });
   } catch (e) {
     throw Error('Could not get events from the blockchain.');
   }
-  const parsedEvents = logs.map(log => ({
-    ...event.parse(log.topics, log.data),
-    blockNumber: log.blockNumber,
-  }));
-  console.log(Ethers);
-  const filteredEvents = filterLogs(parsedEvents, {
-    usernameHash: keccak256(toUtf8Bytes(mailAddress)),
-  });
 
-  if (filteredEvents.length > 0) {
+  if (events.length > 0) {
     throw Error('Username is already taken.');
   }
 
@@ -273,6 +285,10 @@ const listenForMails = async (wallet, callback) => {
   }
   const event = wallet.mailContract.interface.events.EmailSent();
   const startingBlock = await getBlockNumber(wallet);
+
+  listenEvent(wallet, event, (eventData) => {
+  });
+
   eventContract.EmailSent(
     {
       to: account,
@@ -460,6 +476,7 @@ const getContactsForUser = async (wallet, usernameHash) => {
   if (!wallet) {
     throw Error('No wallet provided!');
   }
+  console.log(wallet);
   const event = wallet.mailContract.interface.events.ContactsUpdated();
   try {
     const logs = await wallet.provider.getLogs({
