@@ -29,7 +29,6 @@ const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock 
       address,
       topics: event.topics,
     });
-    console.log(logs);
     const parsedEvents = logs.map(log => ({
       ...event.parse(log.topics, log.data),
       blockNumber: log.blockNumber,
@@ -201,8 +200,6 @@ const _registerUser = async (wallet, mailAddress) => {
       encryptedUsername,
       wallet.publicKey);
   } catch (e) {
-    console.log('FAILED EXECUTING FUNCTION.');
-    console.log(e);
     throw Error(e.message);
   }
 
@@ -226,7 +223,7 @@ const _getPublicKey = async (wallet, mailAddress, optionalContract) => {
   const { keccak256, toUtf8Bytes } = Ethers.utils;
   const selectedContract = optionalContract !== undefined
     ? optionalContract : wallet.mailContract;
-  const event = wallet.mailContract.interface.events.UserRegistered();
+  const event = optionalContract.interface.events.UserRegistered();
   try {
     const events = await getEvents(wallet, event, selectedContract, {
       usernameHash: keccak256(toUtf8Bytes(mailAddress)),
@@ -463,7 +460,6 @@ const getContactsForUser = async (wallet, usernameHash) => {
   if (!wallet) {
     throw Error('No wallet provided!');
   }
-  console.log(wallet);
   const event = wallet.mailContract.interface.events.ContactsUpdated();
   try {
     const logs = await wallet.provider.getLogs({
@@ -486,8 +482,7 @@ const getContactsForUser = async (wallet, usernameHash) => {
 
 const getResolverForDomain = (wallet, domain) =>
   new Promise((resolve, reject) => {
-    const provider = config.network === config.resolverNetwork ?
-      wallet.provider : wallet.mainProvider;
+    const provider = config.network === config.resolverNetwork ? wallet.provider : wallet.mainProvider;
     const ens = new ENS({
       provider,
       network: Object.keys(networks).find(key => networks[key] === config.resolverNetwork),
@@ -506,54 +501,27 @@ const getResolverForDomain = (wallet, domain) =>
 /* Returns address of contract on MX record of given domain on given resolver */
 
 const resolveMx = async (wallet, resolverAddr, domain) => {
-  const _wallet = wallet;
-  if (config.network !== config.resolverNetwork) _wallet.provider = _wallet.mainProvider;
-  const mxResolverContract = _web3.eth.contract(config.mxResolverAbi).at(resolverAddr);
-  mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID, { from: account }, (err, res) => {
-    if (err) reject(err);
-    if (!res) reject(false);
-
-    mxResolverContract.mx(namehash(domain), { from: account }, (errMx, mailContractAddr) => {
-      if (errMx) reject(errMx);
-      resolve(mailContractAddr);
-    });
-  });
+  const provider = config.network === config.resolverNetwork
+    ? wallet.provider : wallet.mainProvider;
+  const mxResolverContract = new Ethers.Contract(
+    resolverAddr,
+    config.mxResolverAbi,
+    provider,
+  );
+  const supportsMx = await mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID);
+  console.log(supportsMx);
+  if (!supportsMx) throw Error('MX record not supported!');
+  return mxResolverContract.mx(namehash(domain));
 };
-
-// Used for testing purposes
-// const setMxRecord = () =>
-//   new Promise((resolve, reject) => {
-//     getResolverForDomain('decenter-test.test')
-//       .then((resolverAddr) => {
-//         web3.eth.getAccounts()
-//           .then((accounts) => {
-//             const mxResolverContract = new web3.eth.Contract(
-//               config.mxResolverAbi, resolverAddr, {
-//               from: accounts[0],
-//             });
-//             console.log(mxResolverContract);
-//             mxResolverContract.methods.setMxRecord(namehash('decenter-test.test'),
-// '              0x372d826abb22ed3546947a32977745830164717b')
-//               .send((errMx, data) => {
-//                 if (errMx) reject(errMx);
-//                 console.log(data);
-//                 resolve(data);
-//               });
-//           });
-//       });
-//   });
 
 const getMailContract = async (wallet, domain) => {
   const resolverAddress = await getResolverForDomain(wallet, domain);
   const resolvedMailContractAddress = await resolveMx(wallet, resolverAddress, domain);
-
-.
-  then((resolvedMailContractAddr) => {
-    const resolvedMailContract = web3.eth.contract(config.mailContractAbi)
-      .at(resolvedMailContractAddr);
-    resolve(resolvedMailContract);
-  })
-    .catch(err => reject(err));
+  return new Ethers.Contract(
+    resolvedMailContractAddress,
+    config.mailContractAbi,
+    wallet,
+  );
 };
 
 const resolveUser = async (wallet, email, domain, isExternalMail) => {
@@ -561,15 +529,12 @@ const resolveUser = async (wallet, email, domain, isExternalMail) => {
     return _getPublicKey(wallet, email);
   }
 
-  return getMailContract(domain)
-    .then((resolvedMailContract) => {
-      if (resolvedMailContract === config.mailContractAddress) {
-        return _getPublicKey(email);
-      }
+  const resolvedMailContract = await getMailContract(domain);
+  if (resolvedMailContract.address === config.mailContractAddress) {
+    return _getPublicKey(wallet, email);
+  }
 
-      return _getPublicKey(email, resolvedMailContract);
-    })
-    .catch(error => Promise.reject({ error }));
+  return _getPublicKey(wallet, email, resolvedMailContract);
 };
 
 export default {
