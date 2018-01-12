@@ -46,6 +46,7 @@ export default (state = {
         isAuthenticated: true,
         isFetching: action.isFetching,
         mailAddress: action.data.mailAddress,
+        startingBlock: action.data.startingBlock,
       };
     case 'USER_NOT_REGISTERED':
       return {

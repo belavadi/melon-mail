@@ -78,6 +78,7 @@ export const checkRegistration = () => async (dispatch, getState) => {
     }
 
     return dispatch(loginSuccess({
+      startingBlock: user.startingBlock,
       mailAddress: decrypt({
         privateKey: wallet.privateKey,
         publicKey: wallet.publicKey,

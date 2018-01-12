@@ -68,7 +68,7 @@ const checkRegistration = async (wallet) => {
     return {
       mailAddress: events[0].encryptedUsername,
       address: events[0].address,
-      startingBlock: events[0].startingBlock,
+      startingBlock: events[0].blockNumber,
     };
   } catch (err) {
     console.error(err);
@@ -223,9 +223,9 @@ const _getPublicKey = async (wallet, mailAddress, optionalContract) => {
   const { keccak256, toUtf8Bytes } = Ethers.utils;
   const selectedContract = optionalContract !== undefined
     ? optionalContract : wallet.mailContract;
-  const event = optionalContract.interface.events.UserRegistered();
+  const event = wallet.mailContract.interface.events.UserRegistered();
   try {
-    const events = await getEvents(wallet, event, selectedContract, {
+    const events = await getEvents(wallet, event, selectedContract.address, {
       usernameHash: keccak256(toUtf8Bytes(mailAddress)),
     });
 
@@ -324,7 +324,7 @@ const getMails = async (wallet, folder, fetchToBlock, blocksToFetch) => {
   try {
     const events = await getEvents(wallet,
       event,
-      wallet.mailContract,
+      wallet.mailContract.address,
       filter,
       fetchTo - blocksToFetch,
       fetchTo);
@@ -482,7 +482,8 @@ const getContactsForUser = async (wallet, usernameHash) => {
 
 const getResolverForDomain = (wallet, domain) =>
   new Promise((resolve, reject) => {
-    const provider = config.network === config.resolverNetwork ? wallet.provider : wallet.mainProvider;
+    const provider = config.network === config.resolverNetwork
+      ? wallet.provider : wallet.mainProvider;
     const ens = new ENS({
       provider,
       network: Object.keys(networks).find(key => networks[key] === config.resolverNetwork),

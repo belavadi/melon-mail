@@ -247,9 +247,8 @@ export const getMails = folder => async (dispatch, getState) => {
     const newMailsState = [...getState().mails[folder], ...validatedMails];
     dispatch(mailsSuccess(folder, uniqBy(newMailsState, 'threadId'), fromBlock));
   } catch (e) {
-    dispatch(mailsError(folder, e.message, fromBlock));
+    dispatch(mailsError(folder, e.message, 0));
   }
-
 };
 
 export const listenForMails = () => (dispatch, getState) => {
