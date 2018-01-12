@@ -171,11 +171,12 @@ export const mailsNoMore = () => ({
   type: 'MAILS_NO_MORE',
 });
 
-export const getMails = folder => (dispatch, getState) => {
+export const getMails = folder => async (dispatch, getState) => {
+  const wallet = getState().user.wallet;
   const userStartingBlock = getState().user.startingBlock;
   const keys = {
-    publicKey: getState().user.publicKey,
-    privateKey: getState().user.privateKey,
+    publicKey: wallet.publicKey,
+    privateKey: wallet.privateKey,
   };
   const fetchToBlock = folder === 'inbox' ?
     getState().mails.inboxFetchedFromBlock : getState().mails.outboxFetchedFromBlock;
@@ -193,75 +194,62 @@ export const getMails = folder => (dispatch, getState) => {
     return;
   }
   dispatch(mailsRequest(folder));
-  eth.getMails(folder, fetchToBlock, blocksInBatch)
-    .then((res) => {
-      const { mailEvents, fromBlock } = res;
-      const ipfsFetchPromises = mailEvents.map(mail =>
-        ipfs.getFileContent(mail.args.mailHash).catch(e => Promise.resolve(e)));
+  try {
+    const events = await eth.getMails(wallet, folder, fetchToBlock, blocksInBatch);
+    const { mailEvents, fromBlock } = events;
+    const ipfsFetchPromises = mailEvents.map(mail =>
+      ipfs.getFileContent(mail.mailHash).catch(e => Promise.resolve(e)));
 
-      return Promise.all(ipfsFetchPromises)
-        .then((mails) => {
-          const decryptedMails = mails.map((mail, index) => {
-            if (typeof mail !== 'string' || mail === 'timeout') return {};
-            try {
-              const mailToDecrypt = JSON.parse(mail);
-              const mailBody = folder === 'inbox' ? mailToDecrypt.receiversData[keys.publicKey] : mailToDecrypt.senderData;
-              const decryptedBody = decrypt(keys, mailBody);
-              const parsedBody = JSON.parse(decryptedBody);
-              const lastActiveTimestamp = getLastActiveTimestamp()(dispatch, getState);
-              return {
-                transactionHash: mailEvents[index].transactionHash,
-                blockNumber: mailEvents[index].blockNumber,
-                ...mailEvents[index].args,
-                ...parsedBody,
-                new: Date.parse(parsedBody.time) > lastActiveTimestamp,
-                fromEth: mailEvents[index].args.from,
-              };
-            } catch (error) {
-              console.log(`Failed decrypting mail with hash ${mailEvents[index].args.mailHash}`);
-              return {};
-            }
-          });
-
-          // TODO: handle multiple recepients
-          const validateSenderPromises = decryptedMails.map(mail =>
-            new Promise((resolve) => {
-              if (!mail.from) {
-                resolve({});
-              }
-              const mailDomain = mail.from.split('@')[1];
-              return eth.resolveUser(
-                mail.from,
-                mailDomain,
-                mailDomain !== getState().config.defaultDomain,
-              )
-                .then((userInfo) => {
-                  if (userInfo.address === mail.fromEth) resolve(mail);
-                  else {
-                    console.warn('Found possible malicious mail');
-                    console.warn(mail);
-                    resolve({});
-                  }
-                })
-                .catch((err) => {
-                  console.error(err);
-                  resolve({});
-                });
-            }));
-          return Promise.all(validateSenderPromises);
-        })
-        .then((validatedMails) => {
-          const newMailsState = [...getState().mails[folder], ...validatedMails];
-          dispatch(mailsSuccess(folder, uniqBy(newMailsState, 'threadId'), fromBlock));
-        })
-        .catch((error) => {
-          dispatch(mailsError(folder, error, fromBlock));
-        });
-    })
-    .catch((error) => {
-      console.log(error);
-      dispatch(mailsError(folder, error, 0));
+    const mails = await Promise.all(ipfsFetchPromises);
+    const decryptedMails = mails.map((mail, index) => {
+      if (typeof mail !== 'string' || mail === 'timeout') return {};
+      try {
+        const mailToDecrypt = JSON.parse(mail);
+        const mailBody = folder === 'inbox' ? mailToDecrypt.receiversData[keys.publicKey] : mailToDecrypt.senderData;
+        const decryptedBody = decrypt(keys, mailBody);
+        const parsedBody = JSON.parse(decryptedBody);
+        const lastActiveTimestamp = getLastActiveTimestamp()(dispatch, getState);
+        return {
+          ...mailEvents[index],
+          ...parsedBody,
+          new: Date.parse(parsedBody.time) > lastActiveTimestamp,
+          fromEth: mailEvents[index].args.from,
+        };
+      } catch (error) {
+        console.log(`Failed decrypting mail with hash ${mailEvents[index].args.mailHash}`);
+        return {};
+      }
     });
+
+    const validateSenderPromises = decryptedMails.map(mail =>
+      new Promise(async (resolve) => {
+        if (!mail.from) {
+          resolve({});
+        }
+        const mailDomain = mail.from.split('@')[1];
+        try {
+          const userInfo = await eth.resolveUser(wallet,
+            mail.from,
+            mailDomain,
+            mailDomain !== getState().config.defaultDomain,
+          );
+          if (userInfo.address === mail.fromEth) resolve(mail);
+          else {
+            console.warn('Found possible malicious mail');
+            console.warn(mail);
+            resolve({});
+          }
+        } catch (e) {
+          resolve({});
+        }
+      }));
+    const validatedMails = await Promise.all(validateSenderPromises);
+    const newMailsState = [...getState().mails[folder], ...validatedMails];
+    dispatch(mailsSuccess(folder, uniqBy(newMailsState, 'threadId'), fromBlock));
+  } catch (e) {
+    dispatch(mailsError(folder, e.message, fromBlock));
+  }
+
 };
 
 export const listenForMails = () => (dispatch, getState) => {
