@@ -1,11 +1,10 @@
-import Web3 from 'web3';
 import util from 'ethereumjs-util';
 import uniqBy from 'lodash/uniqBy';
 import Ethers from 'ethers';
 import bip39 from 'bip39';
 import ENS from 'ethjs-ens';
 import config from '../../config/config.json';
-import { generateKeys, encrypt, decrypt } from './cryptoService';
+import { encrypt } from './cryptoService';
 import { namehash } from './helperService';
 
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
@@ -44,8 +43,11 @@ const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock 
   }
 };
 
-const listenEvent = (wallet, event, callback) => {
-  wallet.provider.on(event.topics, log => callback(event.parse(log.topics, log.data)));
+const listenEvent = (wallet, event, filter, callback) => {
+  wallet.provider.on(event.topics, (log) => {
+    if (filter && filterLogs(log).length === 0) return;
+    callback(event.parse(log.topics, log.data));
+  });
 };
 
 const checkRegistration = async (wallet) => {
@@ -246,31 +248,34 @@ const _getPublicKey = async (wallet, mailAddress, optionalContract) => {
 };
 
 /* Subscribes to the register event */
-const listenUserRegistered = callback =>
-  getAccount()
-    .then((account) => {
-      if (!account) {
-        return null;
-      }
+const listenUserRegistered = (wallet, callback) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.EmailSent();
 
-      return getBlockNumber()
-        .then((startingBlock) => {
-          const listener = eventContract.UserRegistered(
-            {
-              addr: account,
-            },
-            {
-              fromBlock: startingBlock,
-              toBlock: 'latest',
-            },
-          )
-            .watch((err, event) => {
-              if (err) return;
-              callback(event);
-              listener.stopWatching();
-            });
-        });
-    });
+  listenEvent(wallet, event, { addr: wallet.address }, (eventData) => {
+    console.log('USER Registered');
+    console.log(eventData);
+    callback(eventData);
+    wallet.provider.removeListener(event.topics);
+  });
+  //
+  // const listener = eventContract.UserRegistered(
+  //   {
+  //     addr: account,
+  //   },
+  //   {
+  //     fromBlock: startingBlock,
+  //     toBlock: 'latest',
+  //   },
+  // )
+  //   .watch((err, event) => {
+  //     if (err) return;
+  //     callback(event);
+  //     listener.stopWatching();
+  //   });
+};
 
 /* Subscribes to the mail send event */
 
@@ -279,38 +284,14 @@ const listenForMails = async (wallet, callback) => {
     throw Error('No wallet provided!');
   }
   const event = wallet.mailContract.interface.events.EmailSent();
-  const startingBlock = await getBlockNumber(wallet);
 
-  listenEvent(wallet, event, (eventData) => {
+  listenEvent(wallet, event, { to: wallet.address }, (eventData) => {
+    callback(eventData, 'inbox');
   });
 
-  eventContract.EmailSent(
-    {
-      to: account,
-    },
-    {
-      fromBlock: startingBlock,
-      toBlock: 'latest',
-    },
-  )
-    .watch((err, event) => {
-      if (err) console.log(err);
-      else callback(event, 'inbox');
-    });
-
-  eventContract.EmailSent(
-    {
-      from: account,
-    },
-    {
-      fromBlock: startingBlock,
-      toBlock: 'latest',
-    },
-  )
-    .watch((err, event) => {
-      if (err) console.log(err);
-      else callback(event, 'outbox');
-    });
+  listenEvent(wallet, event, { from: wallet.adress }, (eventData) => {
+    callback(eventData, 'outbox');
+  });
 };
 
 const getMails = async (wallet, folder, fetchToBlock, blocksToFetch) => {
@@ -339,63 +320,39 @@ const getMails = async (wallet, folder, fetchToBlock, blocksToFetch) => {
   }
 };
 
-const getThread = (threadId, afterBlock) =>
-  new Promise((resolve, reject) => {
-    eventContract.EmailSent(
+const getThread = async (wallet, threadId, afterBlock) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.EmailSent();
+
+  try {
+    const events = await getEvents(wallet,
+      event,
+      wallet.mailContract.address,
       {
         threadId,
       },
-      {
-        fromBlock: afterBlock,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          reject({
-            message: err,
-          });
-        }
+      afterBlock);
 
-        resolve(events.pop());
-      });
-  });
+    return events.pop();
+  } catch (e) {
+    throw Error('Could not fetch events.');
+  }
+};
 
-const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContract) =>
-  new Promise((resolve, reject) => {
-    getAccount()
-      .then((account) => {
-        if (externalMailContract !== undefined) {
-          return mailContract.sendExternalEmail(
-            externalMailContract.address,
-            toAddress,
-            mailHash,
-            threadHash,
-            threadId,
-            { from: account },
-            (error, result) => {
-              if (error) {
-                return reject({
-                  message: error,
-                });
-              }
+const _sendEmail = (wallet, toAddress, mailHash, threadHash, threadId, externalMailContract) => {
+  if (externalMailContract !== undefined) {
+    return wallet.mailContract.sendExternalEmail(
+      externalMailContract.address,
+      toAddress,
+      mailHash,
+      threadHash,
+      threadId);
+  }
 
-              return resolve(result);
-            });
-        }
-
-        return mailContract.sendEmail(toAddress, mailHash, threadHash, threadId,
-          { from: account }, (error, result) => {
-            if (error) {
-              return reject({
-                message: error,
-              });
-            }
-
-            return resolve(result);
-          });
-      });
-  });
+  return wallet.mailContract.sendEmail(toAddress, mailHash, threadHash, threadId);
+};
 
 const fetchAllEvents = async (wallet, folder) => {
   if (!wallet) {
@@ -425,25 +382,16 @@ const fetchAllEvents = async (wallet, folder) => {
   }
 };
 
-const getAddressInfo = address =>
-  new Promise((resolve) => {
-    eventContract.UserRegistered(
-      {
-        addr: address,
-      },
-      {
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          console.log(err);
-        }
-
-        resolve(events);
-      });
-  });
+const getAddressInfo = (wallet, address) => {
+  const event = wallet.mailContract.interface.events.UserRegistered();
+  try {
+    return getEvents(wallet, event, wallet.mailContract.address, {
+      addr: address,
+    });
+  } catch (e) {
+    throw Error('Could not fetch events.');
+  }
+};
 
 const _updateContacts = async (wallet, hashName, ipfsHash) => {
   if (!wallet) {

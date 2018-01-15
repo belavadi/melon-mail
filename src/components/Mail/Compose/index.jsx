@@ -237,6 +237,7 @@ class Compose extends Component {
   }
 
   handleSend() {
+    const { wallet } = this.props.user;
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
     const invalidRecepients = this.state.selectedRecepients.filter(recipient => recipient.invalid);
@@ -269,12 +270,12 @@ class Compose extends Component {
     Promise.all(resolveUserPromises)
       .then((data) => {
         const keysForSender = {
-          privateKey: this.props.user.privateKey,
-          publicKey: this.props.user.publicKey,
+          privateKey: wallet.privateKey,
+          publicKey: wallet.publicKey,
         };
 
         const receiversKeys = data.map(d => ({
-          privateKey: this.props.user.privateKey,
+          privateKey: wallet.privateKey,
           publicKey: d.publicKey,
         }));
 
@@ -582,9 +583,7 @@ Compose.propTypes = {
   }),
   user: PropTypes.shape({
     mailAddress: PropTypes.string.isRequired,
-    ethAddress: PropTypes.string.isRequired,
-    privateKey: PropTypes.string.isRequired,
-    publicKey: PropTypes.string.isRequired,
+    wallet: PropTypes.object.isRequired,
     contacts: PropTypes.array,
   }),
   config: PropTypes.shape({

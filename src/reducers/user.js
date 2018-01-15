@@ -15,6 +15,7 @@ export default (state = {
   switch (action.type) {
     case 'ADD_WALLET':
       return {
+        ...state,
         wallet: action.wallet,
         stage: action.stage,
       };
