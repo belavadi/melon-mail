@@ -45,7 +45,8 @@ const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock 
 
 const listenEvent = (wallet, event, filter, callback) => {
   wallet.provider.on(event.topics, (log) => {
-    if (filter && filterLogs(log).length === 0) return;
+    console.log(log, filterLogs([log]));
+    if (filter && filterLogs([log]).length === 0) return;
     callback(event.parse(log.topics, log.data));
   });
 };
@@ -341,7 +342,7 @@ const getThread = async (wallet, threadId, afterBlock) => {
   }
 };
 
-const _sendEmail = (wallet, toAddress, mailHash, threadHash, threadId, externalMailContract) => {
+const _sendMail = (wallet, toAddress, mailHash, threadHash, threadId, externalMailContract) => {
   if (externalMailContract !== undefined) {
     return wallet.mailContract.sendExternalEmail(
       externalMailContract.address,
@@ -502,6 +503,6 @@ export default {
   getContactsForUser,
   _registerUser,
   _getPublicKey,
-  _sendEmail,
+  _sendMail,
   _updateContacts,
 };

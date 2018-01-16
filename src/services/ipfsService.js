@@ -136,7 +136,7 @@ const getFileContent = hash =>
     ipfsNode.files.cat(hash)
       .then((file) => {
         clearTimeout(ipfsTimeout);
-        file.pipe(concat(data => resolve(new TextDecoder('utf-8').decode(data))));
+        resolve(new TextDecoder('utf-8').decode(file));
       })
       .catch(err => reject(err));
   });
