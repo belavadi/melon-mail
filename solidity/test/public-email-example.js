@@ -1,6 +1,6 @@
 const PublicEmailExample = artifacts.require("./examples/PublicEmailExample.sol");
-const sha3 = require('solidity-sha3').default;
-
+const keccak256 = require('ethers').utils.keccak256;
+const toUtf8Bytes = require('ethers').utils.toUtf8Bytes;
 const helper = require('./helper');
 
 contract('PublicEmailExample', async (accounts) => {
@@ -56,7 +56,7 @@ contract('PublicEmailExample', async (accounts) => {
         const encryptedUsername = helper.encrypt(keys, 'test@custom-domain.eth');        
 
         await publicEmailExample.registerUser(
-            sha3("test@custom-domain.eth"),
+            keccak256(toUtf8Bytes("test@custom-domain.eth")),
             encryptedUsername, 
             keys.publicKey,
             {from: accounts[1]});
@@ -74,7 +74,7 @@ contract('PublicEmailExample', async (accounts) => {
 
         try {
             await publicEmailExample.registerUser(
-                sha3("test@custom-domain.eth"),
+                keccak256(toUtf8Bytes("test@custom-domain.eth")),
                 encryptedUsername, 
                 keys.publicKey,
                 {from: accounts[1]});
