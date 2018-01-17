@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import Ethers from 'ethers';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import {
   Button,
   Dropdown,
@@ -18,7 +16,7 @@ const options = [
   { key: 'https://', text: 'https://', value: 'https://' },
 ];
 
-class EthereumNodeModal extends Component {
+export default class EthereumNodeModal extends Component {
   constructor() {
     super();
 
@@ -140,11 +138,3 @@ class EthereumNodeModal extends Component {
     );
   }
 }
-
-const mapStateToProps = state => ({});
-const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(EthereumNodeModal);

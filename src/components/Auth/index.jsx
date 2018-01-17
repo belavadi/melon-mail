@@ -18,15 +18,6 @@ class Auth extends Component {
     this.state = {};
   }
 
-  componentWillMount() {
-    if (!this.props.user.isAuthenticated) {
-      // this.props.checkRegistration();
-      // this.props.getBalance();
-    }
-
-    // this.props.startListener();
-  }
-
   componentWillReceiveProps(nextProps) {
     const { isAuthenticated } = this.props.user;
 
@@ -35,6 +26,9 @@ class Auth extends Component {
     }
     if (nextProps.user.stage !== this.props.user.stage && nextProps.user.stage === 'check') {
       this.props.checkRegistration();
+    }
+    if (nextProps.user.stage === 'register') {
+      this.props.startListener();
     }
   }
 
@@ -126,8 +120,9 @@ Auth.propTypes = {
     isBeingRegistered: PropTypes.bool,
     wallet: PropTypes.object,
   }).isRequired,
-  checkRegistration: PropTypes.func.isRequired,
   push: PropTypes.func.isRequired,
+  checkRegistration: PropTypes.func.isRequired,
+  startListener: PropTypes.func.isRequired,
 };
 
 Auth.defaultProps = {

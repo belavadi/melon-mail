@@ -79,7 +79,7 @@ const checkRegistration = async (wallet) => {
   }
 };
 
-const createWallet = (importedMnemonic) => {
+const createWallet = async (importedMnemonic) => {
   const mnemonic = importedMnemonic || bip39.generateMnemonic();
   const wallet = new Ethers.Wallet.fromMnemonic(mnemonic);
   const { kovan, mainnet } = Ethers.providers.networks;
@@ -105,6 +105,8 @@ const createWallet = (importedMnemonic) => {
 
   wallet.publicKey = util.bufferToHex(util.privateToPublic(wallet.privateKey));
 
+  const balance = await wallet.provider.getBalance(wallet.address);
+
   const mailContract = new Ethers.Contract(
     config.mailContractAddress,
     config.mailContractAbi,
@@ -113,6 +115,7 @@ const createWallet = (importedMnemonic) => {
   console.log({
     ...wallet,
     mailContract,
+    balance: parseFloat(Ethers.utils.formatEther(balance)),
   });
   return {
     ...wallet,
@@ -126,36 +129,11 @@ const getBalance = wallet => new Promise((resolve, reject) => {
     .catch(error => reject(error));
 });
 
-const signString = (account, stringToSign) =>
-  new Promise((resolve, reject) => {
-    // Deprecated sign function
-    //
-    // web3.personal.sign(web3.fromUtf8(stringToSign), account, (error, result) => {
-    //   if (error) {
-    //     return reject(error);
-    //   }
-    //   return resolve(result);
-    // });
-    const msgParams = [{
-      type: 'string',
-      name: 'Message',
-      value: stringToSign,
-    }];
-    web3.currentProvider.sendAsync({
-      method: 'eth_signTypedData',
-      params: [msgParams, account],
-      from: account,
-    }, (err, data) => {
-      if (err || data.error) return reject(err);
-      return resolve(data.result);
-    });
-  });
-
 const getBlockNumber = async (wallet) => {
   try {
-    return await wallet.provider.getBlockNumber();
+    return await wallet.provider.getBlockNumber(wallet);
   } catch (e) {
-    throw Error('Could not fetch block number.');
+    throw Error(e.message);
   }
 };
 
@@ -214,6 +192,7 @@ const _registerUser = async (wallet, mailAddress) => {
       startingBlock,
     };
   } catch (e) {
+    console.log(e);
     return {
       mailAddress,
       startingBlock: 0,
@@ -262,21 +241,6 @@ const listenUserRegistered = (wallet, callback) => {
     callback(eventData);
     wallet.provider.removeListener(event.topics);
   });
-  //
-  // const listener = eventContract.UserRegistered(
-  //   {
-  //     addr: account,
-  //   },
-  //   {
-  //     fromBlock: startingBlock,
-  //     toBlock: 'latest',
-  //   },
-  // )
-  //   .watch((err, event) => {
-  //     if (err) return;
-  //     callback(event);
-  //     listener.stopWatching();
-  //   });
 };
 
 /* Subscribes to the mail send event */
@@ -309,8 +273,8 @@ const getMails = async (wallet, folder, fetchToBlock, blocksToFetch) => {
       event,
       wallet.mailContract.address,
       filter,
-      fetchTo - blocksToFetch,
-      fetchTo);
+      fetchTo - blocksToFetch <= 0 ? 0 : fetchTo - blocksToFetch,
+      fetchTo <= 0 ? 0 : fetchTo);
     const filteredEvents = uniqBy(events.reverse(), 'threadId');
 
     return {
@@ -430,6 +394,8 @@ const getContactsForUser = async (wallet, usernameHash) => {
   }
 };
 
+// TODO: Rewrite using Ethers.js lib
+
 const getResolverForDomain = (wallet, domain) =>
   new Promise((resolve, reject) => {
     const provider = config.network === config.resolverNetwork
@@ -490,7 +456,6 @@ const resolveUser = async (wallet, email, domain, isExternalMail) => {
 
 export default {
   createWallet,
-  signString,
   listenForMails,
   listenUserRegistered,
   checkRegistration,

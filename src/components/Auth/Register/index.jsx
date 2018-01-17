@@ -32,7 +32,7 @@ class Register extends Component {
           begin, please choose a desired username.</p>
         <Divider />
         {
-          this.props.user.balance === 0 &&
+          this.props.user.wallet.balance === 0 &&
           <div>
             <Header as="h4">Insufficient balance</Header>
             <p className="regular-text">In order to create an account, you need to have some
@@ -55,7 +55,7 @@ class Register extends Component {
           </div>
         }
         {
-          this.props.user.balance !== 0 &&
+          this.props.user.wallet.balance !== 0 &&
           <div>
             <div className="ui right labeled input">
               <input ref={(input) => { this.username = input; }} type="text" />
@@ -65,7 +65,7 @@ class Register extends Component {
             </div>
             <p className="form-error">{this.props.user.registerError}</p>
             <Button
-              disabled={this.props.user.activeAccount === '' || this.props.user.balance === 0}
+              disabled={this.props.user.wallet.balance === 0}
               primary
               onClick={this.register}
               className="spread-button"

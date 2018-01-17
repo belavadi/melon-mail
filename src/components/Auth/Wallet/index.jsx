@@ -20,16 +20,16 @@ class Wallet extends Component {
   componentDidMount() {
   }
 
-  createWallet() {
-    this.props.addWallet(eth.createWallet());
+  async createWallet() {
+    this.props.addWallet(await eth.createWallet());
   }
 
-  importWallet(e) {
+  async importWallet(e) {
     e.preventDefault();
     const mnemonic = this.phrase.value;
 
     if (bip39.validateMnemonic(mnemonic)) {
-      this.props.addWallet(eth.createWallet(mnemonic));
+      this.props.addWallet(await eth.createWallet(mnemonic));
     } else {
       console.error('Invalid mnemonic');
     }
