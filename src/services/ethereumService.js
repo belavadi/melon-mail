@@ -82,13 +82,14 @@ const checkRegistration = async (wallet) => {
 const createWallet = (importedMnemonic) => {
   const mnemonic = importedMnemonic || bip39.generateMnemonic();
   const wallet = new Ethers.Wallet.fromMnemonic(mnemonic);
-  const decenterKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.decenter.com', 'kovan');
-  const melonKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.melonport.com', 'kovan');
-  const localKovanProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', 'kovan');
+  const { kovan, mainnet } = Ethers.providers.networks;
+  const decenterKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.decenter.com', kovan);
+  const melonKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.melonport.com', kovan);
+  const localKovanProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', kovan);
 
-  const decenterMainProvider = new Ethers.providers.JsonRpcProvider('https://mainnet.decenter.com', 'mainnet');
-  const melonMainProvider = new Ethers.providers.JsonRpcProvider('https://mainnet.melonport.com', 'mainnet');
-  const localMainProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', 'mainnet');
+  const decenterMainProvider = new Ethers.providers.JsonRpcProvider('https://mainnet.decenter.com', mainnet);
+  const melonMainProvider = new Ethers.providers.JsonRpcProvider('https://mainnet.melonport.com', mainnet);
+  const localMainProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', mainnet);
 
   wallet.provider = new Ethers.providers.FallbackProvider([
     melonKovanProvider,

@@ -2,8 +2,6 @@ import Ipfs from 'ipfs';
 import findIndex from 'lodash/findIndex';
 import { useLocalStorage } from '../../config/config.json';
 
-const concat = require('concat-stream');
-
 const getMultiaddressString = node =>
   `/${node.connectionType}/${node.host}/tcp/${node.wsPort}/${node.protocol === 'https' ? 'wss' : 'wss'}/ipfs/${node.id}`;
 
@@ -128,18 +126,18 @@ const getFile = hash => ipfsNode.files.get(hash);
 
 const getFileStream = hash => ipfsNode.files.cat(hash);
 
-const getFileContent = hash =>
-  new Promise((resolve, reject) => {
-    const ipfsTimeout = setTimeout(() => {
-      reject({ error: 'Couldn\'t fetch email. (TIMEOUT)' });
-    }, 15000);
-    ipfsNode.files.cat(hash)
-      .then((file) => {
-        clearTimeout(ipfsTimeout);
-        resolve(new TextDecoder('utf-8').decode(file));
-      })
-      .catch(err => reject(err));
-  });
+const getFileContent = async (hash) => {
+  const ipfsTimeout = setTimeout(() => {
+    throw Error('Couldn\'t fetch email. (TIMEOUT)');
+  }, 15000);
+  try {
+    const file = await ipfsNode.files.cat(hash);
+    clearTimeout(ipfsTimeout);
+    return new TextDecoder('utf-8').decode(file);
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
 
 const uploadToIpfs = data =>
   new Promise((resolve, reject) => {
