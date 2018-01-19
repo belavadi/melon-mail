@@ -79,9 +79,9 @@ const checkRegistration = async (wallet) => {
   }
 };
 
-const createWallet = async (importedMnemonic) => {
+const createWallet = async (importedMnemonic, decryptedWallet) => {
   const mnemonic = importedMnemonic || bip39.generateMnemonic();
-  const wallet = new Ethers.Wallet.fromMnemonic(mnemonic);
+  const wallet = decryptedWallet || new Ethers.Wallet.fromMnemonic(mnemonic);
   const { kovan, mainnet } = Ethers.providers.networks;
   const decenterKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.decenter.com', kovan);
   const melonKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.melonport.com', kovan);
@@ -105,22 +105,14 @@ const createWallet = async (importedMnemonic) => {
 
   wallet.publicKey = util.bufferToHex(util.privateToPublic(wallet.privateKey));
 
-  const balance = await wallet.provider.getBalance(wallet.address);
+  wallet.balance = await wallet.provider.getBalance(wallet.address);
 
-  const mailContract = new Ethers.Contract(
+  wallet.mailContract = new Ethers.Contract(
     config.mailContractAddress,
     config.mailContractAbi,
     wallet,
   );
-  console.log({
-    ...wallet,
-    mailContract,
-    balance: parseFloat(Ethers.utils.formatEther(balance)),
-  });
-  return {
-    ...wallet,
-    mailContract,
-  };
+  return wallet;
 };
 
 const getBalance = wallet => new Promise((resolve, reject) => {
