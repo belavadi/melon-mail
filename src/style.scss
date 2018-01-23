@@ -1,3 +1,5 @@
+@import "style/config/fonts";
+
 .melonmail-wrapper {
   height: 100%;
 
@@ -12,8 +14,6 @@
 
   @import "style/mixins/mixins";
   @import "style/config/reset";
-  @import "style/config/fonts";
-
   @import "style/components/forms";
   @import "style/components/react-select";
 

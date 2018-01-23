@@ -4,6 +4,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
 
 const config = {
   entry: [
@@ -35,7 +36,7 @@ const config = {
         ],
       },
       {
-        test: /\.scss$/,
+        test: /\.(scss|css)$/,
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
@@ -98,6 +99,17 @@ const config = {
       favicon: 'src/favicon.ico',
       hash: true,
     }),
+    new AddAssetHtmlPlugin([
+      {
+        filepath: require.resolve('./lib/ipfs0.27.7.min.js'),
+        includeSourcemap: false,
+      },
+      {
+        filepath: require.resolve('./lib/font-awesome.min.css'),
+        includeSourcemap: false,
+        typeOfAsset: 'css',
+      },
+    ]),
     /*
     new CopyWebpackPlugin([
       {

@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
 
 const config = {
   entry: [
@@ -48,7 +49,7 @@ const config = {
 
       },
       {
-        test: /\.scss$/,
+        test: /\.(scss|css)$/,
         use: [
           'style-loader',
           'css-loader',
@@ -99,6 +100,17 @@ const config = {
       template: path.join(__dirname, 'src/index.html'),
       filename: 'index.html',
     }),
+    new AddAssetHtmlPlugin([
+      {
+        filepath: require.resolve('./lib/ipfs0.27.7.min.js'),
+        includeSourcemap: false,
+      },
+      {
+        filepath: require.resolve('./lib/font-awesome.min.css'),
+        includeSourcemap: false,
+        typeOfAsset: 'css',
+      },
+    ]),
     new CopyWebpackPlugin([
       {
         from: 'notifications/onesignal/lib',
