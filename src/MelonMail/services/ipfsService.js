@@ -1,5 +1,6 @@
 import findIndex from 'lodash/findIndex';
-import IPFS from 'ipfs';
+
+const concat = require('concat-stream');
 
 const getMultiaddressString = node =>
   `/${node.connectionType}/${node.host}/tcp/${node.wsPort}/${node.protocol === 'https' ? 'wss' : 'wss'}/ipfs/${node.id}`;
@@ -21,7 +22,7 @@ const defaultRepNodes = [
   'https://ipfs.decenter.com',
 ];
 
-const ipfsNode = new IPFS({
+const ipfsNode = new Ipfs({
   repo: 'ipfs-melon',
   config: {
     Bootstrap: ipfsBootstrapNodesList,

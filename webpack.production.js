@@ -3,6 +3,7 @@ const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
 
 const config = {
   entry: [
@@ -34,7 +35,7 @@ const config = {
         ],
       },
       {
-        test: /\.scss$/,
+        test: /\.(scss|css)$/,
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
@@ -96,6 +97,17 @@ const config = {
       filename: 'index.html',
       favicon: 'src/favicon.ico',
     }),
+    new AddAssetHtmlPlugin([
+      {
+        filepath: require.resolve('./lib/ipfs0.27.7.min.js'),
+        includeSourcemap: false,
+      },
+      {
+        filepath: require.resolve('./lib/font-awesome.min.css'),
+        includeSourcemap: false,
+        typeOfAsset: 'css',
+      },
+    ]),
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('production'),

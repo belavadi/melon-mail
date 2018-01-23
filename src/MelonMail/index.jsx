@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
 import Web3 from 'web3';
+import 'semantic-ui-css/semantic.min.css';
+
 import { executeWhenReady } from './services/helperService';
 import store from './store';
 
