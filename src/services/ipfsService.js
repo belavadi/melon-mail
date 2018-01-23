@@ -1,8 +1,5 @@
-import Ipfs from 'ipfs';
 import findIndex from 'lodash/findIndex';
 import { useLocalStorage } from '../../config/config.json';
-
-const concat = require('concat-stream');
 
 const getMultiaddressString = node =>
   `/${node.connectionType}/${node.host}/tcp/${node.wsPort}/${node.protocol === 'https' ? 'wss' : 'wss'}/ipfs/${node.id}`;
