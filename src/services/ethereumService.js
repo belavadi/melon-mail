@@ -45,7 +45,6 @@ const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock 
 
 const listenEvent = (wallet, event, filter, callback) => {
   wallet.provider.on(event.topics, (log) => {
-    console.log(log, filterLogs([log]));
     if (filter && filterLogs([log]).length === 0) return;
     callback(event.parse(log.topics, log.data));
   });
@@ -67,7 +66,6 @@ const checkRegistration = async (wallet) => {
         message: 'User not registered!',
       };
     }
-    console.log(events);
     return {
       mailAddress: events[0].encryptedUsername,
       address: events[0].address,
@@ -112,6 +110,7 @@ const createWallet = async (importedMnemonic, decryptedWallet) => {
     config.mailContractAbi,
     wallet,
   );
+  console.log(wallet);
   return wallet;
 };
 

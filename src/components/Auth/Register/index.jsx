@@ -65,6 +65,8 @@ class Register extends Component {
             </div>
             <p className="form-error">{this.props.user.registerError}</p>
             <Button
+              basic
+              color="blue"
               disabled={this.props.user.wallet.balance === 0}
               primary
               onClick={this.register}

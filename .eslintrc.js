@@ -20,6 +20,7 @@ module.exports = {
     'eol-last': 1,
     'jsx-a11y/label-has-for': 0,
     'linebreak-style': 0,
+    'consistent-return': 0,
 },
   globals: {
     window: true,

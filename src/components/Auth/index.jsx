@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Grid, Header, Button, Divider, Loader } from 'semantic-ui-react';
 import { bindActionCreators } from 'redux';
-import { Wallet as EthersWallet } from 'ethers';
 import { connect } from 'react-redux';
 import eth from '../../services/ethereumService';
 import AuthHeader from '../Mail/Header';
@@ -18,16 +17,6 @@ class Auth extends Component {
     super(props);
 
     this.state = {};
-  }
-
-  async componentWillMount() {
-    const jsonWallet = localStorage.getItem('wallet:melon.email');
-    if (jsonWallet !== null) {
-      const decryptedWallet = await new EthersWallet.fromEncryptedWallet(jsonWallet, 'asdf');
-      const wallet = await eth.createWallet(0, decryptedWallet);
-      this.props.addWallet(wallet);
-      this.props.checkRegistration();
-    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -135,7 +124,6 @@ Auth.propTypes = {
   push: PropTypes.func.isRequired,
   checkRegistration: PropTypes.func.isRequired,
   startListener: PropTypes.func.isRequired,
-  addWallet: PropTypes.func.isRequired,
 };
 
 Auth.defaultProps = {
