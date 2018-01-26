@@ -166,7 +166,7 @@ class Wallet extends Component {
         }
         {
           this.state.stage === 2 &&
-          <form>
+          <form onSubmit={this.encryptWallet}>
             <p>
               Now it is time to encrypt your wallet with a password of your choice.
               The encrypted wallet will be stored in the local storage of your browser.
@@ -204,12 +204,13 @@ class Wallet extends Component {
               basic
               color="blue"
               onClick={this.encryptWallet}
+              type="button"
             >Encrypt my wallet</Button>
           </form>
         }
         {
           this.state.stage === 3 &&
-          <form>
+          <form onSubmit={this.importWallet}>
             <p>Please type your 12-words mnemonic: </p>
             <div className="ui input">
               <input
@@ -220,12 +221,17 @@ class Wallet extends Component {
             <p
               className="form-error"
             >{this.state.errorMessage}</p>
-            <Button basic color="blue" onClick={this.importWallet}>Import</Button>
+            <Button
+              basic
+              color="blue"
+              onClick={this.importWallet}
+              type="button"
+            >Import</Button>
           </form>
         }
         {
           this.state.stage === 4 &&
-          <form>
+          <form onSubmit={this.decryptWallet}>
             <p>Please enter your password to decrypt your wallet.</p>
             <div className="ui input">
               <input
@@ -246,6 +252,7 @@ class Wallet extends Component {
             <Button
               basic
               color="blue"
+              type="button"
               onClick={this.decryptWallet}
             >
               Decrypt my wallet

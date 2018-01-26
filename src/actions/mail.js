@@ -1,11 +1,10 @@
 import uniqBy from 'lodash/uniqBy';
-import { utils } from 'ethers';
 
 import ipfs from '../services/ipfsService';
 import eth from '../services/ethereumService';
 import { decrypt } from '../services/cryptoService';
 import { changeSendState, sendSuccess, sendSuccessClear, sendError } from './compose';
-import { welcomeEmailUnencrypted } from '../services/helperService';
+import { welcomeEmailUnencrypted, keccak256 } from '../services/helperService';
 import { getLastActiveTimestamp } from './utility';
 
 export const mailRequest = threadId => ({
@@ -106,7 +105,6 @@ export const sendMail = (mail, threadId, externalMailContract) => async (dispatc
       setTimeout(() => dispatch(sendSuccessClear()), 2000);
       return;
     }
-    const { keccak256, toUtf8Bytes } = utils;
     const threadLink = await ipfs.newThread(mailObject);
     const multihash = threadLink.toJSON().multihash;
     dispatch(changeSendState('Sending mail...', 4));
@@ -115,7 +113,7 @@ export const sendMail = (mail, threadId, externalMailContract) => async (dispatc
       mail.toAddress,
       mailObject.hash,
       multihash,
-      keccak256(toUtf8Bytes(multihash)),
+      keccak256(multihash),
       externalMailContract,
     );
     dispatch(sendSuccess());

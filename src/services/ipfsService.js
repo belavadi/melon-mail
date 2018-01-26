@@ -129,7 +129,7 @@ const getFileStream = hash => ipfsNode.files.cat(hash);
 const getFileContent = async (hash) => {
   const ipfsTimeout = setTimeout(() => {
     throw Error('Couldn\'t fetch email. (TIMEOUT)');
-  }, 15000);
+  }, 20000);
   try {
     const file = await ipfsNode.files.cat(hash);
     clearTimeout(ipfsTimeout);

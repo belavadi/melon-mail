@@ -1,13 +1,12 @@
 import union from 'lodash/union';
 import uniq from 'lodash/uniq';
 import isEqual from 'lodash/isEqual';
-import Ethers from 'ethers';
 
 import eth from '../services/ethereumService';
 import ipfs from '../services/ipfsService';
 
 import { useLocalStorage } from '../../config/config.json';
-
+import { keccak256 } from '../services/helperService';
 import { encrypt, decrypt } from '../services/cryptoService';
 
 export const updateBalance = balance => ({
@@ -114,7 +113,7 @@ const fetchContacts = async (wallet, currUserHash, folder) => {
 export const backupContacts = () => async (dispatch, getState) => {
   const wallet = getState().user.wallet;
   const userMail = getState().user.mailAddress;
-  const currUserHash = web3.sha3(userMail);
+  const currUserHash = keccak256(userMail);
 
   const keys = {
     publicKey: getState().user.publicKey,
@@ -177,8 +176,7 @@ export const backupContacts = () => async (dispatch, getState) => {
 
 export const importContacts = () => async (dispatch, getState) => {
   const wallet = getState().user.wallet;
-  const { keccak256, toUtf8Bytes } = Ethers.utils;
-  const currUserHash = keccak256(toUtf8Bytes(getState().user.mailAddress));
+  const currUserHash = keccak256(getState().user.mailAddress);
 
   const keys = {
     publicKey: wallet.publicKey,
@@ -226,7 +224,7 @@ export const scrollTo = (element, to, duration) => {
 };
 
 export const saveLastActiveTimestamp = () => (dispatch, getState) => {
-  const currUserHash = web3.sha3(getState().user.mailAddress);
+  const currUserHash = keccak256(getState().user.mailAddress);
   localStorage.setItem(`lastactive-${currUserHash}`, Date.now());
 };
 
@@ -238,6 +236,6 @@ export const initializeLastActiveListener = () => (dispatch, getState) => {
 };
 
 export const getLastActiveTimestamp = () => (dispatch, getState) => {
-  const currUserHash = web3.sha3(getState().user.mailAddress);
+  const currUserHash = keccak256(getState().user.mailAddress);
   return localStorage.getItem(`lastactive-${currUserHash}`);
 };
