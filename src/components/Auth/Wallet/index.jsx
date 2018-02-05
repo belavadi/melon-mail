@@ -30,6 +30,7 @@ class Wallet extends Component {
     this.importWallet = this.importWallet.bind(this);
     this.encryptWallet = this.encryptWallet.bind(this);
     this.decryptWallet = this.decryptWallet.bind(this);
+    this.addWallet = this.addWallet.bind(this);
   }
 
   componentDidMount() {
@@ -43,23 +44,7 @@ class Wallet extends Component {
     });
   }
 
-  async encryptWallet(e) {
-    e.preventDefault();
-    const password = this.createPassword.value;
-    const passwordRepeat = this.createPasswordRepeat.value;
-
-    if (password !== passwordRepeat) {
-      return this.setState({
-        errorMessage: 'Passwords do not match.',
-      });
-    }
-
-    if (password.trim() === '') {
-      return this.setState({
-        errorMessage: 'Please enter your password',
-      });
-    }
-    const wallet = this.state.wallet;
+  async encryptWallet(wallet, password) {
     const encryptedWallet = await wallet.encrypt(password, (percent) => {
       const formattedPercent = (percent * 100).toFixed(0);
       if (formattedPercent > this.state.percent) {
@@ -68,8 +53,27 @@ class Wallet extends Component {
         });
       }
     });
+    localStorage.setItem('wallet:melon.email', encryptedWallet);
+  }
+
+  async addWallet(e) {
+    e.preventDefault();
+    const password = this.createPassword.value;
+    const passwordRepeat = this.createPasswordRepeat.value;
+    const wallet = this.state.wallet;
+
+    if (password !== passwordRepeat) {
+      return this.setState({
+        errorMessage: 'Passwords do not match.',
+      });
+    }
+    if (password.trim() === '') {
+      return this.setState({
+        errorMessage: 'Please enter your password',
+      });
+    }
+    await this.encryptWallet(wallet, password);
     this.props.addWallet(wallet);
-    return localStorage.setItem('wallet:melon.email', encryptedWallet);
   }
 
   async importWallet(e) {
@@ -77,7 +81,11 @@ class Wallet extends Component {
     const mnemonic = this.phrase.value;
 
     if (bip39.validateMnemonic(mnemonic)) {
-      this.props.addWallet(await eth.createWallet(mnemonic));
+      const wallet = await eth.createWallet(mnemonic);
+      this.setState({
+        wallet,
+        stage: 2,
+      });
     } else {
       this.setState({
         errorMessage: 'Invalid mnemonic',
@@ -94,17 +102,25 @@ class Wallet extends Component {
       });
     }
     const jsonWallet = localStorage.getItem('wallet:melon.email');
-    const decryptedWallet = await new EthersWallet
-      .fromEncryptedWallet(jsonWallet, password, (percent) => {
-        const formattedPercent = (percent * 100).toFixed(0);
-        if (formattedPercent > this.state.percent) {
-          this.setState({
-            percent: formattedPercent,
-          });
-        }
+    try {
+      const decryptedWallet = await new EthersWallet
+        .fromEncryptedWallet(jsonWallet, password, (percent) => {
+          const formattedPercent = (percent * 100).toFixed(0);
+          if (formattedPercent > this.state.percent) {
+            this.setState({
+              percent: formattedPercent,
+            });
+          }
+        });
+      const wallet = await eth.createWallet(0, decryptedWallet);
+      this.props.addWallet(wallet);
+    } catch (error) {
+      console.error(error);
+      this.setState({
+        errorMessage: 'Wrong password',
+        percent: 0,
       });
-    const wallet = await eth.createWallet(0, decryptedWallet);
-    this.props.addWallet(wallet);
+    }
   }
 
   switchStage(stage) {
@@ -114,7 +130,6 @@ class Wallet extends Component {
   }
 
   render() {
-    console.log(this.state);
     return (
       <div className="wallet-form">
         {
@@ -166,7 +181,7 @@ class Wallet extends Component {
         }
         {
           this.state.stage === 2 &&
-          <form onSubmit={this.encryptWallet}>
+          <form onSubmit={this.addWallet}>
             <p>
               Now it is time to encrypt your wallet with a password of your choice.
               The encrypted wallet will be stored in the local storage of your browser.
@@ -203,7 +218,7 @@ class Wallet extends Component {
             <Button
               basic
               color="blue"
-              onClick={this.encryptWallet}
+              onClick={this.addWallet}
               type="button"
             >Encrypt my wallet</Button>
           </form>
@@ -249,6 +264,9 @@ class Wallet extends Component {
                 label={'Decrypting wallet...'}
               />
             }
+            <p
+              className="form-error"
+            >{this.state.errorMessage}</p>
             <Button
               basic
               color="blue"

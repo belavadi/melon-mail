@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { Grid, Header, Button, Divider, Loader } from 'semantic-ui-react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import eth from '../../services/ethereumService';
 import AuthHeader from '../Mail/Header';
 import Wallet from './Wallet/';
 import Register from './Register/';

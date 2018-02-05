@@ -9,7 +9,7 @@ export default (state = {
   contacts: [],
   backupDone: false,
   backupAlreadyDone: false,
-  wallet: null,
+  wallet: {},
 }, action) => {
   switch (action.type) {
     case 'ADD_WALLET':

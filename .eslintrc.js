@@ -21,6 +21,7 @@ module.exports = {
     'jsx-a11y/label-has-for': 0,
     'linebreak-style': 0,
     'consistent-return': 0,
+    'no-unescaped-entities': 0,
 },
   globals: {
     window: true,

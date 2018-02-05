@@ -5,6 +5,7 @@ import { bindActionCreators } from 'redux';
 
 import Auth from '../Auth/';
 import App from '../Mail/App/';
+import TransactionModal from '../Transactions/TransactionModal/';
 
 const Router = ({ router }) => (
   <div className="melonmail-wrapper">
@@ -16,6 +17,7 @@ const Router = ({ router }) => (
       router.path === 'auth' &&
       <Auth />
     }
+    <TransactionModal />
   </div>
 );
 

@@ -6,6 +6,7 @@ import { decrypt } from '../services/cryptoService';
 import { changeSendState, sendSuccess, sendSuccessClear, sendError } from './compose';
 import { welcomeEmailUnencrypted, keccak256 } from '../services/helperService';
 import { getLastActiveTimestamp } from './utility';
+import { openTransactionModal } from './transaction';
 
 export const mailRequest = threadId => ({
   type: 'MAIL_REQUEST',
@@ -83,39 +84,37 @@ export const clearThread = () => ({
 });
 
 export const sendMail = (mail, threadId, externalMailContract) => async (dispatch, getState) => {
-  const { wallet } = getState().user;
+  const { threadHash } = getState().mail;
   dispatch(changeSendState('Uploading...', 3));
   try {
+    // Upload mail to IPFS
     const mailLink = await ipfs.uploadData(mail);
     const mailObject = mailLink.length ? mailLink[0] : mailLink;
-    if (threadId) {
-      const threadHash = getState().mail.threadHash;
-      const threadLink = await ipfs.replyToThread(mailObject, threadHash);
-      const multihash = threadLink.toJSON().multihash;
-      dispatch(changeSendState('Sending mail...', 4));
-      await eth._sendMail(
-        wallet,
-        mail.toAddress,
-        mailObject.hash,
-        multihash,
-        threadId,
-        externalMailContract,
-      );
-      dispatch(sendSuccess());
-      setTimeout(() => dispatch(sendSuccessClear()), 2000);
-      return;
-    }
-    const threadLink = await ipfs.newThread(mailObject);
+
+    // Get thread multihash information
+    const threadLink = threadId ?
+      await ipfs.replyToThread(mailObject, threadHash) :
+      await ipfs.newThread(mailObject);
+
     const multihash = threadLink.toJSON().multihash;
-    dispatch(changeSendState('Sending mail...', 4));
-    await eth._sendMail(
-      wallet,
+    const mailParams = [
       mail.toAddress,
       mailObject.hash,
       multihash,
-      keccak256(multihash),
-      externalMailContract,
-    );
+      threadId || keccak256(multihash),
+    ];
+
+    // Send mail
+    dispatch(changeSendState('Sending mail...', 4));
+    dispatch(openTransactionModal(
+      {
+        method: eth._sendMail,
+        methodName: 'sendEmail',
+        params: mailParams,
+        additionalParams: [
+          externalMailContract,
+        ],
+      }));
     dispatch(sendSuccess());
     setTimeout(() => dispatch(sendSuccessClear()), 2000);
   } catch (e) {
@@ -252,11 +251,13 @@ export const listenForMails = () => (dispatch, getState) => {
         try {
           const encryptedMail = JSON.parse(ipfsContent);
           const keys = {
-            publicKey: getState().user.publicKey,
-            privateKey: getState().user.privateKey,
+            publicKey: wallet.publicKey,
+            privateKey: wallet.privateKey,
           };
 
-          const mailContent = mailType === 'inbox' ? encryptedMail.receiversData[keys.publicKey] : encryptedMail.senderData;
+          const mailContent = mailType === 'inbox' ?
+            encryptedMail.receiversData[keys.publicKey] :
+            encryptedMail.senderData;
           const mail = {
             transactionHash: mailEvent.transactionHash,
             blockNumber: mailEvent.blockNumber,
@@ -268,6 +269,7 @@ export const listenForMails = () => (dispatch, getState) => {
 
           const mailDomain = mail.from.split('@')[1];
           eth.resolveUser(
+            wallet,
             mail.from,
             mailDomain,
             mailDomain !== getState().config.defaultDomain,

@@ -43,9 +43,15 @@ const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock 
 };
 
 const listenEvent = (wallet, event, filter, callback) => {
-  wallet.provider.on(event.topics, (log) => {
-    if (filter && filterLogs([log]).length === 0) return;
-    callback(event.parse(log.topics, log.data));
+  wallet.provider.on([
+    ...event.topics,
+    ...createFilter(filter, event),
+  ], (log) => {
+    callback({
+      ...event.parse(log.topics, log.data),
+      blockNumber: log.blockNumber,
+      transactionHash: log.transaction,
+    });
   });
 };
 
@@ -89,14 +95,14 @@ const createWallet = async (importedMnemonic, decryptedWallet) => {
   const localMainProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', mainnet);
 
   wallet.provider = new Ethers.providers.FallbackProvider([
-    decenterKovanProvider,
     melonKovanProvider,
+    decenterKovanProvider,
     localKovanProvider,
   ]);
 
   wallet.mainProvider = new Ethers.providers.FallbackProvider([
-    decenterMainProvider,
     melonMainProvider,
+    decenterMainProvider,
     localMainProvider,
   ]);
 
@@ -155,7 +161,7 @@ const checkMailAddress = async (wallet, mailAddress) => {
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = async (wallet, mailAddress) => {
+const _registerUser = async (wallet, mailAddress, overrideOptions) => {
   if (!wallet) {
     throw Error('No wallet provided!');
   }
@@ -168,7 +174,7 @@ const _registerUser = async (wallet, mailAddress) => {
     await wallet.mailContract.registerUser(
       keccak256(mailAddress),
       encryptedUsername,
-      wallet.publicKey);
+      wallet.publicKey, overrideOptions);
   } catch (e) {
     throw Error(e.message);
   }
@@ -220,7 +226,7 @@ const listenUserRegistered = (wallet, callback) => {
   if (!wallet) {
     throw Error('No wallet provided!');
   }
-  const event = wallet.mailContract.interface.events.EmailSent();
+  const event = wallet.mailContract.interface.events.UserRegistered();
 
   listenEvent(wallet, event, { addr: wallet.address }, (eventData) => {
     console.log('USER Registered');
@@ -232,7 +238,7 @@ const listenUserRegistered = (wallet, callback) => {
 
 /* Subscribes to the mail send event */
 
-const listenForMails = async (wallet, callback) => {
+const listenForMails = (wallet, callback) => {
   if (!wallet) {
     throw Error('No wallet provided!');
   }
@@ -242,7 +248,7 @@ const listenForMails = async (wallet, callback) => {
     callback(eventData, 'inbox');
   });
 
-  listenEvent(wallet, event, { from: wallet.adress }, (eventData) => {
+  listenEvent(wallet, event, { from: wallet.address }, (eventData) => {
     callback(eventData, 'outbox');
   });
 };
@@ -294,17 +300,16 @@ const getThread = async (wallet, threadId, afterBlock) => {
   }
 };
 
-const _sendMail = (wallet, toAddress, mailHash, threadHash, threadId, externalMailContract) => {
+const _sendMail = (wallet, params, externalMailContract, overrideOptions) => {
   if (externalMailContract !== undefined) {
     return wallet.mailContract.sendExternalEmail(
       externalMailContract.address,
-      toAddress,
-      mailHash,
-      threadHash,
-      threadId);
+      ...params,
+      overrideOptions,
+    );
   }
 
-  return wallet.mailContract.sendEmail(toAddress, mailHash, threadHash, threadId);
+  return wallet.mailContract.sendEmail(...params);
 };
 
 const fetchAllEvents = async (wallet, folder) => {
@@ -396,7 +401,6 @@ const resolveMx = async (wallet, resolverAddr, domain) => {
     provider,
   );
   const supportsMx = await mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID);
-  console.log(supportsMx);
   if (!supportsMx) throw Error('MX record not supported!');
   return mxResolverContract.mx(namehash(domain));
 };
