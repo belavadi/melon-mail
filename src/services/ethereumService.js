@@ -42,6 +42,20 @@ const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock 
   }
 };
 
+const getBalance = wallet => new Promise((resolve, reject) => {
+  wallet.provider.getBalance(wallet.address)
+    .then(balance => resolve(Ethers.utils.formatEther(balance)))
+    .catch(error => reject(error));
+});
+
+const getBlockNumber = async (wallet) => {
+  try {
+    return await wallet.provider.getBlockNumber(wallet);
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
+
 const listenEvent = (wallet, event, filter, callback) => {
   wallet.provider.on([
     ...event.topics,
@@ -50,7 +64,7 @@ const listenEvent = (wallet, event, filter, callback) => {
     callback({
       ...event.parse(log.topics, log.data),
       blockNumber: log.blockNumber,
-      transactionHash: log.transaction,
+      transactionHash: log.transactionHash,
     });
   });
 };
@@ -108,7 +122,7 @@ const createWallet = async (importedMnemonic, decryptedWallet) => {
 
   wallet.publicKey = util.bufferToHex(util.privateToPublic(wallet.privateKey));
 
-  wallet.balance = await wallet.provider.getBalance(wallet.address);
+  wallet.balance = parseInt(await getBalance(wallet), 10);
 
   wallet.mailContract = new Ethers.Contract(
     config.mailContractAddress,
@@ -118,20 +132,6 @@ const createWallet = async (importedMnemonic, decryptedWallet) => {
   console.log(wallet);
   console.log(Ethers.utils);
   return wallet;
-};
-
-const getBalance = wallet => new Promise((resolve, reject) => {
-  wallet.provider.getBalance(wallet.address)
-    .then(balance => resolve(Ethers.utils.formatEther(balance)))
-    .catch(error => reject(error));
-});
-
-const getBlockNumber = async (wallet) => {
-  try {
-    return await wallet.provider.getBlockNumber(wallet);
-  } catch (e) {
-    throw Error(e.message);
-  }
 };
 
 const checkMailAddress = async (wallet, mailAddress) => {
@@ -161,20 +161,13 @@ const checkMailAddress = async (wallet, mailAddress) => {
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = async (wallet, mailAddress, overrideOptions) => {
+const _registerUser = async (wallet, params, mailAddress, overrideOptions) => {
+  console.log(wallet, params, mailAddress, overrideOptions);
   if (!wallet) {
     throw Error('No wallet provided!');
   }
-  const encryptedUsername = encrypt({
-    privateKey: wallet.privateKey,
-    publicKey: wallet.publicKey,
-  }, mailAddress);
-
   try {
-    await wallet.mailContract.registerUser(
-      keccak256(mailAddress),
-      encryptedUsername,
-      wallet.publicKey, overrideOptions);
+    await wallet.mailContract.registerUser(...params);
   } catch (e) {
     throw Error(e.message);
   }

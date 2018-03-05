@@ -21,10 +21,10 @@ class TransactionModal extends React.Component {
   }
 
   async componentWillReceiveProps(nextProps) {
-    console.log(nextProps);
-    if (!nextProps.wallet.mailContract) return;
-
     const { methodName, params } = nextProps.transaction.options;
+    const currMethodName = this.props.transaction.options.methodName;
+    if (!nextProps.wallet.mailContract || methodName === currMethodName) return;
+
     const estimateGas = nextProps.wallet.mailContract.estimate[methodName];
     if (typeof estimateGas === 'function') {
       const estimatedLimit = await estimateGas(...params);

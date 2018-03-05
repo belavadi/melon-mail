@@ -1,6 +1,8 @@
 import eth from '../services/ethereumService';
 import config from '../../config/config.json';
-import { decrypt } from '../services/cryptoService';
+import { decrypt, encryp, encrypt } from '../services/cryptoService';
+import { keccak256 } from '../services/helperService';
+import { openTransactionModal } from './transaction';
 
 export const addWallet = wallet => ({
   type: 'ADD_WALLET',
@@ -48,9 +50,12 @@ export const unsecureContext = () => ({
   stage: 'unsecureContext',
 });
 
-export const logout = () => ({
-  type: 'CLEAR_STORE',
-});
+export const logout = () => {
+  localStorage.removeItem('wallet:melon.email');
+  return {
+    type: 'CLEAR_STORE',
+  };
+};
 
 export const contactsSuccess = contacts => ({
   type: 'CONTACTS_SUCCESS',
@@ -107,9 +112,25 @@ export const registerUser = mailAddress => async (dispatch, getState) => {
   try {
     const isAvailable = await eth.checkMailAddress(wallet, mailAddress);
     if (isAvailable) {
-      const data = await eth._registerUser(wallet, mailAddress);
-      console.log(data);
-      dispatch(registerSuccess(data));
+      const encryptedUsername = encrypt({
+        privateKey: wallet.privateKey,
+        publicKey: wallet.publicKey,
+      }, mailAddress);
+      const hashedUsername = keccak256(mailAddress);
+      dispatch(openTransactionModal(
+        {
+          method: eth._registerUser,
+          methodName: 'registerUser',
+          params: [
+            hashedUsername,
+            encryptedUsername,
+            wallet.publicKey,
+          ],
+          additionalParams: [
+            mailAddress,
+          ],
+        }));
+      // dispatch(registerSuccess(data));
     }
   } catch (e) {
     dispatch(registerError(e.message));
