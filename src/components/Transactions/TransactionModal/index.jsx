@@ -91,31 +91,29 @@ class TransactionModal extends React.Component {
         <Modal
           open={this.props.transaction.isOpen}
           onClose={this.props.closeTransactionModal}
+          closeIcon
         >
           <Modal.Header>Confirm Transaction</Modal.Header>
           <Modal.Content image>
             <Modal.Description>
-              <p>From: &nbsp;
-                <b>
-                  <a
-                    href={`https://${config.network === 'mainnet' ? '' : `${config.network}.`}etherscan.io/address/${address}`}
-                    target="_blank"
-                  >
-                    {address}
-                  </a>
-                </b>
+              <p>From: <b>
+                <a
+                  href={`https://${config.network === 'mainnet' ? '' : `${config.network}.`}etherscan.io/address/${address}`}
+                  target="_blank"
+                >
+                  {address}
+                </a></b>
               </p>
               {
                 mailContract &&
-                <p>To: &nbsp;
-                  <b>
-                    <a
-                      href={`https://${config.network === 'mainnet' ? '' : `${config.network}.`}etherscan.io/address/${mailContract.address}`}
-                      target="_blank"
-                    >
-                      {mailContract.address}
-                    </a>
-                  </b>
+                <p>To: &nbsp; <b>
+                  <a
+                    href={`https://${config.network === 'mainnet' ? '' : `${config.network}.`}etherscan.io/address/${mailContract.address}`}
+                    target="_blank"
+                  >
+                    {mailContract.address}
+                  </a>
+                </b>
                 </p>
               }
               <Form>
