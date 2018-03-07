@@ -1,6 +1,6 @@
 import eth from '../services/ethereumService';
 import config from '../../config/config.json';
-import { decrypt, encryp, encrypt } from '../services/cryptoService';
+import { decrypt, encrypt } from '../services/cryptoService';
 import { keccak256 } from '../services/helperService';
 import { openTransactionModal } from './transaction';
 
