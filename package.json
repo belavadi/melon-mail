@@ -5,12 +5,13 @@
   "repository": "https://github.com/melonproject/MelonMail",
   "scripts": {
     "setup": "node ./config/config.js",
-    "start": "webpack-dev-server --host 127.0.0.1 --port 3300",
-    "prod": "webpack --config ./webpack.production.js"
+    "dev": "webpack-dev-server --mode development --open --host 127.0.0.1 --port 3300",
+    "prod": "webpack --config ./webpack.production.js --mode production"
   },
   "author": "Decenter",
   "license": "ISC",
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "bip39": "^2.5.0",
     "bitcore-ecies": "^1.0.3",
     "bitcore-lib": "^0.14.0",
@@ -18,6 +19,7 @@
     "copy-webpack-plugin": "^4.5.0",
     "draft-js": "^0.10.5",
     "draft-js-export-html": "^1.2.0",
+    "ethereumjs-tx": "^1.3.4",
     "ethereumjs-util": "^5.1.5",
     "ethers": "^2.2.6",
     "ethjs-ens": "^2.0.1",
@@ -52,7 +54,7 @@
     "babel-loader": "^7.1.4",
     "babel-plugin-transform-object-rest-spread": "^6.19.0",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.11.1",
     "babel-preset-stage-2": "^6.24.1",
     "babel-register": "^6.24.1",

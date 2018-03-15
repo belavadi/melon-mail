@@ -1,4 +1,5 @@
 import util from 'ethereumjs-util';
+import TX from 'ethereumjs-tx';
 import uniqBy from 'lodash/uniqBy';
 import Ethers from 'ethers';
 import bip39 from 'bip39';
@@ -420,6 +421,43 @@ const resolveUser = async (wallet, email, domain, isExternalMail) => {
 
   return _getPublicKey(wallet, email, resolvedMailContract);
 };
+
+const getPublicKeyForAddress = async (address) => {
+  const apiKey = '56P5HQMFIUXKNIS6Y5YSE8676M15WUM9CD';
+  const network = config.network === 'mainnet' ? '' : `-${config.network}`;
+  const api = `http://api${network}.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`;
+  const { kovan, mainnet } = Ethers.providers.networks;
+  try {
+    const data = (await (await fetch(api)).json());
+    console.log(data);
+    if (data.message !== 'OK' && data.status === '1') throw Error('Etherscan API not available.');
+    if (data.result.length === 0) throw Error('The account doesn\'t have any transactions.');
+
+    let transaction;
+    for (let i = 0; i < data.result.length; i += 1) {
+      console.log(address, data.result[i].from);
+      if (address.toLowerCase() === data.result[i].from.toLowerCase()) {
+        transaction = data.result[i];
+        break;
+      }
+    }
+
+    if (transaction === undefined) throw Error('The account didn\'t send any transactions.');
+
+    const decenterKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.decenter.com', kovan);
+    const transactionData = await decenterKovanProvider.getTransaction(transaction.hash);
+
+    const parsedTransaction = new TX(new Buffer(transactionData.raw.slice(2), 'hex'));
+    const publicKey = util.bufferToHex(parsedTransaction.getSenderPublicKey());
+    console.log(`Recovered ${publicKey}`);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+setTimeout(() => {
+  getPublicKeyForAddress('0x2c479E92c9E94D71b25d80c1e7c3F79225c5133C');
+}, 1500);
 
 export default {
   createWallet,
