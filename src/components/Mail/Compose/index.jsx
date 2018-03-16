@@ -208,13 +208,13 @@ class Compose extends Component {
 
   async checkRecipient(recipient, callback) {
     if (recipient === undefined) return;
-    const username = recipient.toLowerCase().trim();
-    const domain = username.split('@')[1];
+    const email = recipient.toLowerCase().trim();
+    const domain = email.split('@')[1];
     const wallet = this.props.user.wallet;
     const isExternalMail = domain !== this.props.config.defaultDomain;
 
     try {
-      await eth.resolveUser(wallet, username, domain, isExternalMail);
+      await eth.resolveUser(wallet, email, domain, isExternalMail);
       this.setState({ recipientExists: true });
       if (callback) callback(true);
     } catch (e) {
@@ -312,6 +312,7 @@ class Compose extends Component {
 
       this.props.closeCompose();
     } catch (e) {
+      console.error(e);
       this.props.sendError(e.message);
     }
   }

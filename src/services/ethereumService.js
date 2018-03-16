@@ -409,19 +409,6 @@ const getMailContract = async (wallet, domain) => {
   );
 };
 
-const resolveUser = async (wallet, email, domain, isExternalMail) => {
-  if (!isExternalMail) {
-    return _getPublicKey(wallet, email);
-  }
-
-  const resolvedMailContract = await getMailContract(domain);
-  if (resolvedMailContract.address === config.mailContractAddress) {
-    return _getPublicKey(wallet, email);
-  }
-
-  return _getPublicKey(wallet, email, resolvedMailContract);
-};
-
 const getPublicKeyForAddress = async (address) => {
   const apiKey = '56P5HQMFIUXKNIS6Y5YSE8676M15WUM9CD';
   const network = config.network === 'mainnet' ? '' : `-${config.network}`;
@@ -435,7 +422,6 @@ const getPublicKeyForAddress = async (address) => {
 
     let transaction;
     for (let i = 0; i < data.result.length; i += 1) {
-      console.log(address, data.result[i].from);
       if (address.toLowerCase() === data.result[i].from.toLowerCase()) {
         transaction = data.result[i];
         break;
@@ -450,14 +436,33 @@ const getPublicKeyForAddress = async (address) => {
     const parsedTransaction = new TX(new Buffer(transactionData.raw.slice(2), 'hex'));
     const publicKey = util.bufferToHex(parsedTransaction.getSenderPublicKey());
     console.log(`Recovered ${publicKey}`);
+    // TODO: Check on which contract is the account in question
+    return {
+      externalMailContract: undefined,
+      address,
+      publicKey,
+    };
   } catch (e) {
     console.log(e);
   }
 };
 
-setTimeout(() => {
-  getPublicKeyForAddress('0x2c479E92c9E94D71b25d80c1e7c3F79225c5133C');
-}, 1500);
+const resolveUser = async (wallet, email, domain, isExternalMail) => {
+  if (!isExternalMail) {
+    return _getPublicKey(wallet, email);
+  }
+
+  if (util.isValidAddress(email)) {
+    return getPublicKeyForAddress(email);
+  }
+
+  const resolvedMailContract = await getMailContract(domain);
+  if (resolvedMailContract.address === config.mailContractAddress) {
+    return _getPublicKey(wallet, email);
+  }
+
+  return _getPublicKey(wallet, email, resolvedMailContract);
+};
 
 export default {
   createWallet,

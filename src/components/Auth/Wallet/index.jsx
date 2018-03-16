@@ -219,7 +219,7 @@ class Wallet extends Component {
               basic
               color="blue"
               onClick={this.addWallet}
-              type="button"
+              type="submit"
             >Encrypt my wallet</Button>
           </form>
         }
