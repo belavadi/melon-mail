@@ -448,7 +448,6 @@ const getPublicKeyForAddress = async (address) => {
 };
 
 const resolveUser = async (wallet, email, domain, isExternalMail) => {
-  console.log('resolve User');
   if (util.isValidAddress(email)) {
     return getPublicKeyForAddress(email);
   }

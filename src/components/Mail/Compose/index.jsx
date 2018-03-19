@@ -327,10 +327,18 @@ class Compose extends Component {
     }
 
     const recepient = values[values.length - 1] || '';
+
+    // Add a sample recepient showing a checking status, and later remove it...
+    this.setState({
+      recepients: [...this.state.recepients, { label: 'Checking...', value: 'Checking...' }],
+      selectedRecepients: [...this.state.selectedRecepients, 'Checking...'],
+    });
+
     return this.checkRecipient(recepient.value, (validRecipient) => {
       if (validRecipient && !this.state.selectedRecepients.includes(recepient.value)) {
         this.setState({
           selectedRecepients: values,
+          recepients: this.state.recepients.slice(0, -1),
         });
 
         // add the contact to the list
@@ -346,7 +354,7 @@ class Compose extends Component {
         const invalidValues = values;
         invalidValues[invalidValues.length - 1].invalid = true;
         this.setState({
-          recepients: this.state.recepients.slice(1),
+          recepients: this.state.recepients.slice(1, -1),
           selectedRecepients: invalidValues,
         });
         this.handleInvalidValue(invalidValues);
