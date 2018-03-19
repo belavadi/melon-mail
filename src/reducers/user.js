@@ -17,6 +17,7 @@ export default (state = {
         ...state,
         wallet: action.wallet,
         stage: action.stage,
+        error: '',
       };
     case 'REGISTER_REQUEST':
     case 'LOGIN_REQUEST':

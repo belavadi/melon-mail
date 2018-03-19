@@ -57,8 +57,8 @@ export const saveContactsToLocalStorage = (contactName, mailHash) => (dispatch, 
   const contactsItem = localStorage.getItem(mailHash);
 
   const keys = {
-    publicKey: getState().user.publicKey,
-    privateKey: getState().user.privateKey,
+    publicKey: getState().user.wallet.publicKey,
+    privateKey: getState().user.wallet.privateKey,
   };
 
   if (contactsItem) {

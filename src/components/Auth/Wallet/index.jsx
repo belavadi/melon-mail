@@ -85,6 +85,7 @@ class Wallet extends Component {
       this.setState({
         wallet,
         stage: 2,
+        errorMessage: '',
       });
     } else {
       this.setState({
@@ -126,6 +127,7 @@ class Wallet extends Component {
   switchStage(stage) {
     this.setState({
       stage,
+      errorMessage: '',
     });
   }
 
@@ -138,7 +140,7 @@ class Wallet extends Component {
             <Header>
               Welcome to Melon Mail!
             </Header>
-            <p>Before you can set up your mail, you need to create or restore wallet.</p>
+            <p>Before you can set up your mail, you need to create or restore a wallet.</p>
             <p>The standard bip39 is used to generate a mnemonic phrase,
               from which your wallet will be cryptographically derived.</p>
             <Button

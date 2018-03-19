@@ -218,6 +218,7 @@ class Compose extends Component {
       this.setState({ recipientExists: true });
       if (callback) callback(true);
     } catch (e) {
+      console.error(e);
       if (callback) callback(false);
     }
   }
@@ -326,7 +327,6 @@ class Compose extends Component {
     }
 
     const recepient = values[values.length - 1] || '';
-
     return this.checkRecipient(recepient.value, (validRecipient) => {
       if (validRecipient && !this.state.selectedRecepients.includes(recepient.value)) {
         this.setState({

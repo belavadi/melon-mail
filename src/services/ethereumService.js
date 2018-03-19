@@ -110,14 +110,14 @@ const createWallet = async (importedMnemonic, decryptedWallet) => {
   const localMainProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', mainnet);
 
   wallet.provider = new Ethers.providers.FallbackProvider([
-    melonKovanProvider,
     decenterKovanProvider,
+    melonKovanProvider,
     localKovanProvider,
   ]);
 
   wallet.mainProvider = new Ethers.providers.FallbackProvider([
-    melonMainProvider,
     decenterMainProvider,
+    melonMainProvider,
     localMainProvider,
   ]);
 
@@ -448,12 +448,13 @@ const getPublicKeyForAddress = async (address) => {
 };
 
 const resolveUser = async (wallet, email, domain, isExternalMail) => {
-  if (!isExternalMail) {
-    return _getPublicKey(wallet, email);
-  }
-
+  console.log('resolve User');
   if (util.isValidAddress(email)) {
     return getPublicKeyForAddress(email);
+  }
+
+  if (!isExternalMail) {
+    return _getPublicKey(wallet, email);
   }
 
   const resolvedMailContract = await getMailContract(domain);
