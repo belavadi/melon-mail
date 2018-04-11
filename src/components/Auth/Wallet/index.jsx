@@ -31,6 +31,7 @@ class Wallet extends Component {
     this.encryptWallet = this.encryptWallet.bind(this);
     this.decryptWallet = this.decryptWallet.bind(this);
     this.addWallet = this.addWallet.bind(this);
+    this.importPrivateKey = this.importPrivateKey.bind(this);
   }
 
   componentDidMount() {
@@ -92,6 +93,26 @@ class Wallet extends Component {
         errorMessage: 'Invalid mnemonic',
       });
     }
+  }
+
+  async importPrivateKey(e) {
+    e.preventDefault();
+    const privateKey = this.privateKey.value;
+
+    try {
+      const wallet = await eth.createWallet(0, new EthersWallet(privateKey));
+      this.setState({
+        wallet,
+        stage: 2,
+        errorMessage: '',
+      });
+    } catch (err) {
+      this.setState({
+        errorMessage: 'Invalid private key.',
+      });
+    }
+
+    console.log(new EthersWallet(privateKey));
   }
 
   async decryptWallet(e) {
@@ -156,6 +177,13 @@ class Wallet extends Component {
               color="blue"
             >
               Restore wallet with mnemonic
+            </Button>
+            <Button
+              onClick={() => { this.switchStage(5); }}
+              basic
+              color="blue"
+            >
+              Import private key
             </Button>
           </form>
         }
@@ -276,6 +304,30 @@ class Wallet extends Component {
               onClick={this.decryptWallet}
             >
               Decrypt my wallet
+            </Button>
+          </form>
+        }
+        {
+          this.state.stage === 5 &&
+          <form>
+            <p>Please your private key to generate your wallet.</p>
+            <div className="ui input">
+              <input
+                ref={(value) => { this.privateKey = value; }}
+                type="password"
+                placeholder="Private key"
+              />
+            </div>
+            <p
+              className="form-error"
+            >{this.state.errorMessage}</p>
+            <Button
+              basic
+              color="blue"
+              type="button"
+              onClick={this.importPrivateKey}
+            >
+              Import private key
             </Button>
           </form>
         }
