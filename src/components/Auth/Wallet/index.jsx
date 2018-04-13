@@ -34,9 +34,6 @@ class Wallet extends Component {
     this.importPrivateKey = this.importPrivateKey.bind(this);
   }
 
-  componentDidMount() {
-  }
-
   async createWallet(e) {
     e.preventDefault();
     this.setState({
@@ -305,6 +302,13 @@ class Wallet extends Component {
             >
               Decrypt my wallet
             </Button>
+            <a
+              href="#"
+              className="change-account"
+              onClick={() => this.setState({ stage: 0 })}
+            >
+              Change account?
+            </a>
           </form>
         }
         {
