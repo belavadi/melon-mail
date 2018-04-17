@@ -1,14 +1,14 @@
-import Web3 from 'web3';
+import util from 'ethereumjs-util';
+import TX from 'ethereumjs-tx';
 import uniqBy from 'lodash/uniqBy';
+import Ethers from 'ethers';
+import bip39 from 'bip39';
 import ENS from 'ethjs-ens';
 import config from '../../config/config.json';
-import { generateKeys, encrypt, decrypt } from './cryptoService';
-import { executeWhenReady, namehash } from './helperService';
+import { encrypt } from './cryptoService';
+import { namehash, keccak256, createFilter } from './helperService';
 
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
-
-let mailContract;
-let eventContract;
 
 const networks = {
   3: 'ropsten',
@@ -18,580 +18,357 @@ const networks = {
   1: 'mainnet',
 };
 
-executeWhenReady(() => {
+const filterLogs = (logs, filter) =>
+  logs.filter(log => Object.keys(filter).filter(key => log[key] === filter[key]).length > 0);
+
+const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock = 'latest') => {
   try {
-    window.web3 = new Web3(web3.currentProvider);
-
-    mailContract = web3.eth.contract(config.mailContractAbi)
-      .at(config.mailContractAddress);
-
-    let url = 'https://kovan.decenter.com';
-    const customNode = localStorage.getItem('customEthNode');
-
-    if (customNode) {
-      url = JSON.parse(customNode).protocol + JSON.parse(customNode).ipAddress;
-    }
-
-    const web3Custom = new Web3(new web3.providers.HttpProvider(url));
-
-    eventContract = web3Custom.eth.contract(config.mailContractAbi)
-      .at(config.mailContractAddress);
-  } catch (e) {
-    console.log(e);
+    const logs = await wallet.provider.getLogs({
+      fromBlock,
+      toBlock,
+      address,
+      topics: [
+        ...event.topics,
+        ...createFilter(filter, event),
+      ],
+    });
+    return logs.map(log => ({
+      ...event.parse(log.topics, log.data),
+      blockNumber: log.blockNumber,
+      transactionHash: log.transactionHash,
+    }));
+  } catch (err) {
+    console.error(err);
+    throw Error('Event fetching failed.');
   }
+};
+
+const getBalance = wallet => new Promise((resolve, reject) => {
+  wallet.provider.getBalance(wallet.address)
+    .then(balance => resolve(Ethers.utils.formatEther(balance)))
+    .catch(error => reject(error));
 });
 
-const getWeb3Status = () =>
-  new Promise((resolve, reject) => {
-    if (!web3) {
-      return reject({
-        message: 'NOT_FOUND',
-      });
+const getBlockNumber = async (wallet) => {
+  try {
+    return await wallet.provider.getBlockNumber(wallet);
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
+
+const listenEvent = (wallet, event, filter, callback) => {
+  wallet.provider.on([
+    ...event.topics,
+    ...createFilter(filter, event),
+  ], (log) => {
+    callback({
+      ...event.parse(log.topics, log.data),
+      blockNumber: log.blockNumber,
+      transactionHash: log.transactionHash,
+    });
+  });
+};
+
+const checkRegistration = async (wallet) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.UserRegistered();
+  try {
+    const events = await getEvents(wallet, event, wallet.mailContract.address, {
+      addr: wallet.address,
+    });
+
+    if (events.length === 0) {
+      return {
+        notRegistered: true,
+        message: 'User not registered!',
+      };
     }
+    return {
+      mailAddress: events[0].encryptedUsername,
+      address: events[0].address,
+      startingBlock: events[0].blockNumber,
+    };
+  } catch (err) {
+    console.error(err);
+    throw Error('Event fetching failed.');
+  }
+};
 
-    return web3.version.getNetwork((err, networkId) => {
-      if (networks[networkId] !== config.network && !config.testContract) {
-        return reject({
-          message: 'WRONG_NETWORK',
-        });
-      }
+const createWallet = async (importedMnemonic, decryptedWallet) => {
+  const mnemonic = importedMnemonic || bip39.generateMnemonic();
+  const wallet = decryptedWallet || new Ethers.Wallet.fromMnemonic(mnemonic);
+  const { kovan, mainnet } = Ethers.providers.networks;
+  const decenterKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.decenter.com', kovan);
+  const melonKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.melonport.com', kovan);
+  const localKovanProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', kovan);
 
-      return resolve();
+  const decenterMainProvider = new Ethers.providers.JsonRpcProvider('https://mainnet.decenter.com', mainnet);
+  const melonMainProvider = new Ethers.providers.JsonRpcProvider('https://mainnet.melonport.com', mainnet);
+  const localMainProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', mainnet);
+
+  wallet.provider = new Ethers.providers.FallbackProvider([
+    decenterKovanProvider,
+    melonKovanProvider,
+    localKovanProvider,
+  ]);
+
+  wallet.mainProvider = new Ethers.providers.FallbackProvider([
+    decenterMainProvider,
+    melonMainProvider,
+    localMainProvider,
+  ]);
+
+  wallet.publicKey = util.bufferToHex(util.privateToPublic(wallet.privateKey));
+
+  wallet.balance = parseInt(await getBalance(wallet), 10);
+
+  wallet.mailContract = new Ethers.Contract(
+    config.mailContractAddress,
+    config.mailContractAbi,
+    wallet,
+  );
+  console.log(wallet);
+  console.log(Ethers.utils);
+  return wallet;
+};
+
+const checkMailAddress = async (wallet, mailAddress) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  let events;
+  const event = wallet.mailContract.interface.events.UserRegistered();
+
+  try {
+    events = await getEvents(wallet, event, wallet.mailContract.address, {
+      usernameHash: keccak256(mailAddress),
     });
-  });
+  } catch (e) {
+    throw Error('Could not get events from the blockchain.');
+  }
 
-const getNetwork = () =>
-  new Promise((resolve, reject) => {
-    web3.version.getNetwork((err, networkId) => {
-      if (err) {
-        return reject({
-          message: err,
-        });
-      }
+  if (events.length > 0) {
+    throw Error('Username is already taken.');
+  }
 
-      return resolve(networks[networkId]);
-    });
-  });
-
-const getAccount = () =>
-  new Promise((resolve, reject) => {
-    web3.eth.getAccounts((err, accounts) => {
-      if (err) {
-        return reject({
-          message: err,
-        });
-      }
-      if (accounts.length === 0) {
-        return reject({
-          message: 'Account not found.',
-        });
-      }
-      return resolve(accounts[0]);
-    });
-  });
-
-const getBalance = () => new Promise((resolve, reject) => {
-  getAccount()
-    .then((account) => {
-      web3.eth.getBalance(account, (error, balance) => {
-        if (error) {
-          return reject({
-            message: error,
-          });
-        }
-
-        return resolve(parseFloat(web3.fromWei(balance)));
-      });
-    });
-});
-
-const checkRegistration = () =>
-  new Promise((resolve, reject) => {
-    getAccount().then((account) => {
-      if (!account) {
-        return reject({
-          error: true,
-          message: 'Account not found.',
-        });
-      }
-
-      return eventContract.UserRegistered(
-        {
-          addr: account,
-        },
-        {
-          fromBlock: 0,
-          toBlock: 'latest',
-        })
-        .get((err, events) => {
-          if (err) {
-            reject({
-              error: true,
-              message: err,
-            });
-          }
-
-          if (!events.length) {
-            return reject({
-              error: false,
-              notRegistered: true,
-              message: 'User not registered.',
-            });
-          }
-          return resolve({
-            mailAddress: events[0].args.encryptedUsername,
-            address: events[0].args.addr,
-            startingBlock: events[0].blockNumber,
-          });
-        });
-    })
-      .catch((error) => {
-        reject({
-          error: true,
-          message: error,
-        });
-      });
-  });
-
-const signString = (account, stringToSign) =>
-  new Promise((resolve, reject) => {
-    // Deprecated sign function
-    //
-    // web3.personal.sign(web3.fromUtf8(stringToSign), account, (error, result) => {
-    //   if (error) {
-    //     return reject(error);
-    //   }
-    //   return resolve(result);
-    // });
-    const msgParams = [{
-      type: 'string',
-      name: 'Message',
-      value: stringToSign,
-    }];
-    web3.currentProvider.sendAsync({
-      method: 'eth_signTypedData',
-      params: [msgParams, account],
-      from: account,
-    }, (err, data) => {
-      if (err || data.error) return reject(err);
-      return resolve(data.result);
-    });
-  });
-
-const getBlockNumber = () =>
-  new Promise((resolve, reject) => {
-    web3.eth.getBlockNumber((error, latestBlock) => {
-      if (error) {
-        return reject(error);
-      }
-
-      return resolve(latestBlock);
-    });
-  });
-
-const checkMailAddress = email =>
-  new Promise((resolve, reject) => {
-    eventContract.UserRegistered(
-      {
-        usernameHash: web3.sha3(email),
-      },
-      {
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          reject({
-            message: err,
-            events: null,
-          });
-        }
-
-        if (events.length > 0) {
-          return reject({
-            message: 'Username is already taken.',
-          });
-        }
-
-        return resolve({
-          message: 'Username is available.',
-        });
-      });
-  });
+  return {
+    isAvailable: true,
+    message: 'Username is available',
+  };
+};
 
 /* Calls registerUser function from the contract code */
 
-const _registerUser = (mailAddress, signedString) =>
-  new Promise((resolve, reject) => {
-    const { privateKey, publicKey } = generateKeys(signedString);
+const _registerUser = async (wallet, params, mailAddress, overrideOptions) => {
+  console.log(wallet, params, mailAddress, overrideOptions);
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  try {
+    await wallet.mailContract.registerUser(...params);
+  } catch (e) {
+    throw Error(e.message);
+  }
 
-    getAccount()
-      .then((account) => {
-        if (!account) {
-          return reject({
-            message: 'Account not found.',
-          });
-        }
-
-        return mailContract.registerUser(
-          web3.sha3(mailAddress),
-          encrypt({ privateKey, publicKey }, mailAddress),
-          publicKey,
-          { from: account },
-          (error) => {
-            if (error) {
-              return reject({
-                message: error,
-              });
-            }
-
-            return getBlockNumber()
-              .then((startingBlock) => {
-                resolve({
-                  publicKey,
-                  privateKey,
-                  mailAddress,
-                  address: account,
-                  startingBlock,
-                });
-              })
-              .catch(() => {
-                resolve({
-                  publicKey,
-                  privateKey,
-                  mailAddress,
-                  address: account,
-                  startingBlock: 0,
-                });
-              });
-          });
-      });
-  });
+  try {
+    const startingBlock = await getBlockNumber(wallet);
+    return {
+      mailAddress,
+      startingBlock,
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      mailAddress,
+      startingBlock: 0,
+    };
+  }
+};
 
 /* Scans the blockchain to find the public key for a user */
 
-const _getPublicKey = (email, optionalContract) =>
-  new Promise((resolve, reject) => {
-    const selectedContract = optionalContract !== undefined
-      ? optionalContract : eventContract;
+const _getPublicKey = async (wallet, mailAddress, optionalContract) => {
+  const selectedContract = optionalContract !== undefined
+    ? optionalContract : wallet.mailContract;
+  const event = wallet.mailContract.interface.events.UserRegistered();
+  try {
+    const events = await getEvents(wallet, event, selectedContract.address, {
+      usernameHash: keccak256(mailAddress),
+    });
 
-    try {
-      selectedContract.UserRegistered(
-        {
-          usernameHash: web3.sha3(email),
-        },
-        {
-          fromBlock: 0,
-          toBlock: 'latest',
-        },
-      )
-        .get((err, events) => {
-          if (err) {
-            reject({
-              message: err,
-              events: null,
-            });
-          }
-
-          if (!events.length) {
-            return reject({
-              message: 'User not found!',
-              events,
-            });
-          }
-          return resolve({
-            externalMailContract: optionalContract,
-            address: events[0].args.addr,
-            publicKey: events[0].args.publicKey,
-          });
-        });
-    } catch (e) {
-      reject(e);
+    if (!events.length) {
+      return {
+        message: 'User not found!',
+        events,
+      };
     }
-  });
+    return {
+      externalMailContract: optionalContract,
+      address: events[0].addr,
+      publicKey: events[0].publicKey,
+    };
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
 
 /* Subscribes to the register event */
-const listenUserRegistered = callback =>
-  getAccount()
-    .then((account) => {
-      if (!account) {
-        return null;
-      }
+const listenUserRegistered = (wallet, callback) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.UserRegistered();
 
-      return getBlockNumber()
-        .then((startingBlock) => {
-          const listener = eventContract.UserRegistered(
-            {
-              addr: account,
-            },
-            {
-              fromBlock: startingBlock,
-              toBlock: 'latest',
-            },
-          )
-            .watch((err, event) => {
-              if (err) return;
-              callback(event);
-              listener.stopWatching();
-            });
-        });
-    });
+  listenEvent(wallet, event, { addr: wallet.address }, (eventData) => {
+    console.log('USER Registered');
+    console.log(eventData);
+    callback(eventData);
+    wallet.provider.removeListener(event.topics);
+  });
+};
 
 /* Subscribes to the mail send event */
 
-const listenForMails = callback =>
-  getAccount()
-    .then((account) => {
-      if (!account) {
-        return null;
-      }
-      return getBlockNumber()
-        .then((startingBlock) => {
-          eventContract.EmailSent(
-            {
-              to: account,
-            },
-            {
-              fromBlock: startingBlock,
-              toBlock: 'latest',
-            },
-          )
-            .watch((err, event) => {
-              if (err) console.log(err);
-              else callback(event, 'inbox');
-            });
+const listenForMails = (wallet, callback) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.EmailSent();
 
-          eventContract.EmailSent(
-            {
-              from: account,
-            },
-            {
-              fromBlock: startingBlock,
-              toBlock: 'latest',
-            },
-          )
-            .watch((err, event) => {
-              if (err) console.log(err);
-              else callback(event, 'outbox');
-            });
-        });
-    });
-
-const getMails = (folder, fetchToBlock, blocksToFetch) =>
-  new Promise((resolve, reject) => {
-    getAccount()
-      .then((account) => {
-        if (!account) {
-          return reject({
-            message: 'Account not found.',
-          });
-        }
-        return getBlockNumber()
-          .then((currentBlock) => {
-            const filter = folder === 'inbox' ? { to: account } : { from: account };
-            const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
-            eventContract.EmailSent(
-              filter,
-              {
-                fromBlock: fetchTo - blocksToFetch,
-                toBlock: fetchTo,
-              },
-            )
-              .get((err, events) => {
-                if (err) {
-                  reject({
-                    message: err,
-                  });
-                }
-
-                const filteredEvents = uniqBy(events.reverse(), 'args.threadId');
-                return resolve({
-                  mailEvents: filteredEvents,
-                  fromBlock: fetchTo - blocksToFetch,
-                });
-              });
-          });
-      });
+  listenEvent(wallet, event, { to: wallet.address }, (eventData) => {
+    callback(eventData, 'inbox');
   });
 
-const getThread = (threadId, afterBlock) =>
-  new Promise((resolve, reject) => {
-    eventContract.EmailSent(
+  listenEvent(wallet, event, { from: wallet.address }, (eventData) => {
+    callback(eventData, 'outbox');
+  });
+};
+
+const getMails = async (wallet, folder, fetchToBlock, blocksToFetch) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const currentBlock = await getBlockNumber(wallet);
+  const event = wallet.mailContract.interface.events.EmailSent();
+  const filter = folder === 'inbox' ? { to: wallet.address } : { from: wallet.address };
+  const fetchTo = fetchToBlock === null ? currentBlock : fetchToBlock;
+  try {
+    const events = await getEvents(wallet,
+      event,
+      wallet.mailContract.address,
+      filter,
+      fetchTo - blocksToFetch <= 0 ? 0 : fetchTo - blocksToFetch,
+      fetchTo <= 0 ? 0 : fetchTo);
+    const filteredEvents = uniqBy(events.reverse(), 'threadId');
+
+    return {
+      mailEvents: filteredEvents,
+      fromBlock: fetchTo - blocksToFetch,
+    };
+  } catch (e) {
+    throw Error('Event fetching failed.');
+  }
+};
+
+const getThread = async (wallet, threadId, afterBlock) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.EmailSent();
+
+  try {
+    const events = await getEvents(wallet,
+      event,
+      wallet.mailContract.address,
       {
         threadId,
       },
-      {
-        fromBlock: afterBlock,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          reject({
-            message: err,
-          });
-        }
+      afterBlock);
 
-        resolve(events.pop());
-      });
-  });
+    return events.pop();
+  } catch (e) {
+    throw Error('Could not fetch events.');
+  }
+};
 
-const _sendEmail = (toAddress, mailHash, threadHash, threadId, externalMailContract) =>
-  new Promise((resolve, reject) => {
-    getAccount()
-      .then((account) => {
-        if (externalMailContract !== undefined) {
-          return mailContract.sendExternalEmail(
-            externalMailContract.address,
-            toAddress,
-            mailHash,
-            threadHash,
-            threadId,
-            { from: account },
-            (error, result) => {
-              if (error) {
-                return reject({
-                  message: error,
-                });
-              }
+const _sendMail = (wallet, params, externalMailContract, overrideOptions) => {
+  if (externalMailContract !== undefined) {
+    return wallet.mailContract.sendExternalEmail(
+      externalMailContract.address,
+      ...params,
+      overrideOptions,
+    );
+  }
 
-              return resolve(result);
-            });
-        }
+  return wallet.mailContract.sendEmail(...params);
+};
 
-        return mailContract.sendEmail(toAddress, mailHash, threadHash, threadId,
-          { from: account }, (error, result) => {
-            if (error) {
-              return reject({
-                message: error,
-              });
-            }
+const fetchAllEvents = async (wallet, folder) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const filter = folder === 'inbox' ? { to: wallet.address } : { from: wallet.address };
+  const event = wallet.mailContract.interface.events.EmailSent();
 
-            return resolve(result);
-          });
-      });
-  });
+  try {
+    const events = await getEvents(wallet, event, wallet.mailContract.address, filter, 0);
 
-const signIn = mailAddress => new Promise((resolve, reject) => {
-  getAccount()
-    .then((account) => {
-      if (!account) {
-        return reject({
-          message: 'Account not found.',
-        });
-      }
-      return signString(account, config.stringToSign)
-        .then((signedString) => {
-          const { privateKey, publicKey } = generateKeys(signedString);
-          resolve({
-            status: true,
-            privateKey,
-            publicKey,
-            mailAddress: decrypt({ privateKey, publicKey }, mailAddress),
-          });
-        })
-        .catch((error) => {
-          reject({
-            message: error,
-          });
-        });
+    return uniqBy(
+      events,
+      folder === 'inbox' ? 'from' : 'to',
+    );
+  } catch (e) {
+    throw Error('Could not fetch logs.');
+  }
+};
+
+const getAddressInfo = (wallet, address) => {
+  const event = wallet.mailContract.interface.events.UserRegistered();
+  try {
+    return getEvents(wallet, event, wallet.mailContract.address, {
+      addr: address,
     });
-});
+  } catch (e) {
+    throw Error('Could not fetch events.');
+  }
+};
 
-const fetchAllEvents = folder =>
+const _updateContacts = async (wallet, hashName, ipfsHash) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  try {
+    return await wallet.mailContract.updateContacts(hashName, ipfsHash);
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
+
+const getContactsForUser = async (wallet, usernameHash) => {
+  if (!wallet) {
+    throw Error('No wallet provided!');
+  }
+  const event = wallet.mailContract.interface.events.ContactsUpdated();
+  try {
+    const filter = { usernameHash };
+    const events = await getEvents(wallet, event, wallet.mailContract.address, filter);
+
+    return events.length > 0 ? events.pop() : null;
+  } catch (err) {
+    console.error(err);
+    throw Error('Event fetching failed.');
+  }
+};
+
+// TODO: Rewrite using Ethers.js lib
+
+const getResolverForDomain = (wallet, domain) =>
   new Promise((resolve, reject) => {
-    getAccount()
-      .then((account) => {
-        if (!account) {
-          return reject({
-            message: 'Account not found.',
-          });
-        }
-        const filter = folder === 'inbox' ? { to: account } : { from: account };
-        return eventContract.EmailSent(
-          filter,
-          {
-            fromBlock: 0,
-            toBlock: 'latest',
-          },
-        )
-          .get((err, events) => {
-            if (err) {
-              reject({
-                message: err,
-              });
-            }
-
-            const filteredEvents = uniqBy(events, folder === 'inbox' ? 'args.from' : 'args.to');
-            return resolve(filteredEvents);
-          });
-      });
-  });
-
-const getAddressInfo = address =>
-  new Promise((resolve) => {
-    eventContract.UserRegistered(
-      {
-        addr: address,
-      },
-      {
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          console.log(err);
-        }
-
-        resolve(events);
-      });
-  });
-
-const updateContactsEvent = (hashName, ipfsHash) =>
-  new Promise((resolve, reject) => {
-    getAccount()
-      .then((account) => {
-        mailContract.updateContacts(hashName, ipfsHash, { from: account }, (err, resp) => {
-          if (err) {
-            reject(err);
-          }
-
-          return resolve(resp);
-        });
-      });
-  });
-
-const getContactsForUser = userHash =>
-  new Promise((resolve, reject) => {
-    eventContract.ContactsUpdated(
-      {
-        usernameHash: userHash,
-      },
-      {
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
-    )
-      .get((err, events) => {
-        if (err) {
-          reject(err);
-        }
-
-        if (events.length > 0) {
-          resolve(events.pop());
-        } else {
-          resolve(null);
-        }
-      });
-  });
-
-const getResolverForDomain = domain =>
-  new Promise((resolve, reject) => {
-    const provider = config.network === config.resolverNetwork ?
-      web3.currentProvider :
-      new web3.providers.HttpProvider(`https://${config.resolverNetwork}.infura.io`);
+    const provider = config.network === config.resolverNetwork
+      ? wallet.provider : wallet.mainProvider;
     const ens = new ENS({
       provider,
       network: Object.keys(networks).find(key => networks[key] === config.resolverNetwork),
@@ -609,95 +386,99 @@ const getResolverForDomain = domain =>
 
 /* Returns address of contract on MX record of given domain on given resolver */
 
-const resolveMx = (resolverAddr, domain) =>
-  new Promise((resolve, reject) => {
-    getAccount()
-      .then((account) => {
-        const _web3 = config.network === config.resolverNetwork ?
-          web3 : new Web3(new web3.providers.HttpProvider(`https://${config.resolverNetwork}.infura.io`));
-        const mxResolverContract = _web3.eth.contract(config.mxResolverAbi).at(resolverAddr);
-        mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID, { from: account }, (err, res) => {
-          if (err) reject(err);
-          if (!res) reject(false);
+const resolveMx = async (wallet, resolverAddr, domain) => {
+  const provider = config.network === config.resolverNetwork
+    ? wallet.provider : wallet.mainProvider;
+  const mxResolverContract = new Ethers.Contract(
+    resolverAddr,
+    config.mxResolverAbi,
+    provider,
+  );
+  const supportsMx = await mxResolverContract.supportsInterface(ENS_MX_INTERFACE_ID);
+  if (!supportsMx) throw Error('MX record not supported!');
+  return mxResolverContract.mx(namehash(domain));
+};
 
-          mxResolverContract.mx(namehash(domain), { from: account }, (errMx, mailContractAddr) => {
-            if (errMx) reject(errMx);
-            resolve(mailContractAddr);
-          });
-        });
-      });
-  });
+const getMailContract = async (wallet, domain) => {
+  const resolverAddress = await getResolverForDomain(wallet, domain);
+  const resolvedMailContractAddress = await resolveMx(wallet, resolverAddress, domain);
+  return new Ethers.Contract(
+    resolvedMailContractAddress,
+    config.mailContractAbi,
+    wallet,
+  );
+};
 
-// Used for testing purposes
-// const setMxRecord = () =>
-//   new Promise((resolve, reject) => {
-//     getResolverForDomain('decenter-test.test')
-//       .then((resolverAddr) => {
-//         web3.eth.getAccounts()
-//           .then((accounts) => {
-//             const mxResolverContract = new web3.eth.Contract(
-//               config.mxResolverAbi, resolverAddr, {
-//               from: accounts[0],
-//             });
-//             console.log(mxResolverContract);
-//             mxResolverContract.methods.setMxRecord(namehash('decenter-test.test'),
-// '              0x372d826abb22ed3546947a32977745830164717b')
-//               .send((errMx, data) => {
-//                 if (errMx) reject(errMx);
-//                 console.log(data);
-//                 resolve(data);
-//               });
-//           });
-//       });
-//   });
+const getPublicKeyForAddress = async (address) => {
+  const apiKey = '56P5HQMFIUXKNIS6Y5YSE8676M15WUM9CD';
+  const network = config.network === 'mainnet' ? '' : `-${config.network}`;
+  const api = `http://api${network}.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`;
+  const { kovan, mainnet } = Ethers.providers.networks;
+  try {
+    const data = (await (await fetch(api)).json());
+    console.log(data);
+    if (data.message !== 'OK' && data.status === '1') throw Error('Etherscan API not available.');
+    if (data.result.length === 0) throw Error('The account doesn\'t have any transactions.');
 
-const getMailContract = domain =>
-  new Promise((resolve, reject) => {
-    getResolverForDomain(domain)
-      .then(resolverAddr => resolveMx(resolverAddr, domain))
-      .then((resolvedMailContractAddr) => {
-        const resolvedMailContract = web3.eth.contract(config.mailContractAbi)
-          .at(resolvedMailContractAddr);
-        resolve(resolvedMailContract);
-      })
-      .catch(err => reject(err));
-  });
+    let transaction;
+    for (let i = 0; i < data.result.length; i += 1) {
+      if (address.toLowerCase() === data.result[i].from.toLowerCase()) {
+        transaction = data.result[i];
+        break;
+      }
+    }
 
-const resolveUser = (email, domain, isExternalMail) => {
-  if (!isExternalMail) {
-    return _getPublicKey(email);
+    if (transaction === undefined) throw Error('The account didn\'t send any transactions.');
+
+    const decenterKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.decenter.com', kovan);
+    const transactionData = await decenterKovanProvider.getTransaction(transaction.hash);
+
+    const parsedTransaction = new TX(new Buffer(transactionData.raw.slice(2), 'hex'));
+    const publicKey = util.bufferToHex(parsedTransaction.getSenderPublicKey());
+    console.log(`Recovered ${publicKey}`);
+    // TODO: Check on which contract is the account in question
+    return {
+      externalMailContract: undefined,
+      address,
+      publicKey,
+    };
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const resolveUser = async (wallet, email, domain, isExternalMail) => {
+  if (util.isValidAddress(email)) {
+    return getPublicKeyForAddress(email);
   }
 
-  return getMailContract(domain)
-    .then((resolvedMailContract) => {
-      if (resolvedMailContract === config.mailContractAddress) {
-        return _getPublicKey(email);
-      }
+  if (!isExternalMail) {
+    return _getPublicKey(wallet, email);
+  }
 
-      return _getPublicKey(email, resolvedMailContract);
-    })
-    .catch(error => Promise.reject({ error }));
+  const resolvedMailContract = await getMailContract(domain);
+  if (resolvedMailContract.address === config.mailContractAddress) {
+    return _getPublicKey(wallet, email);
+  }
+
+  return _getPublicKey(wallet, email, resolvedMailContract);
 };
 
 export default {
-  getWeb3Status,
-  signString,
-  getAccount,
+  createWallet,
   listenForMails,
   listenUserRegistered,
-  _registerUser,
-  _getPublicKey,
-  _sendEmail,
   checkRegistration,
   checkMailAddress,
-  signIn,
-  getMails,
-  getThread,
-  getBalance,
   fetchAllEvents,
   resolveUser,
+  getMails,
+  getBalance,
+  getThread,
   getAddressInfo,
-  updateContactsEvent,
   getContactsForUser,
-  getNetwork,
+  _registerUser,
+  _getPublicKey,
+  _sendMail,
+  _updateContacts,
 };

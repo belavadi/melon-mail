@@ -6,6 +6,7 @@ import { Button } from 'semantic-ui-react';
 import { Editor, EditorState, ContentState, convertFromHTML, RichUtils } from 'draft-js';
 import { stateToHTML } from 'draft-js-export-html';
 import { Creatable } from 'react-select';
+import { utils } from 'ethers';
 import uniqBy from 'lodash/uniqBy';
 
 import * as composeActions from '../../../actions/compose';
@@ -32,7 +33,7 @@ class Compose extends Component {
         value: '',
         files: [],
       },
-      recipientExists: 'undetermined',
+      recipientExists: false,
       editorState: EditorState.createEmpty(),
       selectedBlockType: '',
       search: '',
@@ -77,7 +78,7 @@ class Compose extends Component {
           selectedRecepients: [
             { label: originMail.from, value: originMail.from }],
           subject: `${originMail.subject}`,
-          recipientExists: 'true',
+          recipientExists: true,
         });
         if (originMail.subject.substr(0, 4) !== 'Re: ') {
           this.setState({
@@ -125,7 +126,7 @@ class Compose extends Component {
           recepients: updatedRecepients,
           selectedRecepients,
           subject: `${originMail.subject}`,
-          recipientExists: 'true',
+          recipientExists: true,
         });
 
         if (originMail.subject.substr(0, 4) !== 'Re: ') {
@@ -202,41 +203,39 @@ class Compose extends Component {
   }
 
   resetRecipient() {
-    this.setState({ recipientExists: 'undetermined' });
+    this.setState({ recipientExists: false });
   }
 
-  checkRecipient(recipient, callback) {
+  async checkRecipient(recipient, callback) {
     if (recipient === undefined) return;
-    const username = recipient.toLowerCase().trim();
-    const domain = username.split('@')[1];
+    const email = recipient.toLowerCase().trim();
+    const domain = email.split('@')[1];
+    const wallet = this.props.user.wallet;
     const isExternalMail = domain !== this.props.config.defaultDomain;
 
-    eth.resolveUser(username, domain, isExternalMail)
-      .then(() => {
-        this.setState({ recipientExists: 'true' });
-        if (callback) callback(true);
-      })
-      .catch(() => {
-        // this.setState({ recipientExists: 'false' });
-        if (callback) callback(false);
-      });
+    try {
+      await eth.resolveUser(wallet, email, domain, isExternalMail);
+      this.setState({ recipientExists: true });
+      if (callback) callback(true);
+    } catch (e) {
+      console.error(e);
+      if (callback) callback(false);
+    }
   }
 
   saveContact(contactName) {
     // removes the null chars from the end of the string
-    const currMail = this.props.user.mailAddress.replace(/\0/g, '');
+    const { keccak256, toUtf8Bytes } = utils;
+    const currentMail = this.props.user.mailAddress.replace(/\0/g, '');
+    if (currentMail === contactName) return;
 
-    // don't save our own email in contacts list
-    if (currMail === contactName) {
-      return;
-    }
-
-    const mailHash = web3.sha3(this.props.user.mailAddress);
+    const mailHash = keccak256(toUtf8Bytes(this.props.user.mailAddress));
 
     this.props.saveContactsToLocalStorage(contactName, mailHash);
   }
 
-  handleSend() {
+  async handleSend() {
+    const { wallet } = this.props.user;
     const files = this.state.files.files;
     const fileTooLarge = this.state.files.files.filter(file => file.size > 1024 * 1024 * 10);
     const invalidRecepients = this.state.selectedRecepients.filter(recipient => recipient.invalid);
@@ -264,65 +263,59 @@ class Compose extends Component {
     this.props.sendRequest('Fetching public key...');
 
     const resolveUserPromises = recepients.map(r =>
-      eth.resolveUser(r, r.split('@')[1], r.split('@')[1] !== this.props.config.defaultDomain));
+      eth.resolveUser(wallet, r, r.split('@')[1], r.split('@')[1] !== this.props.config.defaultDomain));
 
-    Promise.all(resolveUserPromises)
-      .then((data) => {
-        const keysForSender = {
-          privateKey: this.props.user.privateKey,
-          publicKey: this.props.user.publicKey,
-        };
+    const resolvedUsers = await Promise.all(resolveUserPromises);
+    const keysForSender = {
+      privateKey: wallet.privateKey,
+      publicKey: wallet.publicKey,
+    };
 
-        const receiversKeys = data.map(d => ({
-          privateKey: this.props.user.privateKey,
-          publicKey: d.publicKey,
+    const receiversKeys = resolvedUsers.map(user => ({
+      privateKey: wallet.privateKey,
+      publicKey: user.publicKey,
+    }));
+
+    const attachments = [
+      encryptAttachments(files, keysForSender),
+      ...receiversKeys.map(key => encryptAttachments(files, key)),
+    ];
+
+    if (files.length > 0) this.props.changeSendState('Encrypting attachments...', 2);
+    try {
+      const resolvedAttachments = await Promise.all(attachments);
+      const [senderAttachments, ...receiverAttachments] = resolvedAttachments;
+
+      const senderData = encrypt(keysForSender, JSON.stringify({
+        ...mail,
+        attachments: senderAttachments,
+      }));
+      const receiversData = {};
+
+      receiversKeys.forEach((receiverKey, i) => {
+        receiversData[receiverKey.publicKey] = encrypt(receiverKey, JSON.stringify({
+          ...mail,
+          attachments: receiverAttachments[i],
         }));
-
-        const attachments = [
-          encryptAttachments(files, keysForSender),
-          ...receiversKeys.map(key => encryptAttachments(files, key)),
-        ];
-
-        if (files.length > 0) this.props.changeSendState('Encrypting attachments...', 2);
-
-        return Promise.all(attachments)
-          .then(([senderAttachments, ...receiverAttachments]) => {
-            const senderData = encrypt(keysForSender, JSON.stringify({
-              ...mail,
-              attachments: senderAttachments,
-            }));
-
-            const receiversData = {};
-
-            receiversKeys.forEach((receiverKey, i) => {
-              receiversData[receiverKey.publicKey] = encrypt(receiverKey, JSON.stringify({
-                ...mail,
-                attachments: receiverAttachments[i],
-              }));
-            });
-
-            let threadId = null;
-            if (this.props.compose.special && (this.props.compose.special.type === 'reply'
-                || this.props.compose.special.type === 'replyAll')) {
-              threadId = this.props.mail.threadId;
-            }
-
-            return this.props.sendMail({
-              toAddress: data.map(d => d.address),
-              senderData,
-              receiversData,
-            }, threadId, data.externalMailContract);
-          })
-          .then(() => {
-            this.props.closeCompose();
-          })
-          .catch((err) => {
-            throw err;
-          });
-      })
-      .catch((err) => {
-        this.props.sendError(err.message.toString());
       });
+
+      let threadId = null;
+      if (this.props.compose.special && (this.props.compose.special.type === 'reply'
+          || this.props.compose.special.type === 'replyAll')) {
+        threadId = this.props.mail.threadId;
+      }
+
+      await this.props.sendMail({
+        toAddress: resolvedUsers.map(d => d.address),
+        senderData,
+        receiversData,
+      }, threadId, resolvedUsers.externalMailContract);
+
+      this.props.closeCompose();
+    } catch (e) {
+      console.error(e);
+      this.props.sendError(e.message);
+    }
   }
 
   handleChange(values) {
@@ -335,10 +328,17 @@ class Compose extends Component {
 
     const recepient = values[values.length - 1] || '';
 
+    // Add a sample recepient showing a checking status, and later remove it...
+    this.setState({
+      recepients: [...this.state.recepients, { label: 'Checking...', value: 'Checking...' }],
+      selectedRecepients: [...this.state.selectedRecepients, 'Checking...'],
+    });
+
     return this.checkRecipient(recepient.value, (validRecipient) => {
       if (validRecipient && !this.state.selectedRecepients.includes(recepient.value)) {
         this.setState({
           selectedRecepients: values,
+          recepients: this.state.recepients.slice(0, -1),
         });
 
         // add the contact to the list
@@ -354,7 +354,7 @@ class Compose extends Component {
         const invalidValues = values;
         invalidValues[invalidValues.length - 1].invalid = true;
         this.setState({
-          recepients: this.state.recepients.slice(1),
+          recepients: this.state.recepients.slice(1, -1),
           selectedRecepients: invalidValues,
         });
         this.handleInvalidValue(invalidValues);
@@ -522,7 +522,7 @@ class Compose extends Component {
               content="Send"
               loading={this.props.compose.isSending}
               disabled={
-                this.state.recipientExists !== 'true' ||
+                this.state.recipientExists !== true ||
                 this.props.compose.isSending
               }
             />
@@ -582,9 +582,7 @@ Compose.propTypes = {
   }),
   user: PropTypes.shape({
     mailAddress: PropTypes.string.isRequired,
-    ethAddress: PropTypes.string.isRequired,
-    privateKey: PropTypes.string.isRequired,
-    publicKey: PropTypes.string.isRequired,
+    wallet: PropTypes.object.isRequired,
     contacts: PropTypes.array,
   }),
   config: PropTypes.shape({

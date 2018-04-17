@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import Web3 from 'web3';
+import Ethers from 'ethers';
 import {
   Button,
   Dropdown,
@@ -18,7 +16,7 @@ const options = [
   { key: 'https://', text: 'https://', value: 'https://' },
 ];
 
-class EthereumNodeModal extends Component {
+export default class EthereumNodeModal extends Component {
   constructor() {
     super();
 
@@ -38,22 +36,23 @@ class EthereumNodeModal extends Component {
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
   }
 
-  handleFormSubmit(e) {
+  async handleFormSubmit(e) {
     e.preventDefault();
-
+    const { kovan } = Ethers.providers.networks;
     const protocol = this.state.protocol;
     const ipAddress = this.state.host;
 
-    const web3Custom = new Web3(new web3.providers.HttpProvider(protocol + ipAddress));
+    try {
+      const customNode = new Ethers.providers.JsonRpcProvider(protocol + ipAddress, kovan);
+      await customNode.getBlockNumber();
 
-    if (web3Custom.isConnected()) {
       localStorage.setItem('customEthNode', JSON.stringify({ protocol, ipAddress }));
 
       this.setState({
         nodeAdded: true,
         error: false,
       });
-    } else {
+    } catch (error) {
       this.setState({
         error: true,
         nodeAdded: false,
@@ -109,12 +108,12 @@ class EthereumNodeModal extends Component {
 
             {
               this.state.nodeAdded &&
-                <span> Ethereum node successfuly added</span>
+              <span> Ethereum node successfuly added</span>
             }
 
             {
               this.state.error &&
-                <span> Not a valid Ethereum node!</span>
+              <span> Not a valid Ethereum node!</span>
             }
 
             {this.state.status}
@@ -139,11 +138,3 @@ class EthereumNodeModal extends Component {
     );
   }
 }
-
-const mapStateToProps = state => state.user;
-const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch);
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(EthereumNodeModal);

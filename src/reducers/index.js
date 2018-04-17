@@ -5,10 +5,12 @@ import mail from './mail';
 import mails from './mails';
 import compose from './compose';
 import config from './config';
+import transaction from './transaction';
 
 const appReducer = combineReducers({
   user,
   router,
+  transaction,
   mail,
   mails,
   compose,

@@ -1,19 +1,13 @@
 import eth from '../services/ethereumService';
 import config from '../../config/config.json';
+import { decrypt, encrypt } from '../services/cryptoService';
+import { keccak256 } from '../services/helperService';
+import { openTransactionModal } from './transaction';
 
-export const changeNetwork = network => ({
-  type: 'NETWORK_CHANGE',
-  network,
-});
-
-export const setAccount = account => ({
-  type: 'SET_ACCOUNT',
-  account,
-});
-
-export const changeAccount = account => ({
-  type: 'ACCOUNT_CHANGE',
-  account,
+export const addWallet = wallet => ({
+  type: 'ADD_WALLET',
+  stage: 'check',
+  wallet,
 });
 
 export const userNotRegistered = () => ({
@@ -29,6 +23,7 @@ export const userIsRegistered = data => ({
 
 export const registerSuccess = data => ({
   type: 'REGISTER_SUCCESS',
+  isFetching: false,
   data,
 });
 
@@ -44,19 +39,10 @@ export const authError = error => ({
   error,
 });
 
-export const wrongNetwork = () => ({
-  type: 'WRONG_NETWORK',
-  stage: 'wrongNetwork',
-});
-
 export const loginSuccess = data => ({
   type: 'LOGIN_SUCCESS',
+  isFetching: false,
   data,
-});
-
-export const noConnection = () => ({
-  type: 'NO_CONNECTION',
-  stage: 'noConnection',
 });
 
 export const unsecureContext = () => ({
@@ -64,9 +50,12 @@ export const unsecureContext = () => ({
   stage: 'unsecureContext',
 });
 
-export const logout = () => ({
-  type: 'CLEAR_STORE',
-});
+export const logout = () => {
+  localStorage.removeItem('wallet:melon.email');
+  return {
+    type: 'CLEAR_STORE',
+  };
+};
 
 export const contactsSuccess = contacts => ({
   type: 'CONTACTS_SUCCESS',
@@ -81,49 +70,36 @@ export const userRegistrationMined = (account) => {
   localStorage.removeItem(`isregistering-${account}`);
 };
 
-export const checkRegistration = () => (dispatch) => {
+export const checkRegistration = () => async (dispatch, getState) => {
   if (!window.isSecureContext && window.isSecureContext !== undefined) {
-    dispatch(unsecureContext());
-    return;
+    return dispatch(unsecureContext());
   }
+  const wallet = getState().user.wallet;
 
-  eth.getWeb3Status()
-    .then(() => eth.checkRegistration())
-    .then((data) => {
-      if (config.useLocalStorage) {
-        userRegistrationMined(data.address);
-      }
-      dispatch(userIsRegistered(data));
-      return eth.signIn(data.mailAddress);
-    })
-    .then((result) => {
-      if (result.status) {
-        return dispatch(loginSuccess(result));
-      }
-      console.error(result.error);
-      return dispatch(authError('You need to sign the string in order to login.'));
-    })
-    .catch((result) => {
-      console.error(result);
-      if (window.web3 === undefined) {
-        return dispatch(noConnection());
-      }
-      if (!result.error && result.notRegistered) {
-        return dispatch(userNotRegistered());
-      }
-      if (result.message === 'WRONG_NETWORK') {
-        return dispatch(wrongNetwork());
-      }
-      return dispatch(authError(
-        'Something went wrong or you didn\'t accept the signing process.',
-      ));
-    });
+  try {
+    const user = await eth.checkRegistration(wallet);
+
+    if (!user.error && user.notRegistered) {
+      return dispatch(userNotRegistered());
+    }
+
+    return dispatch(loginSuccess({
+      startingBlock: user.startingBlock,
+      mailAddress: decrypt({
+        privateKey: wallet.privateKey,
+        publicKey: wallet.publicKey,
+      }, user.mailAddress),
+    }));
+  } catch (e) {
+    return console.error(e.message);
+  }
 };
 
 export const startListener = () => (dispatch, getState) => {
+  const wallet = getState().user.wallet;
   if (config.useLocalStorage) {
-    eth.listenUserRegistered((event) => {
-      userRegistrationMined(event.args.addr);
+    eth.listenUserRegistered(wallet, (event) => {
+      userRegistrationMined(event.addr);
       if (getState().router.path === 'auth') {
         dispatch(checkRegistration());
       }
@@ -131,20 +107,33 @@ export const startListener = () => (dispatch, getState) => {
   }
 };
 
-export const registerUser = mailAddress => (dispatch, getState) => {
-  eth.getAccount()
-    .then(account =>
-      eth.checkMailAddress(mailAddress)
-        .then(() => eth.signString(account, config.stringToSign))
-        .then(signedString => eth._registerUser(mailAddress, signedString))
-        .then((data) => {
-          if (config.useLocalStorage) {
-            userIsRegistering(getState().user.activeAccount);
-          }
-          dispatch(registerSuccess(data));
-        })
-        .catch((error) => {
-          dispatch(registerError(error.message));
+export const registerUser = mailAddress => async (dispatch, getState) => {
+  const wallet = getState().user.wallet;
+  try {
+    const isAvailable = await eth.checkMailAddress(wallet, mailAddress);
+    if (isAvailable) {
+      const encryptedUsername = encrypt({
+        privateKey: wallet.privateKey,
+        publicKey: wallet.publicKey,
+      }, mailAddress);
+      const hashedUsername = keccak256(mailAddress);
+      dispatch(openTransactionModal(
+        {
+          method: eth._registerUser,
+          methodName: 'registerUser',
+          params: [
+            hashedUsername,
+            encryptedUsername,
+            wallet.publicKey,
+          ],
+          additionalParams: [
+            mailAddress,
+          ],
         }));
+      // dispatch(registerSuccess(data));
+    }
+  } catch (e) {
+    dispatch(registerError(e.message));
+  }
 };
 

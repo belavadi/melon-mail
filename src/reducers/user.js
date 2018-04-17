@@ -3,20 +3,22 @@ export default (state = {
   isAuthenticated: false,
   authError: '',
   registerError: '',
-  stage: 'check',
-  activeAccount: '',
-  privateKey: null,
-  publicKey: null,
+  stage: 'wallet',
   mailAddress: '',
-  ethAddress: '',
   startingBlock: 0,
-  balance: 0,
   contacts: [],
   backupDone: false,
   backupAlreadyDone: false,
-  network: '',
+  wallet: {},
 }, action) => {
   switch (action.type) {
+    case 'ADD_WALLET':
+      return {
+        ...state,
+        wallet: action.wallet,
+        stage: action.stage,
+        error: '',
+      };
     case 'REGISTER_REQUEST':
     case 'LOGIN_REQUEST':
       return {
@@ -29,10 +31,7 @@ export default (state = {
         isFetching: action.isFetching,
         isAuthenticated: true,
         registerError: '',
-        privateKey: action.data.privateKey,
-        publicKey: action.data.publicKey,
         startingBlock: action.data.startingBlock,
-        ethAddress: action.data.address,
         mailAddress: action.data.mailAddress,
       };
     case 'REGISTER_ERROR':
@@ -44,12 +43,11 @@ export default (state = {
     case 'LOGIN_SUCCESS':
       return {
         ...state,
-        isFetching: action.isFetching,
-        isAuthenticated: true,
-        privateKey: action.data.privateKey,
-        publicKey: action.data.publicKey,
-        mailAddress: action.data.mailAddress,
         authError: '',
+        isAuthenticated: true,
+        isFetching: action.isFetching,
+        mailAddress: action.data.mailAddress,
+        startingBlock: 0,
       };
     case 'USER_NOT_REGISTERED':
       return {
@@ -73,37 +71,18 @@ export default (state = {
         stage: action.stage,
       };
     case 'NO_CONNECTION':
-    case 'WRONG_NETWORK':
     case 'UNSECURE_CONTEXT':
       return {
         ...state,
         stage: action.stage,
       };
-    case 'SET_ACCOUNT':
-      return {
-        ...state,
-        activeAccount: action.account,
-      };
-    case 'ACCOUNT_CHANGE':
-      return {
-        ...state,
-        activeAccount: action.account,
-        privateKey: null,
-        publicKey: null,
-        mailAddress: '',
-        ethAddress: '',
-        startingBlock: 0,
-        isAuthenticated: false,
-      };
-    case 'NETWORK_CHANGE':
-      return {
-        ...state,
-        network: action.network,
-      };
     case 'UPDATE_BALANCE':
       return {
         ...state,
-        balance: action.balance,
+        wallet: {
+          ...state.wallet,
+          balance: action.balance,
+        },
       };
     case 'CONTACTS_SUCCESS':
       return {

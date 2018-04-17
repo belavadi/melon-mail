@@ -15,14 +15,17 @@ export const generateKeys = (data) => {
 };
 
 export const encrypt = (keys, data) => {
-  const privateKey = new bitcore.PrivateKey(keys.privateKey);
-  const receiver = ecies().privateKey(privateKey).publicKey(new bitcore.PublicKey(keys.publicKey));
+  // Remove 0x from private and public key
+  // Append 04 on the public key for 64bit bitcoin uncompressed format
+  const privateKey = new bitcore.PrivateKey(keys.privateKey.substr(2));
+  const publicKey = new bitcore.PublicKey(`04${keys.publicKey.substr(2)}`);
+  const receiver = ecies().privateKey(privateKey).publicKey(publicKey);
 
   return receiver.encrypt(data, Random.getRandomBuffer(16)).toString('hex');
 };
 
 export const decrypt = (keys, data) => {
-  const privateKey = ecies().privateKey(new bitcore.PrivateKey(keys.privateKey));
+  const privateKey = ecies().privateKey(new bitcore.PrivateKey(keys.privateKey.substr(2)));
 
   return privateKey.decrypt(new Buffer(data, 'hex')).toString();
 };
