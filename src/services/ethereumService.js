@@ -5,7 +5,6 @@ import Ethers from 'ethers';
 import bip39 from 'bip39';
 import ENS from 'ethjs-ens';
 import config from '../../config/config.json';
-import { encrypt } from './cryptoService';
 import { namehash, keccak256, createFilter } from './helperService';
 
 const ENS_MX_INTERFACE_ID = '0x7d753cf6';
@@ -17,9 +16,6 @@ const networks = {
   2: 'morden',
   1: 'mainnet',
 };
-
-const filterLogs = (logs, filter) =>
-  logs.filter(log => Object.keys(filter).filter(key => log[key] === filter[key]).length > 0);
 
 const getEvents = async (wallet, event, address, filter, fromBlock = 0, toBlock = 'latest') => {
   try {
@@ -110,20 +106,20 @@ const createWallet = async (importedMnemonic, decryptedWallet) => {
   const localMainProvider = new Ethers.providers.JsonRpcProvider('http://localhost:8545/', mainnet);
 
   wallet.provider = new Ethers.providers.FallbackProvider([
-    decenterKovanProvider,
     melonKovanProvider,
+    decenterKovanProvider,
     localKovanProvider,
   ]);
 
   wallet.mainProvider = new Ethers.providers.FallbackProvider([
-    decenterMainProvider,
     melonMainProvider,
+    decenterMainProvider,
     localMainProvider,
   ]);
 
   wallet.publicKey = util.bufferToHex(util.privateToPublic(wallet.privateKey));
 
-  wallet.balance = parseInt(await getBalance(wallet), 10);
+  wallet.balance = parseFloat(await getBalance(wallet));
 
   wallet.mailContract = new Ethers.Contract(
     config.mailContractAddress,
@@ -413,10 +409,9 @@ const getPublicKeyForAddress = async (address) => {
   const apiKey = '56P5HQMFIUXKNIS6Y5YSE8676M15WUM9CD';
   const network = config.network === 'mainnet' ? '' : `-${config.network}`;
   const api = `http://api${network}.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`;
-  const { kovan, mainnet } = Ethers.providers.networks;
+  const { kovan } = Ethers.providers.networks;
   try {
     const data = (await (await fetch(api)).json());
-    console.log(data);
     if (data.message !== 'OK' && data.status === '1') throw Error('Etherscan API not available.');
     if (data.result.length === 0) throw Error('The account doesn\'t have any transactions.');
 

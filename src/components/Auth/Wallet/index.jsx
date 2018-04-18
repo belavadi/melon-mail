@@ -108,8 +108,6 @@ class Wallet extends Component {
         errorMessage: 'Invalid private key.',
       });
     }
-
-    console.log(new EthersWallet(privateKey));
   }
 
   async decryptWallet(e) {

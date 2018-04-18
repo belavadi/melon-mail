@@ -1,14 +1,22 @@
+import Ethers from 'ethers';
 import eth from '../services/ethereumService';
 import config from '../../config/config.json';
 import { decrypt, encrypt } from '../services/cryptoService';
 import { keccak256 } from '../services/helperService';
 import { openTransactionModal } from './transaction';
+import { updateBalance } from './utility';
 
-export const addWallet = wallet => ({
-  type: 'ADD_WALLET',
-  stage: 'check',
-  wallet,
-});
+export const addWallet = wallet => (dispatch) => {
+  wallet.provider.on(wallet.address, (balance) => {
+    const _balance = parseFloat(Ethers.utils.formatEther(balance));
+    dispatch(updateBalance(_balance));
+  });
+  dispatch({
+    type: 'ADD_WALLET',
+    stage: 'check',
+    wallet,
+  });
+};
 
 export const userNotRegistered = () => ({
   type: 'USER_NOT_REGISTERED',

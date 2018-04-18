@@ -12,6 +12,7 @@ const config = {
     './src/',
     './src/index.jsx',
   ],
+  devtool: 'inline-source-map',
   devServer: {
     contentBase: path.join(__dirname, './dist/'),
     hot: true,

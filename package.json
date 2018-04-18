@@ -5,12 +5,13 @@
   "repository": "https://github.com/melonproject/MelonMail",
   "scripts": {
     "setup": "node ./config/config.js",
-    "dev": "webpack-dev-server --mode development --open --host 127.0.0.1 --port 3300",
+    "dev": "webpack-dev-server --https --mode=development --open --host 0.0.0.0 --port 3300 --compress --config ./webpack.config.js",
     "prod": "webpack --config ./webpack.production.js --mode production"
   },
   "author": "Decenter",
   "license": "ISC",
   "dependencies": {
+    "add-asset-html-webpack-plugin": "^2.1.3",
     "babel-polyfill": "^6.26.0",
     "bip39": "^2.5.0",
     "bitcore-ecies": "^1.0.3",
@@ -41,6 +42,7 @@
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0",
     "resolve-url-loader": "^2.3.0",
+    "semantic-ui-css": "^2.3.1",
     "semantic-ui-react": "^0.75.1",
     "truffle-contract": "^3.0.4",
     "uglifyjs-webpack-plugin": "^1.2.2",

@@ -37,7 +37,7 @@ class Register extends Component {
             <Header as="h4">Insufficient balance</Header>
             <p className="regular-text">In order to create an account, you need to have some
               Kovan test ether in your wallet.
-              You can request k-eth on our gitter channel or on the Kovan Faucet.</p>
+              You can request k-eth on our gitter channel or on the Melon Faucet.</p>
             <Button
               href="https://gitter.im/melonproject/general?source=orgpage"
               target="blank"
@@ -46,11 +46,11 @@ class Register extends Component {
               Melon Gitter
             </Button>
             <Button
-              href="https://github.com/kovan-testnet/faucet"
+              href={`https://faucet.melon.network/${this.props.user.wallet.address}`}
               target="blank"
               rel="noopener"
             >
-              Kovan Faucet
+              Melon Faucet
             </Button>
           </div>
         }
