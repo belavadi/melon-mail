@@ -24,7 +24,7 @@ contract('PublicEmailExample', async (accounts) => {
         try {
             await publicEmailExample.addAdmin(accounts[1], { from: accounts[4] });            
         } catch(err) {
-            assert.isTrue(err.toString().includes('invalid opcode'));
+            assert.isTrue(err.toString().includes('revert'));
             return;
         }
     });
@@ -45,7 +45,7 @@ contract('PublicEmailExample', async (accounts) => {
         try {
             await publicEmailExample.approveUser(accounts[1], { from: accounts[3] });            
         } catch(err) {
-            assert.isTrue(err.toString().includes('invalid opcode'));
+            assert.isTrue(err.toString().includes('revert'));
             return;
         }
     });
@@ -79,7 +79,7 @@ contract('PublicEmailExample', async (accounts) => {
                 keys.publicKey,
                 {from: accounts[1]});
         } catch(err) {
-            assert.isTrue(err.toString().includes('invalid opcode'));
+            assert.isTrue(err.toString().includes('revert'));
             return;
         }
     });
