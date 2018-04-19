@@ -8,8 +8,10 @@ module.exports = function(deployer, network) {
   if(network === 'kovan') {
     deployer.deploy(PublicEmail);
   } else {
-    deployer.deploy(Manager);
-    deployer.deploy(Relay);
+    deployer.deploy(Manager).then(() => {
+      return deployer.deploy(Relay, Manager.address);
+    });
+
     deployer.deploy(PublicEmail);
     deployer.deploy(PublicEmailExample);
   }
