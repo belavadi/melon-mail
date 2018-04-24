@@ -5,7 +5,7 @@
   "repository": "https://github.com/melonproject/MelonMail",
   "scripts": {
     "setup": "node ./config/config.js",
-    "dev": "webpack-dev-server --https --mode=development --open --host 0.0.0.0 --port 3300 --compress --config ./webpack.config.js",
+    "dev": "webpack-dev-server --mode=development --open --host 127.0.0.1 --port 3300 --compress --config ./webpack.config.js",
     "prod": "webpack --config ./webpack.production.js --mode production"
   },
   "author": "Decenter",

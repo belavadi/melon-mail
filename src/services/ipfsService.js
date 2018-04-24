@@ -18,7 +18,7 @@ function getUserRepNodes() {
 }
 
 const ipfsBootstrapNodesList = [
-  '/dns4/ipfs.decenter.com/tcp/4443/wss/ipfs/QmNxpsbNJzvXpUbv9Kp9YnNAdgSzNz8DGWay8ie7pyLy5q',
+  '/dns4/ipfs.decenter.com/tcp/4443/wss/ipfs/QmWv5BiGHbZNQKg48cA1FLJaiM7aBj4NNDc1HmBkxbxhLz',
   ...getUserRepNodes().map(getMultiaddressString),
 ];
 
