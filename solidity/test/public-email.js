@@ -49,7 +49,7 @@ contract('PublicEmail', async (accounts) => {
         keys.publicKey,
         { from: accounts[0] });
     } catch (err) {
-      assert.isTrue(err.toString().includes('invalid opcode'));
+      assert.isTrue(err.toString().includes('revert'));
       return;
     }
   });
@@ -97,7 +97,7 @@ contract('PublicEmail', async (accounts) => {
         mail.mailHash,
         mail.threadHash,
         mail.threadId,
-        { from: accounts[0] });
+        { from: mail.from });
 
       const event = publicEmailProxy.EmailSent();
 
@@ -115,7 +115,7 @@ contract('PublicEmail', async (accounts) => {
   it('should update contacts by firing an event', async () => {
     const data = {
       usernameHash: keccak256(toUtf8Bytes('test@melon-mail.eth')),
-      ipfsHash: keccak256(toUtf8Bytes('ipfsHash'))
+      fileHash: keccak256(toUtf8Bytes('ipfsHash'))
     };
 
     try {
