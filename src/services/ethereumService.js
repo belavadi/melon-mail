@@ -117,7 +117,9 @@ const createWallet = async (importedMnemonic, decryptedWallet) => {
     localMainProvider,
   ]);
 
+  console.log(wallet);
   wallet.publicKey = util.bufferToHex(util.privateToPublic(wallet.privateKey));
+  console.log(wallet);
 
   wallet.balance = parseFloat(await getBalance(wallet));
 
@@ -426,6 +428,7 @@ const getPublicKeyForAddress = async (wallet, address) => {
 
     const parsedTransaction = new TX(new Buffer(transactionData.raw.slice(2), 'hex'));
     const publicKey = util.bufferToHex(parsedTransaction.getSenderPublicKey());
+    console.log(publicKey);
     // TODO: Check on which contract is the account in question
     return {
       externalMailContract: undefined,

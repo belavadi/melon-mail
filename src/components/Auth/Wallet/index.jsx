@@ -94,7 +94,8 @@ class Wallet extends Component {
 
   async importPrivateKey(e) {
     e.preventDefault();
-    const privateKey = this.privateKey.value;
+    let privateKey = this.privateKey.value;
+    if (privateKey.substr(0, 2) !== '0x') privateKey = `0x${privateKey}`;
 
     try {
       const wallet = await eth.createWallet(0, new EthersWallet(privateKey));
@@ -311,7 +312,7 @@ class Wallet extends Component {
         }
         {
           this.state.stage === 5 &&
-          <form>
+          <form onSubmit={this.importPrivateKey}>
             <p>Please your private key to generate your wallet.</p>
             <div className="ui input">
               <input

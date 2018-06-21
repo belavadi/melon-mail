@@ -55,7 +55,9 @@ export const getThread = (threadId, afterBlock) => async (dispatch, getState) =>
     const decryptedMails = mails.map((mail, index) => {
       try {
         const mailToDecrypt = JSON.parse(mail);
-        const mailBody = mailToDecrypt.toAddress.indexOf(wallet.address) !== -1 ?
+        const addrIndex = mailToDecrypt.toAddress.findIndex(item =>
+          wallet.address.toLowerCase() === item.toLowerCase());
+        const mailBody = addrIndex !== -1 ?
           mailToDecrypt.receiversData[keys.publicKey] : mailToDecrypt.senderData;
         return {
           ...JSON.parse(decrypt(keys, mailBody)),
