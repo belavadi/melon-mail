@@ -27,3 +27,14 @@
     }
   }
 }
+
+.ui.page.modals.dimmer.visible {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.ui.modal {
+  margin-top: 0 !important;
+  top: auto !important;
+  left: auto !important;
+}

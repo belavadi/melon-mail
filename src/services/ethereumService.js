@@ -126,8 +126,6 @@ const createWallet = async (importedMnemonic, decryptedWallet) => {
     config.mailContractAbi,
     wallet,
   );
-  console.log(wallet);
-  console.log(Ethers.utils);
   return wallet;
 };
 
@@ -159,7 +157,6 @@ const checkMailAddress = async (wallet, mailAddress) => {
 /* Calls registerUser function from the contract code */
 
 const _registerUser = async (wallet, params, mailAddress, overrideOptions) => {
-  console.log(wallet, params, mailAddress, overrideOptions);
   if (!wallet) {
     throw Error('No wallet provided!');
   }
@@ -405,10 +402,10 @@ const getMailContract = async (wallet, domain) => {
   );
 };
 
-const getPublicKeyForAddress = async (address) => {
+const getPublicKeyForAddress = async (wallet, address) => {
   const apiKey = '56P5HQMFIUXKNIS6Y5YSE8676M15WUM9CD';
   const network = config.network === 'mainnet' ? '' : `-${config.network}`;
-  const api = `http://api${network}.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`;
+  const api = `https://api${network}.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${apiKey}`;
   const { kovan } = Ethers.providers.networks;
   try {
     const data = (await (await fetch(api)).json());
@@ -425,12 +422,10 @@ const getPublicKeyForAddress = async (address) => {
 
     if (transaction === undefined) throw Error('The account didn\'t send any transactions.');
 
-    const decenterKovanProvider = new Ethers.providers.JsonRpcProvider('https://kovan.decenter.com', kovan);
-    const transactionData = await decenterKovanProvider.getTransaction(transaction.hash);
+    const transactionData = await wallet.provider.getTransaction(transaction.hash);
 
     const parsedTransaction = new TX(new Buffer(transactionData.raw.slice(2), 'hex'));
     const publicKey = util.bufferToHex(parsedTransaction.getSenderPublicKey());
-    console.log(`Recovered ${publicKey}`);
     // TODO: Check on which contract is the account in question
     return {
       externalMailContract: undefined,
@@ -444,7 +439,7 @@ const getPublicKeyForAddress = async (address) => {
 
 const resolveUser = async (wallet, email, domain, isExternalMail) => {
   if (util.isValidAddress(email)) {
-    return getPublicKeyForAddress(email);
+    return getPublicKeyForAddress(wallet, email);
   }
 
   if (!isExternalMail) {

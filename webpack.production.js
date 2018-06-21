@@ -2,8 +2,8 @@ const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
 
 const config = {
@@ -90,7 +90,13 @@ const config = {
         NODE_ENV: JSON.stringify('production'),
       },
     }),
-    new UglifyJsPlugin(),
+    new UglifyJsPlugin({
+      uglifyOptions: {
+        compress: {
+          unused: false,
+        },
+      },
+    }),
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new ExtractTextPlugin({

@@ -22,6 +22,7 @@ module.exports = {
     'linebreak-style': 0,
     'consistent-return': 0,
     'no-unescaped-entities': 0,
+    'import/first': 0,
 },
   globals: {
     window: true,
